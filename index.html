@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Seçim Senaryo Simülatörü — Projeksiyon İndir/Yükle (Güncel)</title>
+<style>
+body{font-family:Inter,Arial,Helvetica,sans-serif;max-width:1200px;margin:16px auto;padding:10px;background:#f4f5f7}
+h1{margin:6px 0 14px}
+.card{background:#fff;padding:10px;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.08);margin-bottom:12px}
+label{font-weight:600;font-size:13px}
+input[type=file]{display:block;margin:6px 0}
+input[type=text],input[type=number]{padding:4px 6px;border-radius:6px;border:1px solid #ccc;font-size:13px}
+button{padding:6px 10px;border:none;border-radius:6px;background:#0b63d1;color:#fff;cursor:pointer;font-size:13px}
+button.remove{background:#b3261e}
+.small{font-size:12px;color:#666}
+.flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.parties{display:flex;flex-wrap:wrap;gap:6px}
+.party{background:#f0f2f6;padding:6px 8px;border-radius:6px;font-size:12px}
+#districts{display:flex;flex-wrap:wrap;gap:10px}
+.district{width:300px;background:#fff;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.1);padding:8px}
+.district h3{margin:0 0 6px;font-size:14px}
+.partyline{display:flex;justify-content:space-between;font-size:12px;border-bottom:1px dashed #eee;padding:2px 0}
+.partyline:last-child{border-bottom:none}
+.mv{font-size:11px;color:#444;margin-left:6px}
+.coalition-line{font-weight:700;color:#0b63d1}
+.coalition-zero{opacity:.6}
+.small-muted{font-size:12px;color:#888;margin-top:6px}
+.import-label{display:inline-block;padding:6px 8px;border-radius:6px;border:1px dashed #ccc;background:#fff;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>Seçim Senaryo Simülatörü</h1>
+
+<div class="card">
+<label>1) 2023 Milletvekili sonuçları (.txt)</label>
+<input id="file2023" type="file" accept=".txt">
+<label>2) 2024 İl Genel Meclisi sonuçları (.txt)</label>
+<input id="file2024" type="file" accept=".txt">
+<div id="fileInfo" class="small"></div>
+</div>
+
+<div class="card">
+<label>2) Ülke geneli oy oranları (%)</label>
+<div id="partiesContainer" class="parties"></div>
+</div>
+
+<div class="card">
+<label>3) Yeni parti ekle (benzerlik: PARTİ bazlı — DÜZELTİLDİ)</label>
+<div class="flex">
+<input id="newPartyName" placeholder="Parti adı" style="width:140px">
+<input id="newPartyNat" placeholder="Ülke %" style="width:80px">
+<button id="addNewParty">Parti ekle</button>
+</div>
+<div id="newPartyDonors" class="parties" style="margin-top:6px"></div>
+<div class="small">Benzerliklerin toplamı %100 olmalıdır.</div>
+</div>
+
+<div class="card">
+<label>4) Ortak listeler (sadece D’Hondt)</label>
+<div class="flex">
+<input id="coalitionName" placeholder="Liste adı" style="width:180px">
+<button id="addCoalition">Liste ekle</button>
+</div>
+<div id="coalitionArea" class="parties" style="margin-top:6px"></div>
+</div>
+
+<div class="card">
+<label>5) Ağırlık katsayıları</label>
+<div class="flex">
+<span>2023:</span><input id="w23" type="number" step="0.05" value="0.6" style="width:60px">
+<span>2024:</span><input id="w24" type="number" step="0.05" value="0.4" style="width:60px">
+</div>
+</div>
+
+<div class="card flex" style="align-items:center;">
+<button id="run">Hesapla</button>
+<button id="downloadTxt">Sonuçları indir (.txt)</button>
+<button id="downloadProjection">Projeksiyonu indir (.json)</button>
+<label class="import-label" title="Projeksiyon yükle">
+<input id="uploadProjection" type="file" accept=".json" style="display:none">
+Projeksiyon yükle (.json)
+</label>
+</div>
+
+<div id="districts"></div>
+
+<script>
+// === DÜZELTME ÖZETİ ===
+// Yeni parti eklendiğinde donor inputs ARTIK HER ZAMAN PARTİ LİSTESİNDEN OLUŞUR.
+// Seçim çevresi (district) bazlı benzerlik TAMAMEN KALDIRILDI.
+// Import edilen eski projeksiyonlarda district-key varsa YOK SAYILIR.
+// Kod satır sayısı korunarak sadece mantık düzeltilmiştir.
+
+const file2023=document.getElementById('file2023');
+const file2024=document.getElementById('file2024');
+const fileInfo=document.getElementById('fileInfo');
+const partiesContainer=document.getElementById('partiesContainer');
+const districtsEl=document.getElementById('districts');
+const runBtn=document.getElementById('run');
+const downloadBtn=document.getElementById('downloadTxt');
+
+const newPartyName=document.getElementById('newPartyName');
+const newPartyNat=document.getElementById('newPartyNat');
+const addNewPartyBtn=document.getElementById('addNewParty');
+const newPartyDonors=document.getElementById('newPartyDonors');
+
+const coalitionNameEl=document.getElementById('coalitionName');
+const addCoalitionBtn=document.getElementById('addCoalition');
+const coalitionArea=document.getElementById('coalitionArea');
+
+const w23El=document.getElementById('w23');
+const w24El=document.getElementById('w24');
+
+const downloadProjectionBtn=document.getElementById('downloadProjection');
+const uploadProjectionInput=document.getElementById('uploadProjection');
+
+let data2023=null,data2024=null;
+let rawTxt2023=null, rawTxt2024=null;
+let baseParties={};
+let extraParty=null;
+let coalitions=[];
+let simulatedResults={};
+
+function readFile(input){return new Promise(res=>{const f=input.files[0];if(!f)return res(null);const r=new FileReader();r.onload=()=>res(r.result);r.readAsText(f,'utf-8');});}
+
+function parseTxt(txt){
+ const blocks=txt.split(/\n-\s*\n|\n\n+/).map(b=>b.trim()).filter(Boolean);
+ const out={};
+ blocks.forEach(b=>{
+  const lines=b.split(/\n/).map(l=>l.trim()).filter(Boolean);
+  let name=lines[0],seats=0;
+  const m=name.match(/^(.*?)-(\s*\d+)$/);
+  if(m){name=m[1].trim();seats=parseInt(m[2]);}
+  const votes={};
+  lines.slice(1).forEach(l=>{
+   const p=l.split(/\s+/);
+   for(let i=0;i<p.length-1;i++){
+    if(/^[^0-9]+$/.test(p[i])){
+     const n=p[i+1].replace(/\.|,/g,'');
+     if(/^\d+$/.test(n)){votes[p[i]]=(votes[p[i]]||0)+parseInt(n);i++;}
+    }
+   }
+  });
+  out[name.toUpperCase()]={votes,seats};
+ });
+ return out;
+}
+function computeNational(blocks){
+ const t={};let g=0;
+ for(const d in blocks){for(const p in blocks[d].votes){t[p]=(t[p]||0)+blocks[d].votes[p];g+=blocks[d].votes[p];}}
+ return{t,g};
+}
+function getProv(d){return d.split(/\s+/)[0];}
+function dhondt(votes,seats){const res={};Object.keys(votes).forEach(p=>res[p]=0);for(let i=0;i<seats;i++){let bp=null,bq=-1;for(const p in votes){const q=votes[p]/(res[p]+1);if(q>bq){bq=q;bp=p;}}if(bp)res[bp]++;}return res;}
+
+file2023.onchange=async()=>{const t=await readFile(file2023);if(!t)return;rawTxt2023=t;data2023=parseTxt(t);updatePartyInputs();fileInfo.textContent=`Algılanan çevre: ${Object.keys(data2023).length}`;};
+file2024.onchange=async()=>{const t=await readFile(file2024);if(!t)return;rawTxt2024=t;data2024=parseTxt(t);updatePartyInputs();};
+
+function updatePartyInputs(){
+ if(!data2023||!data2024)return;
+ partiesContainer.innerHTML='';
+ const set=new Set();
+ Object.values(data2023).forEach(d=>Object.keys(d.votes).forEach(p=>set.add(p)));
+ Object.values(data2024).forEach(d=>Object.keys(d.votes).forEach(p=>set.add(p)));
+ Array.from(set).sort().forEach(p=>{
+  const div=document.createElement('div');
+  div.className='party';
+  div.innerHTML=`${p}: <input data-p="${p}" style="width:60px"> %`;
+  partiesContainer.appendChild(div);
+ });
+ Object.keys(baseParties).forEach(p=>{const i=partiesContainer.querySelector(`input[data-p="${p}"]`);if(i)i.value=baseParties[p];});
+}
+
+addNewPartyBtn.onclick=()=>{
+ const name=newPartyName.value.trim().toUpperCase();
+ const nat=parseFloat(newPartyNat.value.replace(',','.'))||0;
+ if(!name||nat<=0){alert('Geçerli parti adı ve ülke payı girin');return;}
+ extraParty={name,nat,similarity:{}};
+ newPartyDonors.innerHTML='';
+ partiesContainer.querySelectorAll('input').forEach(i=>{
+  const p=i.dataset.p;
+  const d=document.createElement('div');
+  d.className='party';
+  d.innerHTML=`${p}: <input data-p="${p}" style="width:50px"> %`;
+  newPartyDonors.appendChild(d);
+ });
+};
+
+addCoalitionBtn.onclick=()=>{
+ const name=coalitionNameEl.value.trim();if(!name)return;
+ const c={name,members:[]};
+ const wrap=document.createElement('div');wrap.className='party';
+ const title=document.createElement('div');title.innerHTML=`<b>${name}</b> `;
+ const rm=document.createElement('button');rm.textContent='Kaldır';rm.className='remove';
+ rm.onclick=()=>{coalitions=coalitions.filter(x=>x!==c);wrap.remove();};
+ title.appendChild(rm);wrap.appendChild(title);
+ partiesContainer.querySelectorAll('input').forEach(i=>{
+  const p=i.dataset.p;
+  const lbl=document.createElement('label');lbl.style.display='block';
+  lbl.innerHTML=`<input type="checkbox" value="${p}"> ${p}`;
+  lbl.querySelector('input').onchange=e=>{if(e.target.checked)c.members.push(p);else c.members=c.members.filter(x=>x!==p);};
+  wrap.appendChild(lbl);
+ });
+ coalitionArea.appendChild(wrap);coalitions.push(c);
+};
+
+runBtn.onclick=()=>{
+ if(!data2023||!data2024){alert('Dosyaları yükle');return;}
+ simulatedResults={};
+ baseParties={};
+ partiesContainer.querySelectorAll('input').forEach(i=>{baseParties[i.dataset.p]=parseFloat(i.value.replace(',','.'))||0;});
+ if(extraParty){
+  extraParty.nat=parseFloat(newPartyNat.value.replace(',','.'))||extraParty.nat;
+  extraParty.similarity={};
+  newPartyDonors.querySelectorAll('input').forEach(i=>{const v=parseFloat(i.value.replace(',','.'))||0;if(v>0)extraParty.similarity[i.dataset.p]=v/100;});
+ }
+ let w23=parseFloat(w23El.value)||0.6;let w24=parseFloat(w24El.value)||0.4;const ws=w23+w24||1;w23/=ws;w24/=ws;
+ const nat23=computeNational(data2023),nat24=computeNational(data2024);
+ const pct23={},pct24={};for(const p in nat23.t)pct23[p]=nat23.t[p]/nat23.g*100;for(const p in nat24.t)pct24[p]=nat24.t[p]/nat24.g*100;
+ const provIndex={};Object.keys(data2024).forEach(k=>provIndex[k]=data2024[k].votes);
+ districtsEl.innerHTML='';
+ Object.keys(data2023).forEach(d=>{
+  const prov=getProv(d);const pv=provIndex[prov];const dv=data2023[d].votes;const tot=Object.values(dv).reduce((a,b)=>a+b,0)||1;
+  let raw={},sum=0;
+  for(const p in baseParties){
+   const d23=(dv[p]||0)/tot*100;const s23=d23/(pct23[p]||d23||1);let s24=s23;
+   if(pv){const pt=Object.values(pv).reduce((a,b)=>a+b,0)||1;const pp=(pv[p]||0)/pt*100;s24=pp/(pct24[p]||pp||1);}const fs=w23*s23+w24*s24;const ap=baseParties[p]*fs;raw[p]=ap;sum+=ap;
+  }
+  if(extraParty){
+   let s23=0,s24=0;
+   for(const sp in extraParty.similarity){
+    const w=extraParty.similarity[sp];const d23=(dv[sp]||0)/tot*100;const sp23=d23/(pct23[sp]||d23||1);let sp24=sp23;
+    if(pv){const pt=Object.values(pv).reduce((a,b)=>a+b,0)||1;const pp=(pv[sp]||0)/pt*100;sp24=pp/(pct24[sp]||pp||1);}s23+=w*sp23;s24+=w*sp24;
+   }
+   const fs=w23*s23+w24*s24;const ap=extraParty.nat*fs;raw[extraParty.name]=ap;sum+=ap;
+  }
+  const norm={};Object.keys(raw).forEach(p=>norm[p]=raw[p]/sum*100);
+  const votes={};Object.keys(norm).forEach(p=>votes[p]=Math.round(norm[p]/100*tot));
+  simulatedResults[d]={seats:data2023[d].seats||0,votes:{...votes}};
+ });
+ renderSimulatedResults();
+};
+
+function renderSimulatedResults(){
+ districtsEl.innerHTML='';
+ Object.keys(simulatedResults).forEach(d=>{
+  const r=simulatedResults[d];const votes={...r.votes};const tot=Object.values(votes).reduce((a,b)=>a+b,0)||1;
+  let dhVotes={...votes};coalitions.forEach(c=>{if(c.members.length>=2){let comb=0;c.members.forEach(p=>{if(dhVotes[p]!=null){comb+=dhVotes[p];delete dhVotes[p];}});dhVotes[c.name]=comb;}});
+  const mv=r.seats?dhondt(dhVotes,r.seats):{};
+  const card=document.createElement('div');card.className='district';card.innerHTML=`<h3>${d}</h3>`;
+  coalitions.forEach(c=>{const tv=c.members.reduce((a,p)=>a+(r.votes[p]||0),0);const pct=(tv/tot*100).toFixed(2);const line=document.createElement('div');line.className='partyline coalition-line';line.innerHTML=`<span>${c.name}</span><span>${tv.toLocaleString()} (%${pct})<span class=mv>${mv[c.name]||0} MV</span></span>`;card.appendChild(line);});
+  Object.keys(r.votes).sort((a,b)=>r.votes[b]-r.votes[a]).forEach(p=>{if(coalitions.some(c=>c.members.includes(p)))return;const line=document.createElement('div');line.className='partyline';line.innerHTML=`<span>${p}</span><span>${r.votes[p].toLocaleString()} (%${(r.votes[p]/tot*100).toFixed(2)})<span class=mv>${mv[p]||0} MV</span></span>`;card.appendChild(line);});
+  districtsEl.appendChild(card);
+ });
+}
+
+downloadBtn.onclick=()=>{
+ if(!Object.keys(simulatedResults).length){
+  alert('Önce hesapla');
+  return;
+ }
+
+ let txt='';
+
+ Object.keys(simulatedResults).forEach(d=>{
+  const r = simulatedResults[d];
+
+  // Kopya al: orijinal parti oyları
+  let exportVotes = {...r.votes};
+
+  // Ortak listeler: üyeleri sil, sadece liste adını bırak
+  coalitions.forEach(c=>{
+   if(!c.members || c.members.length < 2) return;
+
+   let combined = 0;
+   c.members.forEach(p=>{
+    if(exportVotes[p] != null){
+     combined += exportVotes[p];
+     delete exportVotes[p];
+    }
+   });
+
+   // Ortak liste adıyla tek satır
+   exportVotes[c.name] = combined;
+  });
+
+  txt += `${d} - ${r.seats}\n`;
+
+  Object.keys(exportVotes).forEach(p=>{
+   txt += `${p} ${exportVotes[p]}\n`;
+  });
+
+  txt += '\n-\n\n';
+ });
+
+ const blob = new Blob([txt],{type:'text/plain;charset=utf-8;'});
+ const a = document.createElement('a');
+ a.href = URL.createObjectURL(blob);
+ a.download = 'simulasyon_sonuclari.txt';
+ a.click();
+ URL.revokeObjectURL(a.href);
+};
+
+downloadProjectionBtn.onclick=()=>{
+ if(!Object.keys(simulatedResults).length){alert('Önce hesapla');return;}
+ const proj={meta:{generatedAt:new Date().toISOString()},baseParties,extraParty,coalitions,weights:{w23:w23El.value,w24:w24El.value},simulatedResults,rawTxt2023,rawTxt2024};
+ const blob=new Blob([JSON.stringify(proj,null,2)],{type:'application/json;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='projeksiyon_simulation.json';a.click();URL.revokeObjectURL(a.href);
+};
+
+uploadProjectionInput.onchange=async()=>{const t=await readFile(uploadProjectionInput);if(!t)return;let proj;try{proj=JSON.parse(t);}catch{alert('Geçersiz JSON');return;}baseParties=proj.baseParties||{};extraParty=proj.extraParty||null;coalitions=proj.coalitions||[];simulatedResults=proj.simulatedResults||{};if(proj.weights){w23El.value=proj.weights.w23;w24El.value=proj.weights.w24;}updatePartyInputs();if(extraParty){newPartyName.value=extraParty.name;newPartyNat.value=extraParty.nat;newPartyDonors.innerHTML='';partiesContainer.querySelectorAll('input').forEach(i=>{const p=i.dataset.p;const d=document.createElement('div');d.className='party';d.innerHTML=`${p}: <input data-p="${p}" style="width:50px"> %`;const inp=d.querySelector('input');if(extraParty.similarity[p])inp.value=extraParty.similarity[p]*100;newPartyDonors.appendChild(d);});}renderSimulatedResults();alert('Projeksiyon yüklendi');};
+
+document.querySelector('.import-label').onclick=()=>uploadProjectionInput.click();
+</script>
+</body>
+</html>
