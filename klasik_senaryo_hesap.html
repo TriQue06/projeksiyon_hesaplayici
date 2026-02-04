@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Seçim Sonuçları Simülasyonu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+        }
+        #top-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .party-box {
+            background: white;
+            padding: 8px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px #ccc;
+            font-size: 13px;
+        }
+        .party-box input {
+            width: 80px;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        .city {
+            background: white;
+            margin: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px #ccc;
+            display: inline-block;
+            width: 260px;
+            vertical-align: top;
+            font-size: 13px;
+        }
+        .city-name {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .mv-info {
+            font-style: italic;
+            margin-bottom: 6px;
+        }
+        .city pre {
+            white-space: pre-wrap;
+            margin: 0;
+        }
+        button {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            background: #1976d2;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #145ca3;
+        }
+
+        #new-parties {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .new-party-card {
+            background: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 0 6px #ccc;
+            font-size: 13px;
+        }
+        .new-party-header {
+            display:flex;
+            gap:8px;
+            align-items:center;
+            margin-bottom:8px;
+        }
+        .donor-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap:6px;
+            max-height: 200px;
+            overflow:auto;
+        }
+        .donor-item input {
+            width: 70px;
+        }
+        .small-btn {
+            padding:4px 8px;
+            font-size:12px;
+            background:#e53935;
+            border-radius:4px;
+            color:white;
+            border:none;
+            cursor:pointer;
+        }
+        .small-btn.secondary {
+            background:#777;
+        }
+
+        /* Ulke geneli istatistik kutusu */
+        #national-stats {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 220px;
+            max-height: 60vh;
+            overflow: auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            padding: 10px;
+            font-size: 13px;
+            z-index: 999;
+        }
+        #national-stats h3 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            text-align: left;
+        }
+        #national-stats ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #national-stats li {
+            display:flex;
+            justify-content:space-between;
+            gap:8px;
+            padding: 4px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        #national-stats li:last-child { border-bottom: none; }
+        #national-total {
+            margin-top: 8px;
+            font-size: 12px;
+            text-align: right;
+            color: #444;
+        }
+
+        @media (max-width: 800px) {
+            #national-stats { position: static; width: auto; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+<h1>Seçim Sonuçları Simülasyonu</h1>
+
+<div id="top-bar">
+    <div>
+        <input type="file" id="fileInput" accept=".txt">
+    </div>
+
+    <div style="display:flex; gap:8px; align-items:center;">
+        <button id="addPartyBtn">Yeni Parti Ekle</button>
+        <button id="clearNewPartiesBtn" class="small-btn secondary">Yeni Partileri Sıfırla</button>
+    </div>
+
+    <div id="inputs"></div>
+
+    <div id="new-parties"></div>
+
+    <div>
+        <button onclick="applyChanges()">Değişimleri Uygula</button>
+    </div>
+</div>
+
+<div id="results"></div>
+
+<div id="national-stats" aria-live="polite">
+    <h3>Ülke Geneli Oy Dağılımı</h3>
+    <ul id="national-list"></ul>
+    <div id="national-total"></div>
+</div>
+
+<script>
+let rawData = "";
+let cities = [];
+let parties = new Set();
+let originalPartiesOrdered = [];
+let newPartyIdCounter = 0;
+
+const fileInput = document.getElementById("fileInput");
+fileInput.addEventListener("change", function () {
+    const reader = new FileReader();
+    reader.onload = function () {
+        rawData = reader.result;
+        parseData();
+        generateInputs();
+        rebuildNewPartyUI();
+        renderResults();
+    };
+    if (fileInput.files[0]) reader.readAsText(fileInput.files[0]);
+});
+
+document.getElementById("addPartyBtn").addEventListener("click", () => {
+    addNewPartyCard();
+});
+document.getElementById("clearNewPartiesBtn").addEventListener("click", () => {
+    document.getElementById("new-parties").innerHTML = "";
+});
+
+function parseData() {
+    cities = [];
+    parties = new Set();
+
+    const blocks = rawData
+        .split(/\n-\s*\n/g)
+        .map(b => b.trim())
+        .filter(b => b);
+
+    blocks.forEach(block => {
+        const lines = block
+            .split(/\r?\n/)
+            .map(l => l.trim())
+            .filter(l => l);
+
+        if (lines.length < 2) return;
+
+        let header = lines[0];
+        let cityName = header;
+        let seats = 0;
+
+        const seatMatch = header.match(/^(.*?)-(\d+)\s*$/);
+        if (seatMatch) {
+            cityName = seatMatch[1].trim();
+            seats = parseInt(seatMatch[2], 10);
+        }
+
+        const results = {};
+
+        for (let i = 1; i < lines.length; i++) {
+            const parts = lines[i].split(/\s+/);
+            if (parts.length < 2) continue;
+            const p = parts[0];
+            const vStr = parts.slice(1).join("");
+            const num = parseFloat(vStr.replace(/\./g, ""));
+            if (!isNaN(num)) {
+                results[p] = num;
+                parties.add(p);
+            }
+        }
+
+        if (Object.keys(results).length > 0) {
+            cities.push({ name: cityName, seats: seats, votes: results });
+        }
+    });
+
+    originalPartiesOrdered = Array.from(parties).sort((a,b) => a.localeCompare(b,'tr'));
+    document.getElementById("new-parties").innerHTML = "";
+}
+
+function generateInputs() {
+    const container = document.getElementById("inputs");
+    container.innerHTML = "";
+
+    originalPartiesOrdered.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "party-box";
+        div.innerHTML = `
+            <label>${p} değişim (%):</label><br>
+            <input type="number" id="chg_${escapeId(p)}" value="0" step="0.1">
+        `;
+        container.appendChild(div);
+    });
+}
+
+function escapeId(name) {
+    return name.replace(/[^a-zA-Z0-9_]/g, '_');
+}
+
+function addNewPartyCard(prefillName = "") {
+    const npContainer = document.getElementById("new-parties");
+    const id = 'np_' + (newPartyIdCounter++);
+    const card = document.createElement("div");
+    card.className = "new-party-card";
+    card.id = id;
+
+    let donorsHtml = '';
+    if (originalPartiesOrdered.length === 0) {
+        donorsHtml = '<div>Önce .txt dosyası yükleyin.</div>';
+    } else {
+        donorsHtml = '<div class="donor-grid">';
+        originalPartiesOrdered.forEach(donor => {
+            donorsHtml += `
+                <div class="donor-item">
+                    <label>${donor}</label><br>
+                    <input type="number" data-donor="${donor}" class="donor-input" value="0" step="0.1"> %
+                </div>
+            `;
+        });
+        donorsHtml += '</div>';
+    }
+
+    card.innerHTML = `
+        <div class="new-party-header">
+            <input type="text" class="new-party-name" placeholder="Yeni parti adı" value="${escapeHtml(prefillName)}">
+            <button class="small-btn" onclick="removeNewParty('${id}')">Sil</button>
+        </div>
+        <div>
+            <strong>Donor yüzdeleri:</strong>
+            ${donorsHtml}
+        </div>
+    `;
+    npContainer.appendChild(card);
+}
+
+function removeNewParty(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+}
+
+function rebuildNewPartyUI() {
+    const npContainer = document.getElementById("new-parties");
+    const existing = Array.from(npContainer.children);
+    if (existing.length === 0) return;
+    existing.forEach(card => {
+        const donorGrid = card.querySelector('.donor-grid');
+        const nameInput = card.querySelector('.new-party-name');
+        const currentName = nameInput ? nameInput.value : '';
+        let donorsHtml = '';
+        if (originalPartiesOrdered.length === 0) {
+            donorsHtml = '<div>Önce .txt dosyası yükleyin.</div>';
+        } else {
+            donorsHtml = '<div class="donor-grid">';
+            originalPartiesOrdered.forEach(donor => {
+                donorsHtml += `
+                    <div class="donor-item">
+                        <label>${donor}</label><br>
+                        <input type="number" data-donor="${donor}" class="donor-input" value="0" step="0.1"> %
+                    </div>
+                `;
+            });
+            donorsHtml += '</div>';
+        }
+        if (donorGrid) {
+            donorGrid.outerHTML = donorsHtml;
+        } else {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = donorsHtml;
+            card.appendChild(wrapper);
+        }
+        if (nameInput) {
+            card.querySelector('.new-party-name').value = currentName;
+        }
+    });
+}
+
+function applyChanges() {
+    const changes = {};
+    originalPartiesOrdered.forEach(p => {
+        const el = document.getElementById(`chg_${escapeId(p)}`);
+        const val = el ? parseFloat(el.value) || 0 : 0;
+        changes[p] = val;
+    });
+
+    const newParties = [];
+    const npContainer = document.getElementById('new-parties');
+    Array.from(npContainer.children).forEach(card => {
+        const name = (card.querySelector('.new-party-name') || {}).value || '';
+        if (!name) return;
+        const steals = {};
+        const inputs = card.querySelectorAll('.donor-input');
+        inputs.forEach(inp => {
+            const donor = inp.dataset.donor;
+            if (!donor) return;
+            const val = parseFloat(inp.value) || 0;
+            steals[donor] = val;
+        });
+        newParties.push({ name: name.trim(), steals });
+    });
+
+    renderResults(changes, newParties);
+}
+
+function computeDhondt(votesMap, seatCount) {
+    const partiesList = Object.keys(votesMap);
+    const seatAlloc = {};
+    partiesList.forEach(p => seatAlloc[p] = 0);
+
+    for (let i = 0; i < seatCount; i++) {
+        let bestParty = null;
+        let bestQuotient = -1;
+
+        partiesList.forEach(p => {
+            const votes = votesMap[p] || 0;
+            const quotient = votes / (seatAlloc[p] + 1);
+            if (quotient > bestQuotient) {
+                bestQuotient = quotient;
+                bestParty = p;
+            }
+        });
+
+        if (!bestParty) break;
+        seatAlloc[bestParty]++;
+    }
+
+    return seatAlloc;
+}
+
+function renderResults(changes = null, newParties = []) {
+    const container = document.getElementById("results");
+    container.innerHTML = "";
+
+    // Ulke geneli toplama için aggregate object
+    const nationalAggregate = {};
+
+    cities.forEach(city => {
+        const div = document.createElement("div");
+        div.className = "city";
+
+        const baseVotes = { ...city.votes };
+
+        const adjustedVotes = {};
+        for (const p in city.votes) {
+            let value = city.votes[p];
+            if (changes && typeof changes[p] === "number") {
+                value = value + (value * (changes[p] / 100));
+            }
+            if (value < 0) value = 0;
+            adjustedVotes[p] = value;
+        }
+
+        const votesForDhondt = { ...adjustedVotes };
+
+        newParties.forEach(np => {
+            let totalFromBase = 0;
+            Object.keys(baseVotes).forEach(donor => {
+                const percent = parseFloat(np.steals[donor]) || 0;
+                if (percent <= 0) return;
+                const base = baseVotes[donor] || 0;
+                totalFromBase += base * (percent / 100);
+            });
+            if (totalFromBase > 0) {
+                votesForDhondt[np.name] = (votesForDhondt[np.name] || 0) + totalFromBase;
+            } else {
+                if (!(np.name in votesForDhondt)) votesForDhondt[np.name] = 0;
+            }
+        });
+
+        Object.keys(votesForDhondt).forEach(p => {
+            nationalAggregate[p] = (nationalAggregate[p] || 0) + (votesForDhondt[p] || 0);
+        });
+
+        let seatInfoText = "";
+        let dhondtSeats = null;
+        if (city.seats && city.seats > 0) {
+            dhondtSeats = computeDhondt(votesForDhondt, city.seats);
+            seatInfoText = `${city.seats} MV, D'Hondt dağılımı`;
+        } else {
+            seatInfoText = `Milletvekili sayısı belirtilmemiş (0 MV)`;
+        }
+
+        let text = "";
+        const partList = Object.keys(votesForDhondt).sort((a,b) => (votesForDhondt[b] - votesForDhondt[a]));
+        partList.forEach(p => {
+            const voteStr = Math.round(votesForDhondt[p]).toLocaleString("tr-TR");
+            const mv = dhondtSeats ? (dhondtSeats[p] || 0) : 0;
+            const mvPart = city.seats > 0 ? `, ${mv} MV` : "";
+            text += `${p}: ${voteStr} oy${mvPart}\n`;
+        });
+
+        div.innerHTML = `
+            <div class="city-name">${city.name}</div>
+            <div class="mv-info">${seatInfoText}</div>
+            <pre>${text}</pre>
+        `;
+        container.appendChild(div);
+    });
+
+    updateNationalStats(nationalAggregate);
+}
+
+function updateNationalStats(aggregate) {
+    const listEl = document.getElementById("national-list");
+    const totalEl = document.getElementById("national-total");
+    listEl.innerHTML = "";
+
+    const entries = Object.keys(aggregate).map(k => ({ name: k, votes: aggregate[k] || 0 }));
+    const totalVotes = entries.reduce((s,e) => s + e.votes, 0);
+
+    entries.sort((a,b) => b.votes - a.votes);
+
+    entries.forEach(e => {
+        const pct = totalVotes > 0 ? (e.votes / totalVotes * 100) : 0;
+        const li = document.createElement("li");
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = e.name;
+        const valSpan = document.createElement("span");
+        valSpan.textContent = `${Math.round(e.votes).toLocaleString("tr-TR")} (${pct.toFixed(2)}%)`;
+        li.appendChild(nameSpan);
+        li.appendChild(valSpan);
+        listEl.appendChild(li);
+    });
+
+    totalEl.textContent = `Toplam oy: ${Math.round(totalVotes).toLocaleString("tr-TR")}`;
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
+}
+</script>
+</body>
+</html>
