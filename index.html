@@ -1,316 +1,411 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Seçim Senaryo Simülatörü — Projeksiyon İndir/Yükle (Güncel)</title>
-<style>
-body{font-family:Inter,Arial,Helvetica,sans-serif;max-width:1200px;margin:16px auto;padding:10px;background:#f4f5f7}
-h1{margin:6px 0 14px}
-.card{background:#fff;padding:10px;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.08);margin-bottom:12px}
-label{font-weight:600;font-size:13px}
-input[type=file]{display:block;margin:6px 0}
-input[type=text],input[type=number]{padding:4px 6px;border-radius:6px;border:1px solid #ccc;font-size:13px}
-button{padding:6px 10px;border:none;border-radius:6px;background:#0b63d1;color:#fff;cursor:pointer;font-size:13px}
-button.remove{background:#b3261e}
-.small{font-size:12px;color:#666}
-.flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.parties{display:flex;flex-wrap:wrap;gap:6px}
-.party{background:#f0f2f6;padding:6px 8px;border-radius:6px;font-size:12px}
-#districts{display:flex;flex-wrap:wrap;gap:10px}
-.district{width:300px;background:#fff;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.1);padding:8px}
-.district h3{margin:0 0 6px;font-size:14px}
-.partyline{display:flex;justify-content:space-between;font-size:12px;border-bottom:1px dashed #eee;padding:2px 0}
-.partyline:last-child{border-bottom:none}
-.mv{font-size:11px;color:#444;margin-left:6px}
-.coalition-line{font-weight:700;color:#0b63d1}
-.coalition-zero{opacity:.6}
-.small-muted{font-size:12px;color:#888;margin-top:6px}
-.import-label{display:inline-block;padding:6px 8px;border-radius:6px;border:1px dashed #ccc;background:#fff;cursor:pointer}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Seçim Simülatörü Pro v5.1 - Final Patch</title>
+    <style>
+        :root{--primary:#0071e3;--bg:#f2f2f7;--card:#ffffff;--text:#1d1d1f;--border:#d2d2d7;--accent:#34c759;--danger:#ff3b30}
+        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:15px;font-size:12px}
+        
+        /* Sidebar Temizliği */
+        .sidebar::-webkit-scrollbar { display: none; }
+        .sidebar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .container{max-width:1650px;margin:0 auto;display:grid;grid-template-columns:380px 1fr;gap:20px}
+        h1{font-size:20px;font-weight:600;grid-column:1/-1;margin:0 0 15px; display:flex; align-items:center; gap:10px}
+        .card{background:var(--card);border-radius:12px;padding:15px;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid var(--border);margin-bottom:15px}
+        .sidebar{height:calc(100vh - 40px);overflow-y:auto;padding-right:5px}
+        
+        label{display:block;font-weight:600;margin-bottom:6px;color:#333}
+        input, button, select{width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);margin-bottom:10px;box-sizing:border-box;font-size:12px}
+        button{background:var(--primary);color:#fff;border:none;cursor:pointer;font-weight:600;transition:0.2s}
+        button:hover{opacity:0.9}
+        button.danger{background:var(--danger)}
+
+        .data-row{background:#f9f9f9;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid #eee}
+        .parties-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(85px, 1fr));gap:6px}
+        .party-box{background:#fff;border:1px solid var(--border);padding:6px;border-radius:6px;text-align:center}
+        
+        /* Benzerlik Alanı Genişletildi */
+        .similarity-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(110px, 1fr));gap:8px;margin-top:10px}
+        .sim-input-box{background:#eff4f9;padding:8px;border-radius:6px;border:1px solid #d1d9e0}
+
+        /* 4'lü Izgara Görünümü */
+        #results{display:grid;grid-template-columns:repeat(auto-fill, minmax(calc(25% - 15px), 1fr));gap:15px}
+        .dist-card{background:#fff;border-radius:10px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.05);border-top:4px solid var(--primary)}
+        .dist-card h3{margin:0 0 10px;font-size:13px;display:flex;justify-content:space-between;color:var(--primary)}
+        
+        .p-line{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;align-items:center}
+        .p-line.is-coal{color:var(--primary);font-weight:bold;background:#f0f7ff;margin:2px -5px;padding:5px;border-radius:4px}
+        .mv-tag{background:var(--text);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:bold;margin-left:5px}
+        
+        /* İttifak Listesi Fix */
+        .coal-member-label { display: flex; align-items: center; gap: 8px; font-weight: 400; margin-bottom: 5px; cursor: pointer; padding: 2px 0;}
+        .coal-member-label input { width: 16px; height: 16px; margin: 0; cursor: pointer; }
+
+        .flex-row{display:flex;gap:8px;align-items:center}
+        .scroll-area{max-height:250px;overflow-y:auto;padding-right:5px; border:1px solid #eee; border-radius:8px; padding:5px; background:#fafafa}
+    </style>
 </head>
 <body>
-<h1>Seçim Senaryo Simülatörü</h1>
 
-<div class="card">
-<label>1) 2023 Milletvekili sonuçları (.txt)</label>
-<input id="file2023" type="file" accept=".txt">
-<label>2) 2024 İl Genel Meclisi sonuçları (.txt)</label>
-<input id="file2024" type="file" accept=".txt">
-<div id="fileInfo" class="small"></div>
-</div>
+<h1>🗳️ Seçim Simülatörü Pro v5.1 <small style="font-weight:400; font-size:12px; color:#666">| Superior Patch & 4-Column</small></h1>
 
-<div class="card">
-<label>2) Ülke geneli oy oranları (%)</label>
-<div id="partiesContainer" class="parties"></div>
-</div>
+<div class="container">
+    <div class="sidebar">
+        <div class="card">
+            <label>1. Veri Setleri (.txt)</label>
+            <input type="file" id="fileInp" accept=".txt" multiple>
+            <div id="datasetsList" class="scroll-area"></div>
+        </div>
 
-<div class="card">
-<label>3) Yeni parti ekle (benzerlik: PARTİ bazlı — DÜZELTİLDİ)</label>
-<div class="flex">
-<input id="newPartyName" placeholder="Parti adı" style="width:140px">
-<input id="newPartyNat" placeholder="Ülke %" style="width:80px">
-<button id="addNewParty">Parti ekle</button>
-</div>
-<div id="newPartyDonors" class="parties" style="margin-top:6px"></div>
-<div class="small">Benzerliklerin toplamı %100 olmalıdır.</div>
-</div>
+        <div class="card">
+            <label>2. Hedef Ülke Oy Oranları (%)</label>
+            <div id="basePartiesArea" class="parties-grid"></div>
+        </div>
 
-<div class="card">
-<label>4) Ortak listeler (sadece D’Hondt)</label>
-<div class="flex">
-<input id="coalitionName" placeholder="Liste adı" style="width:180px">
-<button id="addCoalition">Liste ekle</button>
-</div>
-<div id="coalitionArea" class="parties" style="margin-top:6px"></div>
-</div>
+        <div class="card">
+            <label>3. Yeni Parti Ekle</label>
+            <div class="flex-row">
+                <input id="newPName" placeholder="Ad">
+                <input id="newPNat" type="number" placeholder="%" style="width:70px">
+                <button onclick="addExtraParty()" style="width:50px">+</button>
+            </div>
+            <div id="extraPartiesArea"></div>
+        </div>
 
-<div class="card">
-<label>5) Ağırlık katsayıları</label>
-<div class="flex">
-<span>2023:</span><input id="w23" type="number" step="0.05" value="0.6" style="width:60px">
-<span>2024:</span><input id="w24" type="number" step="0.05" value="0.4" style="width:60px">
-</div>
-</div>
+        <div class="card">
+            <label>4. Ortak Listeler (İttifak)</label>
+            <div class="flex-row">
+                <input id="coalName" placeholder="Liste Adı">
+                <button onclick="addCoalition()" style="width:50px">+</button>
+            </div>
+            <div id="coalitionArea" class="scroll-area"></div>
+        </div>
 
-<div class="card flex" style="align-items:center;">
-<button id="run">Hesapla</button>
-<button id="downloadTxt">Sonuçları indir (.txt)</button>
-<button id="downloadProjection">Projeksiyonu indir (.json)</button>
-<label class="import-label" title="Projeksiyon yükle">
-<input id="uploadProjection" type="file" accept=".json" style="display:none">
-Projeksiyon yükle (.json)
-</label>
-</div>
+        <div class="card" style="position: sticky; bottom: 0; background: #fff; z-index: 10; padding-top: 10px; border-top: 2px solid var(--primary);">
+            <button id="runBtn" style="background:var(--accent); font-size:15px; padding:16px">🚀 HESAPLA</button>
+            <button onclick="downloadResults()" class="danger" style="margin-top:8px">💾 SONUÇLARI İNDİR (.TXT)</button>
+        </div>
+    </div>
 
-<div id="districts"></div>
+    <div id="results">
+        <div style="grid-column:1/-1; color:#888; text-align:center; padding:100px; font-size:14px">
+            Seçim sonuçlarını görmek için veri setlerini yükleyin ve hesapla butonuna basın.
+        </div>
+    </div>
+</div>
 
 <script>
-// === DÜZELTME ÖZETİ ===
-// Yeni parti eklendiğinde donor inputs ARTIK HER ZAMAN PARTİ LİSTESİNDEN OLUŞUR.
-// Seçim çevresi (district) bazlı benzerlik TAMAMEN KALDIRILDI.
-// Import edilen eski projeksiyonlarda district-key varsa YOK SAYILIR.
-// Kod satır sayısı korunarak sadece mantık düzeltilmiştir.
+const $ = id => document.getElementById(id);
+let datasets = [];
+let extraParties = [];
+let coalitions = [];
+let globalParties = new Set();
 
-const file2023=document.getElementById('file2023');
-const file2024=document.getElementById('file2024');
-const fileInfo=document.getElementById('fileInfo');
-const partiesContainer=document.getElementById('partiesContainer');
-const districtsEl=document.getElementById('districts');
-const runBtn=document.getElementById('run');
-const downloadBtn=document.getElementById('downloadTxt');
-
-const newPartyName=document.getElementById('newPartyName');
-const newPartyNat=document.getElementById('newPartyNat');
-const addNewPartyBtn=document.getElementById('addNewParty');
-const newPartyDonors=document.getElementById('newPartyDonors');
-
-const coalitionNameEl=document.getElementById('coalitionName');
-const addCoalitionBtn=document.getElementById('addCoalition');
-const coalitionArea=document.getElementById('coalitionArea');
-
-const w23El=document.getElementById('w23');
-const w24El=document.getElementById('w24');
-
-const downloadProjectionBtn=document.getElementById('downloadProjection');
-const uploadProjectionInput=document.getElementById('uploadProjection');
-
-let data2023=null,data2024=null;
-let rawTxt2023=null, rawTxt2024=null;
-let baseParties={};
-let extraParty=null;
-let coalitions=[];
-let simulatedResults={};
-
-function readFile(input){return new Promise(res=>{const f=input.files[0];if(!f)return res(null);const r=new FileReader();r.onload=()=>res(r.result);r.readAsText(f,'utf-8');});}
-
-function parseTxt(txt){
- const blocks=txt.split(/\n-\s*\n|\n\n+/).map(b=>b.trim()).filter(Boolean);
- const out={};
- blocks.forEach(b=>{
-  const lines=b.split(/\n/).map(l=>l.trim()).filter(Boolean);
-  let name=lines[0],seats=0;
-  const m=name.match(/^(.*?)-(\s*\d+)$/);
-  if(m){name=m[1].trim();seats=parseInt(m[2]);}
-  const votes={};
-  lines.slice(1).forEach(l=>{
-   const p=l.split(/\s+/);
-   for(let i=0;i<p.length-1;i++){
-    if(/^[^0-9]+$/.test(p[i])){
-     const n=p[i+1].replace(/\.|,/g,'');
-     if(/^\d+$/.test(n)){votes[p[i]]=(votes[p[i]]||0)+parseInt(n);i++;}
+// Veri Okuma ve Ayrıştırma (Geliştirilmiş)
+$('fileInp').onchange = async (e) => {
+    for(let file of e.target.files){
+        const text = await file.text();
+        const data = parseTxt(text);
+        const nat = calcNat(data);
+        datasets.push({ id:Date.now()+Math.random(), name:file.name, data, nat, w:1.0 });
     }
-   }
-  });
-  out[name.toUpperCase()]={votes,seats};
- });
- return out;
-}
-function computeNational(blocks){
- const t={};let g=0;
- for(const d in blocks){for(const p in blocks[d].votes){t[p]=(t[p]||0)+blocks[d].votes[p];g+=blocks[d].votes[p];}}
- return{t,g};
-}
-function getProv(d){return d.split(/\s+/)[0];}
-function dhondt(votes,seats){const res={};Object.keys(votes).forEach(p=>res[p]=0);for(let i=0;i<seats;i++){let bp=null,bq=-1;for(const p in votes){const q=votes[p]/(res[p]+1);if(q>bq){bq=q;bp=p;}}if(bp)res[bp]++;}return res;}
-
-file2023.onchange=async()=>{const t=await readFile(file2023);if(!t)return;rawTxt2023=t;data2023=parseTxt(t);updatePartyInputs();fileInfo.textContent=`Algılanan çevre: ${Object.keys(data2023).length}`;};
-file2024.onchange=async()=>{const t=await readFile(file2024);if(!t)return;rawTxt2024=t;data2024=parseTxt(t);updatePartyInputs();};
-
-function updatePartyInputs(){
- if(!data2023||!data2024)return;
- partiesContainer.innerHTML='';
- const set=new Set();
- Object.values(data2023).forEach(d=>Object.keys(d.votes).forEach(p=>set.add(p)));
- Object.values(data2024).forEach(d=>Object.keys(d.votes).forEach(p=>set.add(p)));
- Array.from(set).sort().forEach(p=>{
-  const div=document.createElement('div');
-  div.className='party';
-  div.innerHTML=`${p}: <input data-p="${p}" style="width:60px"> %`;
-  partiesContainer.appendChild(div);
- });
- Object.keys(baseParties).forEach(p=>{const i=partiesContainer.querySelector(`input[data-p="${p}"]`);if(i)i.value=baseParties[p];});
-}
-
-addNewPartyBtn.onclick=()=>{
- const name=newPartyName.value.trim().toUpperCase();
- const nat=parseFloat(newPartyNat.value.replace(',','.'))||0;
- if(!name||nat<=0){alert('Geçerli parti adı ve ülke payı girin');return;}
- extraParty={name,nat,similarity:{}};
- newPartyDonors.innerHTML='';
- partiesContainer.querySelectorAll('input').forEach(i=>{
-  const p=i.dataset.p;
-  const d=document.createElement('div');
-  d.className='party';
-  d.innerHTML=`${p}: <input data-p="${p}" style="width:50px"> %`;
-  newPartyDonors.appendChild(d);
- });
+    updateGlobalParties();
+    renderDatasets();
 };
 
-addCoalitionBtn.onclick=()=>{
- const name=coalitionNameEl.value.trim();if(!name)return;
- const c={name,members:[]};
- const wrap=document.createElement('div');wrap.className='party';
- const title=document.createElement('div');title.innerHTML=`<b>${name}</b> `;
- const rm=document.createElement('button');rm.textContent='Kaldır';rm.className='remove';
- rm.onclick=()=>{coalitions=coalitions.filter(x=>x!==c);wrap.remove();};
- title.appendChild(rm);wrap.appendChild(title);
- partiesContainer.querySelectorAll('input').forEach(i=>{
-  const p=i.dataset.p;
-  const lbl=document.createElement('label');lbl.style.display='block';
-  lbl.innerHTML=`<input type="checkbox" value="${p}"> ${p}`;
-  lbl.querySelector('input').onchange=e=>{if(e.target.checked)c.members.push(p);else c.members=c.members.filter(x=>x!==p);};
-  wrap.appendChild(lbl);
- });
- coalitionArea.appendChild(wrap);coalitions.push(c);
-};
-
-runBtn.onclick=()=>{
- if(!data2023||!data2024){alert('Dosyaları yükle');return;}
- simulatedResults={};
- baseParties={};
- partiesContainer.querySelectorAll('input').forEach(i=>{baseParties[i.dataset.p]=parseFloat(i.value.replace(',','.'))||0;});
- if(extraParty){
-  extraParty.nat=parseFloat(newPartyNat.value.replace(',','.'))||extraParty.nat;
-  extraParty.similarity={};
-  newPartyDonors.querySelectorAll('input').forEach(i=>{const v=parseFloat(i.value.replace(',','.'))||0;if(v>0)extraParty.similarity[i.dataset.p]=v/100;});
- }
- let w23=parseFloat(w23El.value)||0.6;let w24=parseFloat(w24El.value)||0.4;const ws=w23+w24||1;w23/=ws;w24/=ws;
- const nat23=computeNational(data2023),nat24=computeNational(data2024);
- const pct23={},pct24={};for(const p in nat23.t)pct23[p]=nat23.t[p]/nat23.g*100;for(const p in nat24.t)pct24[p]=nat24.t[p]/nat24.g*100;
- const provIndex={};Object.keys(data2024).forEach(k=>provIndex[k]=data2024[k].votes);
- districtsEl.innerHTML='';
- Object.keys(data2023).forEach(d=>{
-  const prov=getProv(d);const pv=provIndex[prov];const dv=data2023[d].votes;const tot=Object.values(dv).reduce((a,b)=>a+b,0)||1;
-  let raw={},sum=0;
-  for(const p in baseParties){
-   const d23=(dv[p]||0)/tot*100;const s23=d23/(pct23[p]||d23||1);let s24=s23;
-   if(pv){const pt=Object.values(pv).reduce((a,b)=>a+b,0)||1;const pp=(pv[p]||0)/pt*100;s24=pp/(pct24[p]||pp||1);}const fs=w23*s23+w24*s24;const ap=baseParties[p]*fs;raw[p]=ap;sum+=ap;
-  }
-  if(extraParty){
-   let s23=0,s24=0;
-   for(const sp in extraParty.similarity){
-    const w=extraParty.similarity[sp];const d23=(dv[sp]||0)/tot*100;const sp23=d23/(pct23[sp]||d23||1);let sp24=sp23;
-    if(pv){const pt=Object.values(pv).reduce((a,b)=>a+b,0)||1;const pp=(pv[sp]||0)/pt*100;sp24=pp/(pct24[sp]||pp||1);}s23+=w*sp23;s24+=w*sp24;
-   }
-   const fs=w23*s23+w24*s24;const ap=extraParty.nat*fs;raw[extraParty.name]=ap;sum+=ap;
-  }
-  const norm={};Object.keys(raw).forEach(p=>norm[p]=raw[p]/sum*100);
-  const votes={};Object.keys(norm).forEach(p=>votes[p]=Math.round(norm[p]/100*tot));
-  simulatedResults[d]={seats:data2023[d].seats||0,votes:{...votes}};
- });
- renderSimulatedResults();
-};
-
-function renderSimulatedResults(){
- districtsEl.innerHTML='';
- Object.keys(simulatedResults).forEach(d=>{
-  const r=simulatedResults[d];const votes={...r.votes};const tot=Object.values(votes).reduce((a,b)=>a+b,0)||1;
-  let dhVotes={...votes};coalitions.forEach(c=>{if(c.members.length>=2){let comb=0;c.members.forEach(p=>{if(dhVotes[p]!=null){comb+=dhVotes[p];delete dhVotes[p];}});dhVotes[c.name]=comb;}});
-  const mv=r.seats?dhondt(dhVotes,r.seats):{};
-  const card=document.createElement('div');card.className='district';card.innerHTML=`<h3>${d}</h3>`;
-  coalitions.forEach(c=>{const tv=c.members.reduce((a,p)=>a+(r.votes[p]||0),0);const pct=(tv/tot*100).toFixed(2);const line=document.createElement('div');line.className='partyline coalition-line';line.innerHTML=`<span>${c.name}</span><span>${tv.toLocaleString()} (%${pct})<span class=mv>${mv[c.name]||0} MV</span></span>`;card.appendChild(line);});
-  Object.keys(r.votes).sort((a,b)=>r.votes[b]-r.votes[a]).forEach(p=>{if(coalitions.some(c=>c.members.includes(p)))return;const line=document.createElement('div');line.className='partyline';line.innerHTML=`<span>${p}</span><span>${r.votes[p].toLocaleString()} (%${(r.votes[p]/tot*100).toFixed(2)})<span class=mv>${mv[p]||0} MV</span></span>`;card.appendChild(line);});
-  districtsEl.appendChild(card);
- });
+function parseTxt(t){
+    const out = {};
+    t.split(/\n-\s*\n|\n\n+/).forEach(block => {
+        const lines = block.trim().split('\n');
+        if(lines.length < 2) return;
+        
+        // Gelişmiş isim-koltuk ayrımı: En sondaki tireden sonrasını sayı al
+        let header = lines[0].trim();
+        let parts = header.split('-');
+        let seats = parseInt(parts.pop()) || 0;
+        let name = parts.join('-').trim().toUpperCase();
+        
+        const votes = {};
+        lines.slice(1).forEach(l => {
+            const p = l.split(/\s+/);
+            const v = parseInt(p.pop().replace(/\D/g,''));
+            if(!isNaN(v)) votes[p.join(' ').toUpperCase()] = v;
+        });
+        out[name] = { votes, seats };
+    });
+    return out;
 }
 
-downloadBtn.onclick=()=>{
- if(!Object.keys(simulatedResults).length){
-  alert('Önce hesapla');
-  return;
- }
-
- let txt='';
-
- Object.keys(simulatedResults).forEach(d=>{
-  const r = simulatedResults[d];
-
-  // Kopya al: orijinal parti oyları
-  let exportVotes = {...r.votes};
-
-  // Ortak listeler: üyeleri sil, sadece liste adını bırak
-  coalitions.forEach(c=>{
-   if(!c.members || c.members.length < 2) return;
-
-   let combined = 0;
-   c.members.forEach(p=>{
-    if(exportVotes[p] != null){
-     combined += exportVotes[p];
-     delete exportVotes[p];
+function calcNat(data){
+    let total = 0, sums = {};
+    for(let d in data){
+        for(let p in data[d].votes){
+            sums[p] = (sums[p]||0) + data[d].votes[p];
+            total += data[d].votes[p];
+        }
     }
-   });
+    for(let p in sums) sums[p] /= (total || 1);
+    return sums;
+}
 
-   // Ortak liste adıyla tek satır
-   exportVotes[c.name] = combined;
-  });
+// Master District Logic (Fix: İstanbul/İstanbul-1 Çakışması Engellendi)
+function getMasterDistricts() {
+    const allDNames = new Set();
+    datasets.forEach(ds => {
+        Object.keys(ds.data).forEach(n => {
+            // Sadece MV sayısı > 0 olanları veya en az bir yerde MV'si olanları baz al
+            if(ds.data[n].seats > 0) allDNames.add(n);
+        });
+    });
+    
+    const names = Array.from(allDNames);
+    const parentsWithChildren = new Set();
+    
+    // Eğer listede "İSTANBUL-1" varsa, "İSTANBUL" ismini ebeveyn olarak işaretle
+    names.forEach(n => {
+        if(n.includes('-')) {
+            const parentName = n.split('-')[0].trim();
+            parentsWithChildren.add(parentName);
+        }
+    });
+    
+    // Ebeveyn olanları (Örn: Sadece "İSTANBUL") ana listeden temizle
+    return names.filter(n => !parentsWithChildren.has(n));
+}
 
-  txt += `${d} - ${r.seats}\n`;
+function getDistrictDataWithPatch(dataset, targetName) {
+    if(dataset.data[targetName]) return dataset.data[targetName];
+    // Patch: İSTANBUL-1 bulunamadıysa İSTANBUL ana verisini kullan
+    const root = targetName.split('-')[0].trim();
+    if(dataset.data[root]) return dataset.data[root];
+    return null;
+}
 
-  Object.keys(exportVotes).forEach(p=>{
-   txt += `${p} ${exportVotes[p]}\n`;
-  });
+function updateGlobalParties(){
+    datasets.forEach(ds => Object.keys(ds.nat).forEach(p => globalParties.add(p)));
+    renderBaseInputs();
+}
 
-  txt += '\n-\n\n';
- });
+function renderDatasets(){
+    $('datasetsList').innerHTML = datasets.map(ds => `
+        <div class="data-row flex-row">
+            <span style="flex:1; overflow:hidden; font-size:11px"><b>${ds.name}</b></span>
+            <div style="display:flex; align-items:center; gap:3px">
+                W:<input type="number" step="0.1" value="${ds.w}" class="ds-weight-input" data-id="${ds.id}" style="width:40px; margin:0">
+            </div>
+            <button class="danger" onclick="datasets=datasets.filter(x=>x.id!=${ds.id});renderDatasets();" style="width:22px; margin:0; padding:2px">x</button>
+        </div>
+    `).join('');
+}
 
- const blob = new Blob([txt],{type:'text/plain;charset=utf-8;'});
- const a = document.createElement('a');
- a.href = URL.createObjectURL(blob);
- a.download = 'simulasyon_sonuclari.txt';
- a.click();
- URL.revokeObjectURL(a.href);
+function renderBaseInputs(){
+    const area = $('basePartiesArea');
+    const oldVals = {}; 
+    area.querySelectorAll('input').forEach(i => oldVals[i.dataset.p] = i.value);
+    area.innerHTML = [...globalParties].sort().map(p => `
+        <div class="party-box">
+            <span>${p}</span>
+            <input data-p="${p}" type="number" step="0.1" value="${oldVals[p]||0}">
+        </div>
+    `).join('');
+}
+
+function addExtraParty(){
+    const name = $('newPName').value.trim().toUpperCase();
+    const nat = parseFloat($('newPNat').value)||0;
+    if(!name) return;
+    extraParties.push({ name, nat, similarity:{} });
+    renderExtraParties();
+}
+
+function renderExtraParties(){
+    $('extraPartiesArea').innerHTML = extraParties.map((ep, idx) => `
+        <div class="data-row">
+            <div class="flex-row"><b>${ep.name}</b> (%${ep.nat}) <button class="danger" onclick="extraParties.splice(${idx},1);renderExtraParties();" style="width:25px; margin-left:auto">x</button></div>
+            <div class="similarity-grid">
+                ${[...globalParties].sort().map(p => `
+                    <div class="sim-input-box">
+                        <span style="font-size:9px; color:#555">${p}</span>
+                        <input type="number" placeholder="%" value="${(ep.similarity[p]||0)*100}" 
+                               onchange="extraParties[${idx}].similarity['${p}']=parseFloat(this.value)/100">
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function addCoalition(){
+    const name = $('coalName').value.trim().toUpperCase();
+    if(!name) return;
+    coalitions.push({ name, members:[] });
+    renderCoalitions();
+}
+
+function renderCoalitions(){
+    const all = [...globalParties, ...extraParties.map(e=>e.name)].sort();
+    $('coalitionArea').innerHTML = coalitions.map((c, idx) => `
+        <div class="data-row">
+            <div class="flex-row"><b>${c.name}</b> <button class="danger" onclick="coalitions.splice(${idx},1);renderCoalitions();" style="width:25px; margin-left:auto">x</button></div>
+            <div style="margin-top:8px">
+                ${all.map(p => `
+                    <label class="coal-member-label">
+                        <input type="checkbox" ${c.members.includes(p)?'checked':''} 
+                            onchange="const m=coalitions[${idx}].members; this.checked ? m.push('${p}') : coalitions[${idx}].members=m.filter(x=>x!=='${p}')">
+                        ${p}
+                    </label>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+// HESAPLAMA MOTORU (Fix: Katsayı ve Patch Duyarlılığı)
+$('runBtn').onclick = () => {
+    if(!datasets.length) return alert("Önce veri yükleyin!");
+
+    // Katsayıları (Weight) Inputlardan oku
+    document.querySelectorAll('.ds-weight-input').forEach(inp => {
+        const ds = datasets.find(x => x.id == inp.dataset.id);
+        if(ds) ds.w = parseFloat(inp.value) || 0;
+    });
+
+    const targetNat = {};
+    $('basePartiesArea').querySelectorAll('input').forEach(i => targetNat[i.dataset.p] = (parseFloat(i.value)||0)/100);
+
+    const results = {};
+    const masterDistrictNames = getMasterDistricts();
+
+    masterDistrictNames.forEach(dName => {
+        let seats = 0;
+        for(let ds of datasets) {
+            const match = getDistrictDataWithPatch(ds, dName);
+            if(match && match.seats > 0) { seats = match.seats; break; }
+        }
+
+        if(seats === 0) return; // 0 MV olanları hesaplama dışı bırak
+
+        const scoreMap = {};
+        
+        // Ana Partiler
+        globalParties.forEach(p => {
+            let pScore = 0, totalW = 0;
+            datasets.forEach(ds => {
+                const dData = getDistrictDataWithPatch(ds, dName);
+                if(dData && dData.votes[p] > 0){
+                    const dTotal = Object.values(dData.votes).reduce((a,b)=>a+b,0);
+                    const perf = (dData.votes[p]/dTotal) / ds.nat[p];
+                    pScore += perf * ds.w;
+                    totalW += ds.w;
+                }
+            });
+            scoreMap[p] = totalW > 0 ? (pScore/totalW) * targetNat[p] : 0;
+        });
+
+        // Yeni Partiler
+        extraParties.forEach(ep => {
+            let epScore = 0;
+            for(let donor in ep.similarity){
+                let dPerfSum = 0, dW = 0;
+                datasets.forEach(ds => {
+                    const dData = getDistrictDataWithPatch(ds, dName);
+                    if(dData && dData.votes[donor] > 0){
+                        const dTotal = Object.values(dData.votes).reduce((a,b)=>a+b,0);
+                        dPerfSum += ((dData.votes[donor]/dTotal) / ds.nat[donor]) * ds.w;
+                        dW += ds.w;
+                    }
+                });
+                if(dW > 0) epScore += (dPerfSum/dW) * ep.similarity[donor];
+            }
+            scoreMap[ep.name] = epScore * (ep.nat/100);
+        });
+
+        const totalScore = Object.values(scoreMap).reduce((a,b)=>a+b,0);
+        const finalVotes = {};
+        for(let p in scoreMap) finalVotes[p] = (scoreMap[p]/(totalScore||1)) * 1000000;
+
+        const dhondtInput = {...finalVotes};
+        coalitions.forEach(c => {
+            let cSum = 0;
+            c.members.forEach(m => { cSum += (dhondtInput[m]||0); delete dhondtInput[m]; });
+            dhondtInput[c.name] = cSum;
+        });
+
+        results[dName] = { 
+            votes: finalVotes, 
+            dhondt: dhondtInput, 
+            mvs: runDhondt(dhondtInput, seats), 
+            seats
+        };
+    });
+
+    renderResults(results);
 };
 
-downloadProjectionBtn.onclick=()=>{
- if(!Object.keys(simulatedResults).length){alert('Önce hesapla');return;}
- const proj={meta:{generatedAt:new Date().toISOString()},baseParties,extraParty,coalitions,weights:{w23:w23El.value,w24:w24El.value},simulatedResults,rawTxt2023,rawTxt2024};
- const blob=new Blob([JSON.stringify(proj,null,2)],{type:'application/json;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='projeksiyon_simulation.json';a.click();URL.revokeObjectURL(a.href);
-};
+function runDhondt(v, s){
+    const res = {}; Object.keys(v).forEach(p=>res[p]=0);
+    for(let i=0; i<s; i++){
+        let maxQ = -1, winP = null;
+        for(let p in v){
+            let q = v[p] / (res[p]+1);
+            if(q > maxQ){ maxQ = q; winP = p; }
+        }
+        if(winP) res[winP]++;
+    }
+    return res;
+}
 
-uploadProjectionInput.onchange=async()=>{const t=await readFile(uploadProjectionInput);if(!t)return;let proj;try{proj=JSON.parse(t);}catch{alert('Geçersiz JSON');return;}baseParties=proj.baseParties||{};extraParty=proj.extraParty||null;coalitions=proj.coalitions||[];simulatedResults=proj.simulatedResults||{};if(proj.weights){w23El.value=proj.weights.w23;w24El.value=proj.weights.w24;}updatePartyInputs();if(extraParty){newPartyName.value=extraParty.name;newPartyNat.value=extraParty.nat;newPartyDonors.innerHTML='';partiesContainer.querySelectorAll('input').forEach(i=>{const p=i.dataset.p;const d=document.createElement('div');d.className='party';d.innerHTML=`${p}: <input data-p="${p}" style="width:50px"> %`;const inp=d.querySelector('input');if(extraParty.similarity[p])inp.value=extraParty.similarity[p]*100;newPartyDonors.appendChild(d);});}renderSimulatedResults();alert('Projeksiyon yüklendi');};
+function renderResults(res){
+    const area = $('results');
+    area.innerHTML = '';
+    const sortedNames = Object.keys(res).sort();
 
-document.querySelector('.import-label').onclick=()=>uploadProjectionInput.click();
+    if(sortedNames.length === 0) {
+        area.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px">MV koltuğu tanımlanmış seçim çevresi bulunamadı.</div>';
+        return;
+    }
+
+    sortedNames.forEach(d => {
+        const item = res[d];
+        const card = document.createElement('div');
+        card.className = 'dist-card';
+        card.innerHTML = `<h3>${d} <span>${item.seats} MV</span></h3>`;
+        
+        Object.entries(item.dhondt).sort((a,b)=>b[1]-a[1]).forEach(([p, v])=> {
+            if(v < 10) return;
+            const isCoal = coalitions.find(c => c.name === p);
+            const pct = ((v/1000000)*100).toFixed(2);
+            const line = document.createElement('div');
+            line.className = `p-line ${isCoal?'is-coal':''}`;
+            line.innerHTML = `
+                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:130px">${p}</span>
+                <span style="white-space:nowrap">
+                    <small style="color:#666">(%${pct})</small>
+                    ${item.mvs[p] ? `<span class="mv-tag">${item.mvs[p]} MV</span>` : ''}
+                </span>
+            `;
+            card.appendChild(line);
+        });
+        area.appendChild(card);
+    });
+}
+
+function downloadResults(){
+    let txt = "SECIM SIMULASYONU SONUÇ RAPORU\n" + "=".repeat(40) + "\n\n";
+    const cards = document.querySelectorAll('.dist-card');
+    if(!cards.length) return alert("Önce hesaplama yapın!");
+    cards.forEach(card => {
+        txt += card.innerText.replace(/\n\n/g, '\n') + "\n" + "-".repeat(30) + "\n";
+    });
+    const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'secim_sonuc_ozeti.txt';
+    a.click();
+}
 </script>
 </body>
 </html>
