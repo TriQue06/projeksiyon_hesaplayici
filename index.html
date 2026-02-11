@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Seçim Simülatörü Pro v5.1 - Final Patch</title>
+    <title>Seçim Simülatörü Pro v5.4 - Ortak Liste Çıktılı</title>
     <style>
         :root{--primary:#0071e3;--bg:#f2f2f7;--card:#ffffff;--text:#1d1d1f;--border:#d2d2d7;--accent:#34c759;--danger:#ff3b30}
         body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:15px;font-size:12px}
         
-        /* Sidebar Temizliği */
         .sidebar::-webkit-scrollbar { display: none; }
         .sidebar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -27,11 +26,9 @@
         .parties-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(85px, 1fr));gap:6px}
         .party-box{background:#fff;border:1px solid var(--border);padding:6px;border-radius:6px;text-align:center}
         
-        /* Benzerlik Alanı Genişletildi */
         .similarity-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(110px, 1fr));gap:8px;margin-top:10px}
         .sim-input-box{background:#eff4f9;padding:8px;border-radius:6px;border:1px solid #d1d9e0}
 
-        /* 4'lü Izgara Görünümü */
         #results{display:grid;grid-template-columns:repeat(auto-fill, minmax(calc(25% - 15px), 1fr));gap:15px}
         .dist-card{background:#fff;border-radius:10px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.05);border-top:4px solid var(--primary)}
         .dist-card h3{margin:0 0 10px;font-size:13px;display:flex;justify-content:space-between;color:var(--primary)}
@@ -40,7 +37,6 @@
         .p-line.is-coal{color:var(--primary);font-weight:bold;background:#f0f7ff;margin:2px -5px;padding:5px;border-radius:4px}
         .mv-tag{background:var(--text);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:bold;margin-left:5px}
         
-        /* İttifak Listesi Fix */
         .coal-member-label { display: flex; align-items: center; gap: 8px; font-weight: 400; margin-bottom: 5px; cursor: pointer; padding: 2px 0;}
         .coal-member-label input { width: 16px; height: 16px; margin: 0; cursor: pointer; }
 
@@ -50,7 +46,7 @@
 </head>
 <body>
 
-<h1>🗳️ Seçim Simülatörü Pro v5.1 <small style="font-weight:400; font-size:12px; color:#666">| Superior Patch & 4-Column</small></h1>
+<h1>🗳️ Seçim Simülatörü Pro v5.4 <small style="font-weight:400; font-size:12px; color:#666">| Ortak Liste Desteği</small></h1>
 
 <div class="container">
     <div class="sidebar">
@@ -103,8 +99,9 @@ let datasets = [];
 let extraParties = [];
 let coalitions = [];
 let globalParties = new Set();
+let globalResults = {}; // Sonuçları indirmek için global değişken
 
-// Veri Okuma ve Ayrıştırma (Geliştirilmiş)
+// Veri Okuma ve Ayrıştırma
 $('fileInp').onchange = async (e) => {
     for(let file of e.target.files){
         const text = await file.text();
@@ -122,7 +119,6 @@ function parseTxt(t){
         const lines = block.trim().split('\n');
         if(lines.length < 2) return;
         
-        // Gelişmiş isim-koltuk ayrımı: En sondaki tireden sonrasını sayı al
         let header = lines[0].trim();
         let parts = header.split('-');
         let seats = parseInt(parts.pop()) || 0;
@@ -151,12 +147,10 @@ function calcNat(data){
     return sums;
 }
 
-// Master District Logic (Fix: İstanbul/İstanbul-1 Çakışması Engellendi)
 function getMasterDistricts() {
     const allDNames = new Set();
     datasets.forEach(ds => {
         Object.keys(ds.data).forEach(n => {
-            // Sadece MV sayısı > 0 olanları veya en az bir yerde MV'si olanları baz al
             if(ds.data[n].seats > 0) allDNames.add(n);
         });
     });
@@ -164,7 +158,6 @@ function getMasterDistricts() {
     const names = Array.from(allDNames);
     const parentsWithChildren = new Set();
     
-    // Eğer listede "İSTANBUL-1" varsa, "İSTANBUL" ismini ebeveyn olarak işaretle
     names.forEach(n => {
         if(n.includes('-')) {
             const parentName = n.split('-')[0].trim();
@@ -172,13 +165,11 @@ function getMasterDistricts() {
         }
     });
     
-    // Ebeveyn olanları (Örn: Sadece "İSTANBUL") ana listeden temizle
     return names.filter(n => !parentsWithChildren.has(n));
 }
 
 function getDistrictDataWithPatch(dataset, targetName) {
     if(dataset.data[targetName]) return dataset.data[targetName];
-    // Patch: İSTANBUL-1 bulunamadıysa İSTANBUL ana verisini kullan
     const root = targetName.split('-')[0].trim();
     if(dataset.data[root]) return dataset.data[root];
     return null;
@@ -218,13 +209,23 @@ function addExtraParty(){
     const nat = parseFloat($('newPNat').value)||0;
     if(!name) return;
     extraParties.push({ name, nat, similarity:{} });
+    
+    $('newPName').value = '';
+    $('newPNat').value = '';
+    
     renderExtraParties();
 }
 
 function renderExtraParties(){
     $('extraPartiesArea').innerHTML = extraParties.map((ep, idx) => `
         <div class="data-row">
-            <div class="flex-row"><b>${ep.name}</b> (%${ep.nat}) <button class="danger" onclick="extraParties.splice(${idx},1);renderExtraParties();" style="width:25px; margin-left:auto">x</button></div>
+            <div class="flex-row">
+                <b style="width:80px; overflow:hidden; text-overflow:ellipsis;">${ep.name}</b> 
+                <input type="number" step="0.1" value="${ep.nat}" style="width:60px; margin:0; font-weight:bold" 
+                       onchange="extraParties[${idx}].nat = parseFloat(this.value)||0">
+                <span>%</span>
+                <button class="danger" onclick="extraParties.splice(${idx},1);renderExtraParties();" style="width:25px; margin-left:auto">x</button>
+            </div>
             <div class="similarity-grid">
                 ${[...globalParties].sort().map(p => `
                     <div class="sim-input-box">
@@ -242,6 +243,7 @@ function addCoalition(){
     const name = $('coalName').value.trim().toUpperCase();
     if(!name) return;
     coalitions.push({ name, members:[] });
+    $('coalName').value = ''; 
     renderCoalitions();
 }
 
@@ -263,11 +265,10 @@ function renderCoalitions(){
     `).join('');
 }
 
-// HESAPLAMA MOTORU (Fix: Katsayı ve Patch Duyarlılığı)
+// HESAPLAMA MOTORU
 $('runBtn').onclick = () => {
     if(!datasets.length) return alert("Önce veri yükleyin!");
 
-    // Katsayıları (Weight) Inputlardan oku
     document.querySelectorAll('.ds-weight-input').forEach(inp => {
         const ds = datasets.find(x => x.id == inp.dataset.id);
         if(ds) ds.w = parseFloat(inp.value) || 0;
@@ -276,7 +277,8 @@ $('runBtn').onclick = () => {
     const targetNat = {};
     $('basePartiesArea').querySelectorAll('input').forEach(i => targetNat[i.dataset.p] = (parseFloat(i.value)||0)/100);
 
-    const results = {};
+    // Global değişkeni sıfırla
+    globalResults = {}; 
     const masterDistrictNames = getMasterDistricts();
 
     masterDistrictNames.forEach(dName => {
@@ -286,11 +288,10 @@ $('runBtn').onclick = () => {
             if(match && match.seats > 0) { seats = match.seats; break; }
         }
 
-        if(seats === 0) return; // 0 MV olanları hesaplama dışı bırak
+        if(seats === 0) return; 
 
         const scoreMap = {};
         
-        // Ana Partiler
         globalParties.forEach(p => {
             let pScore = 0, totalW = 0;
             datasets.forEach(ds => {
@@ -305,20 +306,25 @@ $('runBtn').onclick = () => {
             scoreMap[p] = totalW > 0 ? (pScore/totalW) * targetNat[p] : 0;
         });
 
-        // Yeni Partiler
         extraParties.forEach(ep => {
             let epScore = 0;
-            for(let donor in ep.similarity){
-                let dPerfSum = 0, dW = 0;
-                datasets.forEach(ds => {
-                    const dData = getDistrictDataWithPatch(ds, dName);
-                    if(dData && dData.votes[donor] > 0){
-                        const dTotal = Object.values(dData.votes).reduce((a,b)=>a+b,0);
-                        dPerfSum += ((dData.votes[donor]/dTotal) / ds.nat[donor]) * ds.w;
-                        dW += ds.w;
-                    }
-                });
-                if(dW > 0) epScore += (dPerfSum/dW) * ep.similarity[donor];
+            let hasSimilarity = Object.keys(ep.similarity).length > 0;
+            
+            if(!hasSimilarity) {
+                epScore = 1.0; 
+            } else {
+                for(let donor in ep.similarity){
+                    let dPerfSum = 0, dW = 0;
+                    datasets.forEach(ds => {
+                        const dData = getDistrictDataWithPatch(ds, dName);
+                        if(dData && dData.votes[donor] > 0){
+                            const dTotal = Object.values(dData.votes).reduce((a,b)=>a+b,0);
+                            dPerfSum += ((dData.votes[donor]/dTotal) / ds.nat[donor]) * ds.w;
+                            dW += ds.w;
+                        }
+                    });
+                    if(dW > 0) epScore += (dPerfSum/dW) * ep.similarity[donor];
+                }
             }
             scoreMap[ep.name] = epScore * (ep.nat/100);
         });
@@ -328,21 +334,42 @@ $('runBtn').onclick = () => {
         for(let p in scoreMap) finalVotes[p] = (scoreMap[p]/(totalScore||1)) * 1000000;
 
         const dhondtInput = {...finalVotes};
+        
         coalitions.forEach(c => {
             let cSum = 0;
-            c.members.forEach(m => { cSum += (dhondtInput[m]||0); delete dhondtInput[m]; });
-            dhondtInput[c.name] = cSum;
+            c.members.forEach(m => { 
+                if(dhondtInput[m]) {
+                    cSum += dhondtInput[m]; 
+                    delete dhondtInput[m]; 
+                }
+            });
+            if(cSum > 0) dhondtInput[c.name] = cSum;
         });
 
-        results[dName] = { 
-            votes: finalVotes, 
-            dhondt: dhondtInput, 
-            mvs: runDhondt(dhondtInput, seats), 
+        const coalitionSeats = runDhondt(dhondtInput, seats);
+        const finalSeats = {};
+        Object.keys(coalitionSeats).forEach(winner => {
+            const coal = coalitions.find(c => c.name === winner);
+            if(coal) {
+                const subVotes = {};
+                coal.members.forEach(m => subVotes[m] = finalVotes[m] || 0);
+                const subSeats = runDhondt(subVotes, coalitionSeats[winner]);
+                Object.assign(finalSeats, subSeats);
+            } else {
+                finalSeats[winner] = coalitionSeats[winner];
+            }
+        });
+        
+        // Hesaplanan sonuçları global değişken'e yaz
+        globalResults[dName] = { 
+            votes: finalVotes, // Ham bireysel oylar
+            dhondt: dhondtInput, // İŞLENMİŞ/BİRLEŞTİRİLMİŞ oylar
+            mvs: finalSeats,
             seats
         };
     });
 
-    renderResults(results);
+    renderResults(globalResults);
 };
 
 function runDhondt(v, s){
@@ -376,16 +403,28 @@ function renderResults(res){
         
         Object.entries(item.dhondt).sort((a,b)=>b[1]-a[1]).forEach(([p, v])=> {
             if(v < 10) return;
+            
             const isCoal = coalitions.find(c => c.name === p);
             const pct = ((v/1000000)*100).toFixed(2);
+            let totalMv = 0;
+
+            if(isCoal) {
+                isCoal.members.forEach(m => totalMv += (item.mvs[m]||0));
+            } else {
+                totalMv = item.mvs[p] || 0;
+            }
+
             const line = document.createElement('div');
             line.className = `p-line ${isCoal?'is-coal':''}`;
             line.innerHTML = `
-                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:130px">${p}</span>
-                <span style="white-space:nowrap">
-                    <small style="color:#666">(%${pct})</small>
-                    ${item.mvs[p] ? `<span class="mv-tag">${item.mvs[p]} MV</span>` : ''}
-                </span>
+                <div style="display:flex; flex-direction:column; justify-content:center">
+                    <span style="font-weight:600; font-size:11px">${p}</span>
+                    ${isCoal ? `<span style="font-size:9px; font-weight:normal">${isCoal.members.map(m=> m + (item.mvs[m]>0 ? ` (${item.mvs[m]})` : '')).join(', ')}</span>` : ''}
+                </div>
+                <div style="text-align:right">
+                    <small style="color:#666; font-size:10px">%${pct}</small>
+                    ${totalMv > 0 ? `<span class="mv-tag">${totalMv} MV</span>` : ''}
+                </div>
             `;
             card.appendChild(line);
         });
@@ -394,16 +433,33 @@ function renderResults(res){
 }
 
 function downloadResults(){
-    let txt = "SECIM SIMULASYONU SONUÇ RAPORU\n" + "=".repeat(40) + "\n\n";
-    const cards = document.querySelectorAll('.dist-card');
-    if(!cards.length) return alert("Önce hesaplama yapın!");
-    cards.forEach(card => {
-        txt += card.innerText.replace(/\n\n/g, '\n') + "\n" + "-".repeat(30) + "\n";
+    if(Object.keys(globalResults).length === 0) return alert("Önce hesaplama yapın!");
+
+    let txt = "";
+    const sortedDistricts = Object.keys(globalResults).sort();
+
+    sortedDistricts.forEach(dName => {
+        const item = globalResults[dName];
+        
+        // Başlık: ADANA-15
+        txt += `${dName}-${item.seats}\n`;
+        
+        // DEĞİŞİKLİK BURADA:
+        // Artık 'item.votes' (bireysel) yerine 'item.dhondt' (birleştirilmiş) kullanıyoruz.
+        // item.dhondt içinde ortak listeler tek bir isim altında toplanmış durumdadır.
+        Object.entries(item.dhondt).forEach(([party, count]) => {
+            // Tam sayıya yuvarla
+            txt += `${party} ${Math.floor(count)}\n`;
+        });
+        
+        // Blok sonu ayracı
+        txt += "-\n";
     });
+
     const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'secim_sonuc_ozeti.txt';
+    a.download = 'simulasyon_sonucu_ortak_liste.txt';
     a.click();
 }
 </script>
