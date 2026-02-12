@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Seçim Simülatörü Pro v5.4 - Ortak Liste Çıktılı</title>
+    <title>Seçim Simülatörü Pro v5.5 - Proje Yönetimi</title>
     <style>
-        :root{--primary:#0071e3;--bg:#f2f2f7;--card:#ffffff;--text:#1d1d1f;--border:#d2d2d7;--accent:#34c759;--danger:#ff3b30}
+        :root{--primary:#0071e3;--bg:#f2f2f7;--card:#ffffff;--text:#1d1d1f;--border:#d2d2d7;--accent:#34c759;--danger:#ff3b30;--purple:#5856d6;--orange:#ff9500}
         body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:15px;font-size:12px}
         
         .sidebar::-webkit-scrollbar { display: none; }
@@ -21,6 +21,8 @@
         button{background:var(--primary);color:#fff;border:none;cursor:pointer;font-weight:600;transition:0.2s}
         button:hover{opacity:0.9}
         button.danger{background:var(--danger)}
+        button.purple{background:var(--purple)}
+        button.orange{background:var(--orange)}
 
         .data-row{background:#f9f9f9;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid #eee}
         .parties-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(85px, 1fr));gap:6px}
@@ -46,7 +48,7 @@
 </head>
 <body>
 
-<h1>🗳️ Seçim Simülatörü Pro v5.4 <small style="font-weight:400; font-size:12px; color:#666">| Ortak Liste Desteği</small></h1>
+<h1>🗳️ Seçim Simülatörü Pro v5.5 <small style="font-weight:400; font-size:12px; color:#666">| Proje Kaydet & Yükle</small></h1>
 
 <div class="container">
     <div class="sidebar">
@@ -81,14 +83,21 @@
         </div>
 
         <div class="card" style="position: sticky; bottom: 0; background: #fff; z-index: 10; padding-top: 10px; border-top: 2px solid var(--primary);">
-            <button id="runBtn" style="background:var(--accent); font-size:15px; padding:16px">🚀 HESAPLA</button>
-            <button onclick="downloadResults()" class="danger" style="margin-top:8px">💾 SONUÇLARI İNDİR (.TXT)</button>
+            <button id="runBtn" style="background:var(--accent); font-size:15px; padding:16px; margin-bottom:10px">🚀 HESAPLA</button>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px">
+                <button onclick="saveProject()" class="purple">📁 PROJEYİ KAYDET (.JSON)</button>
+                <button onclick="$('projectLoader').click()" class="orange">📂 PROJE YÜKLE (.JSON)</button>
+            </div>
+            <input type="file" id="projectLoader" accept=".json" style="display:none" onchange="loadProject(this)">
+            
+            <button onclick="downloadResults()" class="danger" style="margin-top:5px">💾 SONUÇLARI İNDİR (.TXT)</button>
         </div>
     </div>
 
     <div id="results">
         <div style="grid-column:1/-1; color:#888; text-align:center; padding:100px; font-size:14px">
-            Seçim sonuçlarını görmek için veri setlerini yükleyin ve hesapla butonuna basın.
+            Seçim sonuçlarını görmek için veri setlerini yükleyin veya hazır proje dosyası (.json) açın.
         </div>
     </div>
 </div>
@@ -99,7 +108,7 @@ let datasets = [];
 let extraParties = [];
 let coalitions = [];
 let globalParties = new Set();
-let globalResults = {}; // Sonuçları indirmek için global değişken
+let globalResults = {}; 
 
 // Veri Okuma ve Ayrıştırma
 $('fileInp').onchange = async (e) => {
@@ -154,17 +163,14 @@ function getMasterDistricts() {
             if(ds.data[n].seats > 0) allDNames.add(n);
         });
     });
-    
     const names = Array.from(allDNames);
     const parentsWithChildren = new Set();
-    
     names.forEach(n => {
         if(n.includes('-')) {
             const parentName = n.split('-')[0].trim();
             parentsWithChildren.add(parentName);
         }
     });
-    
     return names.filter(n => !parentsWithChildren.has(n));
 }
 
@@ -176,6 +182,7 @@ function getDistrictDataWithPatch(dataset, targetName) {
 }
 
 function updateGlobalParties(){
+    globalParties = new Set(); // Resetle
     datasets.forEach(ds => Object.keys(ds.nat).forEach(p => globalParties.add(p)));
     renderBaseInputs();
 }
@@ -187,7 +194,7 @@ function renderDatasets(){
             <div style="display:flex; align-items:center; gap:3px">
                 W:<input type="number" step="0.1" value="${ds.w}" class="ds-weight-input" data-id="${ds.id}" style="width:40px; margin:0">
             </div>
-            <button class="danger" onclick="datasets=datasets.filter(x=>x.id!=${ds.id});renderDatasets();" style="width:22px; margin:0; padding:2px">x</button>
+            <button class="danger" onclick="datasets=datasets.filter(x=>x.id!=${ds.id});renderDatasets();updateGlobalParties();" style="width:22px; margin:0; padding:2px">x</button>
         </div>
     `).join('');
 }
@@ -209,10 +216,8 @@ function addExtraParty(){
     const nat = parseFloat($('newPNat').value)||0;
     if(!name) return;
     extraParties.push({ name, nat, similarity:{} });
-    
     $('newPName').value = '';
     $('newPNat').value = '';
-    
     renderExtraParties();
 }
 
@@ -265,7 +270,72 @@ function renderCoalitions(){
     `).join('');
 }
 
-// HESAPLAMA MOTORU
+// === PROJE KAYDETME VE YÜKLEME FONKSİYONLARI ===
+
+function saveProject() {
+    // Mevcut hedeflenen oy oranlarını topla
+    const currentTargets = {};
+    $('basePartiesArea').querySelectorAll('input').forEach(i => {
+        currentTargets[i.dataset.p] = parseFloat(i.value) || 0;
+    });
+
+    const projectData = {
+        meta: { version: "5.5", date: new Date().toISOString() },
+        datasets: datasets, // Tüm ham veriyi içerir
+        extraParties: extraParties,
+        coalitions: coalitions,
+        targets: currentTargets // Kullanıcının o an kutucuklara yazdığı değerler
+    };
+
+    const jsonStr = JSON.stringify(projectData, null, 2);
+    const blob = new Blob([jsonStr], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'secim_projesi_' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+}
+
+async function loadProject(inp) {
+    const file = inp.files[0];
+    if(!file) return;
+
+    try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+
+        if(!data.datasets) throw new Error("Geçersiz proje dosyası");
+
+        // 1. Verileri Geri Yükle
+        datasets = data.datasets || [];
+        extraParties = data.extraParties || [];
+        coalitions = data.coalitions || [];
+
+        // 2. Arayüzleri Güncelle
+        updateGlobalParties(); // Bu fonksiyon renderBaseInputs'u çağırır ve inputları sıfırlar
+        renderDatasets();
+        renderExtraParties();
+        renderCoalitions();
+
+        // 3. Hedef Oy Oranlarını Geri Yükle (Inputlar oluşturulduktan sonra)
+        if(data.targets) {
+            const inputs = $('basePartiesArea').querySelectorAll('input');
+            inputs.forEach(i => {
+                if(data.targets[i.dataset.p] !== undefined) {
+                    i.value = data.targets[i.dataset.p];
+                }
+            });
+        }
+
+        alert("Proje başarıyla yüklendi! Veritabanı ve ayarlar geri getirildi.");
+        $('fileInp').value = ''; // Inputu temizle
+        inp.value = '';
+
+    } catch(err) {
+        alert("Proje yüklenirken hata oluştu: " + err.message);
+    }
+}
+
+// === HESAPLAMA MOTORU ===
 $('runBtn').onclick = () => {
     if(!datasets.length) return alert("Önce veri yükleyin!");
 
@@ -277,7 +347,6 @@ $('runBtn').onclick = () => {
     const targetNat = {};
     $('basePartiesArea').querySelectorAll('input').forEach(i => targetNat[i.dataset.p] = (parseFloat(i.value)||0)/100);
 
-    // Global değişkeni sıfırla
     globalResults = {}; 
     const masterDistrictNames = getMasterDistricts();
 
@@ -360,10 +429,9 @@ $('runBtn').onclick = () => {
             }
         });
         
-        // Hesaplanan sonuçları global değişken'e yaz
         globalResults[dName] = { 
-            votes: finalVotes, // Ham bireysel oylar
-            dhondt: dhondtInput, // İŞLENMİŞ/BİRLEŞTİRİLMİŞ oylar
+            votes: finalVotes,
+            dhondt: dhondtInput,
             mvs: finalSeats,
             seats
         };
@@ -440,19 +508,10 @@ function downloadResults(){
 
     sortedDistricts.forEach(dName => {
         const item = globalResults[dName];
-        
-        // Başlık: ADANA-15
         txt += `${dName}-${item.seats}\n`;
-        
-        // DEĞİŞİKLİK BURADA:
-        // Artık 'item.votes' (bireysel) yerine 'item.dhondt' (birleştirilmiş) kullanıyoruz.
-        // item.dhondt içinde ortak listeler tek bir isim altında toplanmış durumdadır.
         Object.entries(item.dhondt).forEach(([party, count]) => {
-            // Tam sayıya yuvarla
             txt += `${party} ${Math.floor(count)}\n`;
         });
-        
-        // Blok sonu ayracı
         txt += "-\n";
     });
 
