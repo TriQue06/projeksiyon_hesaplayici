@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Seçim Simülatörü Pro v5.5 - Proje Yönetimi</title>
+    <title>Seçim Simülatörü Pro v5.6 - UI Güncellemesi</title>
     <style>
         :root{--primary:#0071e3;--bg:#f2f2f7;--card:#ffffff;--text:#1d1d1f;--border:#d2d2d7;--accent:#34c759;--danger:#ff3b30;--purple:#5856d6;--orange:#ff9500}
         body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:15px;font-size:12px}
@@ -23,6 +23,10 @@
         button.danger{background:var(--danger)}
         button.purple{background:var(--purple)}
         button.orange{background:var(--orange)}
+        
+        /* Yeni Toggle Butonu Stili */
+        button.toggle-btn { background: transparent; border: 1px solid var(--border); color: #555; width: 30px; padding: 0; display: flex; align-items: center; justify-content: center; margin: 0; }
+        button.toggle-btn:hover { background: #f0f0f0; }
 
         .data-row{background:#f9f9f9;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid #eee}
         .parties-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(85px, 1fr));gap:6px}
@@ -48,7 +52,7 @@
 </head>
 <body>
 
-<h1>🗳️ Seçim Simülatörü Pro v5.5 <small style="font-weight:400; font-size:12px; color:#666">| Proje Kaydet & Yükle</small></h1>
+<h1>🗳️ Seçim Simülatörü Pro v5.6 <small style="font-weight:400; font-size:12px; color:#666">| Genişletilebilir Arayüz</small></h1>
 
 <div class="container">
     <div class="sidebar">
@@ -182,7 +186,7 @@ function getDistrictDataWithPatch(dataset, targetName) {
 }
 
 function updateGlobalParties(){
-    globalParties = new Set(); // Resetle
+    globalParties = new Set(); 
     datasets.forEach(ds => Object.keys(ds.nat).forEach(p => globalParties.add(p)));
     renderBaseInputs();
 }
@@ -215,9 +219,15 @@ function addExtraParty(){
     const name = $('newPName').value.trim().toUpperCase();
     const nat = parseFloat($('newPNat').value)||0;
     if(!name) return;
-    extraParties.push({ name, nat, similarity:{} });
+    // isOpen: true default olarak açık gelir
+    extraParties.push({ name, nat, similarity:{}, isOpen: true });
     $('newPName').value = '';
     $('newPNat').value = '';
+    renderExtraParties();
+}
+
+function toggleExtraParty(idx) {
+    extraParties[idx].isOpen = !extraParties[idx].isOpen;
     renderExtraParties();
 }
 
@@ -225,13 +235,14 @@ function renderExtraParties(){
     $('extraPartiesArea').innerHTML = extraParties.map((ep, idx) => `
         <div class="data-row">
             <div class="flex-row">
+                <button class="toggle-btn" onclick="toggleExtraParty(${idx})">${ep.isOpen ? '▲' : '▼'}</button>
                 <b style="width:80px; overflow:hidden; text-overflow:ellipsis;">${ep.name}</b> 
                 <input type="number" step="0.1" value="${ep.nat}" style="width:60px; margin:0; font-weight:bold" 
                        onchange="extraParties[${idx}].nat = parseFloat(this.value)||0">
                 <span>%</span>
                 <button class="danger" onclick="extraParties.splice(${idx},1);renderExtraParties();" style="width:25px; margin-left:auto">x</button>
             </div>
-            <div class="similarity-grid">
+            <div class="similarity-grid" style="display: ${ep.isOpen ? 'grid' : 'none'}">
                 ${[...globalParties].sort().map(p => `
                     <div class="sim-input-box">
                         <span style="font-size:9px; color:#555">${p}</span>
@@ -247,8 +258,14 @@ function renderExtraParties(){
 function addCoalition(){
     const name = $('coalName').value.trim().toUpperCase();
     if(!name) return;
-    coalitions.push({ name, members:[] });
+    // isOpen: true default olarak açık gelir
+    coalitions.push({ name, members:[], isOpen: true });
     $('coalName').value = ''; 
+    renderCoalitions();
+}
+
+function toggleCoalition(idx) {
+    coalitions[idx].isOpen = !coalitions[idx].isOpen;
     renderCoalitions();
 }
 
@@ -256,8 +273,12 @@ function renderCoalitions(){
     const all = [...globalParties, ...extraParties.map(e=>e.name)].sort();
     $('coalitionArea').innerHTML = coalitions.map((c, idx) => `
         <div class="data-row">
-            <div class="flex-row"><b>${c.name}</b> <button class="danger" onclick="coalitions.splice(${idx},1);renderCoalitions();" style="width:25px; margin-left:auto">x</button></div>
-            <div style="margin-top:8px">
+            <div class="flex-row">
+                <button class="toggle-btn" onclick="toggleCoalition(${idx})">${c.isOpen ? '▲' : '▼'}</button>
+                <b>${c.name}</b> 
+                <button class="danger" onclick="coalitions.splice(${idx},1);renderCoalitions();" style="width:25px; margin-left:auto">x</button>
+            </div>
+            <div style="margin-top:8px; display: ${c.isOpen ? 'block' : 'none'}">
                 ${all.map(p => `
                     <label class="coal-member-label">
                         <input type="checkbox" ${c.members.includes(p)?'checked':''} 
@@ -273,18 +294,17 @@ function renderCoalitions(){
 // === PROJE KAYDETME VE YÜKLEME FONKSİYONLARI ===
 
 function saveProject() {
-    // Mevcut hedeflenen oy oranlarını topla
     const currentTargets = {};
     $('basePartiesArea').querySelectorAll('input').forEach(i => {
         currentTargets[i.dataset.p] = parseFloat(i.value) || 0;
     });
 
     const projectData = {
-        meta: { version: "5.5", date: new Date().toISOString() },
-        datasets: datasets, // Tüm ham veriyi içerir
+        meta: { version: "5.6", date: new Date().toISOString() },
+        datasets: datasets,
         extraParties: extraParties,
         coalitions: coalitions,
-        targets: currentTargets // Kullanıcının o an kutucuklara yazdığı değerler
+        targets: currentTargets
     };
 
     const jsonStr = JSON.stringify(projectData, null, 2);
@@ -305,18 +325,17 @@ async function loadProject(inp) {
 
         if(!data.datasets) throw new Error("Geçersiz proje dosyası");
 
-        // 1. Verileri Geri Yükle
         datasets = data.datasets || [];
-        extraParties = data.extraParties || [];
-        coalitions = data.coalitions || [];
+        
+        // Geriye dönük uyumluluk: Eğer eski bir proje ise isOpen özelliği yoktur, true atayalım.
+        extraParties = (data.extraParties || []).map(ep => ({...ep, isOpen: (ep.isOpen !== undefined ? ep.isOpen : true)}));
+        coalitions = (data.coalitions || []).map(c => ({...c, isOpen: (c.isOpen !== undefined ? c.isOpen : true)}));
 
-        // 2. Arayüzleri Güncelle
-        updateGlobalParties(); // Bu fonksiyon renderBaseInputs'u çağırır ve inputları sıfırlar
+        updateGlobalParties(); 
         renderDatasets();
         renderExtraParties();
         renderCoalitions();
 
-        // 3. Hedef Oy Oranlarını Geri Yükle (Inputlar oluşturulduktan sonra)
         if(data.targets) {
             const inputs = $('basePartiesArea').querySelectorAll('input');
             inputs.forEach(i => {
@@ -326,8 +345,8 @@ async function loadProject(inp) {
             });
         }
 
-        alert("Proje başarıyla yüklendi! Veritabanı ve ayarlar geri getirildi.");
-        $('fileInp').value = ''; // Inputu temizle
+        alert("Proje başarıyla yüklendi!");
+        $('fileInp').value = ''; 
         inp.value = '';
 
     } catch(err) {
