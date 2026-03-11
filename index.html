@@ -378,6 +378,20 @@ $('runBtn').onclick = () => {
 
         if(seats === 0) return; 
 
+        // Gerçekçi ilçe büyüklüğünü (toplam oyu) verisetlerinden tahmin et
+        let districtTotalVotes = 0;
+        let dWeightSum = 0;
+        datasets.forEach(ds => {
+            const dData = getDistrictDataWithPatch(ds, dName);
+            if(dData){
+                const dTotal = Object.values(dData.votes).reduce((a,b)=>a+b,0);
+                districtTotalVotes += dTotal * ds.w;
+                dWeightSum += ds.w;
+            }
+        });
+        // Eğer verisetinden oran alınamazsa varsayılan büyüklük ata
+        districtTotalVotes = dWeightSum > 0 ? (districtTotalVotes / dWeightSum) : 100000;
+
         const scoreMap = {};
         
         globalParties.forEach(p => {
@@ -407,7 +421,7 @@ $('runBtn').onclick = () => {
                         const dData = getDistrictDataWithPatch(ds, dName);
                         if(dData && dData.votes[donor] > 0){
                             const dTotal = Object.values(dData.votes).reduce((a,b)=>a+b,0);
-                            dPerfSum += ((dData.votes[donor]/dTotal) / ds.nat[donor]) * ds.w;
+                            dPerfSum += ((dData.votes[donor]/dTotal) / (ds.nat[donor] || 0.0001)) * ds.w;
                             dW += ds.w;
                         }
                     });
@@ -419,7 +433,8 @@ $('runBtn').onclick = () => {
 
         const totalScore = Object.values(scoreMap).reduce((a,b)=>a+b,0);
         const finalVotes = {};
-        for(let p in scoreMap) finalVotes[p] = (scoreMap[p]/(totalScore||1)) * 1000000;
+        // Önceden sabit 1.000.000 oy atanıyordu, şimdi gerçek çevresel oy ağırlığı ile dağıtılıyor
+        for(let p in scoreMap) finalVotes[p] = (scoreMap[p]/(totalScore||1)) * districtTotalVotes;
 
         const dhondtInput = {...finalVotes};
         
@@ -452,7 +467,8 @@ $('runBtn').onclick = () => {
             votes: finalVotes,
             dhondt: dhondtInput,
             mvs: finalSeats,
-            seats
+            seats,
+            totalVotes: districtTotalVotes // Hesaplanan toplam oyu UI için kaydediyoruz
         };
     });
 
@@ -492,7 +508,8 @@ function renderResults(res){
             if(v < 10) return;
             
             const isCoal = coalitions.find(c => c.name === p);
-            const pct = ((v/1000000)*100).toFixed(2);
+            // Sabit 1m hesaplaması düzeltildi
+            const pct = ((v / (item.totalVotes || 1)) * 100).toFixed(2);
             let totalMv = 0;
 
             if(isCoal) {
@@ -529,7 +546,11 @@ function downloadResults(){
         const item = globalResults[dName];
         txt += `${dName}-${item.seats}\n`;
         Object.entries(item.dhondt).forEach(([party, count]) => {
-            txt += `${party} ${Math.floor(count)}\n`;
+            const c = Math.floor(count);
+            // Sadece oyu 0'dan büyük olanları .txt'e dahil et
+            if (c > 0) {
+                txt += `${party} ${c}\n`;
+            }
         });
         txt += "-\n";
     });
