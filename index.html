@@ -3,139 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Seçim Simülatörü Pro v5.6 - UI Güncellemesi</title>
+    <title>Seçim Simülatörü Pro v5.6 - Material UI</title>
     <style>
-        :root{--primary:#0071e3;--bg:#f2f2f7;--card:#ffffff;--text:#1d1d1f;--border:#d2d2d7;--accent:#34c759;--danger:#ff3b30;--purple:#5856d6;--orange:#ff9500}
-        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:15px;font-size:12px}
-        
-        .sidebar::-webkit-scrollbar { display: none; }
-        .sidebar { -ms-overflow-style: none; scrollbar-width: none; }
+        @font-face {
+            font-family: 'Product Sans';
+            src: url('ProductSans-Bold.ttf') format('truetype');
+            font-weight: bold;
+        }
 
-        .container{max-width:1650px;margin:0 auto;display:grid;grid-template-columns:380px 1fr;gap:20px}
-        h1{font-size:20px;font-weight:600;grid-column:1/-1;margin:0 0 15px; display:flex; align-items:center; gap:10px}
-        .card{background:var(--card);border-radius:12px;padding:15px;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid var(--border);margin-bottom:15px}
-        .sidebar{height:calc(100vh - 40px);overflow-y:auto;padding-right:5px}
-        
-        label{display:block;font-weight:600;margin-bottom:6px;color:#333}
-        input, button, select{width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);margin-bottom:10px;box-sizing:border-box;font-size:12px}
-        button{background:var(--primary);color:#fff;border:none;cursor:pointer;font-weight:600;transition:0.2s}
-        button:hover{opacity:0.9}
-        button.danger{background:var(--danger)}
-        button.purple{background:var(--purple)}
-        button.orange{background:var(--orange)}
-        
-        /* Yeni Toggle Butonu Stili */
-        button.toggle-btn { background: transparent; border: 1px solid var(--border); color: #555; width: 30px; padding: 0; display: flex; align-items: center; justify-content: center; margin: 0; }
-        button.toggle-btn:hover { background: #f0f0f0; }
+        :root {
+            --primary: #1a73e8;
+            --primary-hover: #1557b0;
+            --bg: #f0f2f5;
+            --surface: #ffffff;
+            --text: #1c1e21;
+            --text-secondary: #606770;
+            --border: #dadde1;
+            --danger: #e41e3f;
+            --success: #31a24c;
+            --purple: #673ab7;
+            --orange: #f57c00;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
 
-        .data-row{background:#f9f9f9;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid #eee}
-        .parties-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(85px, 1fr));gap:6px}
-        .party-box{background:#fff;border:1px solid var(--border);padding:6px;border-radius:6px;text-align:center}
-        
-        .similarity-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(110px, 1fr));gap:8px;margin-top:10px}
-        .sim-input-box{background:#eff4f9;padding:8px;border-radius:6px;border:1px solid #d1d9e0}
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Product Sans', sans-serif; }
+        body { display: flex; height: 100vh; background-color: var(--bg); color: var(--text); overflow: hidden; }
 
-        #results{display:grid;grid-template-columns:repeat(auto-fill, minmax(calc(25% - 15px), 1fr));gap:15px}
-        .dist-card{background:#fff;border-radius:10px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.05);border-top:4px solid var(--primary)}
-        .dist-card h3{margin:0 0 10px;font-size:13px;display:flex;justify-content:space-between;color:var(--primary)}
-        
-        .p-line{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;align-items:center}
-        .p-line.is-coal{color:var(--primary);font-weight:bold;background:#f0f7ff;margin:2px -5px;padding:5px;border-radius:4px}
-        .mv-tag{background:var(--text);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:bold;margin-left:5px}
-        
-        .coal-member-label { display: flex; align-items: center; gap: 8px; font-weight: 400; margin-bottom: 5px; cursor: pointer; padding: 2px 0;}
-        .coal-member-label input { width: 16px; height: 16px; margin: 0; cursor: pointer; }
+        /* Kaydırma çubuğu gizleme */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #aaa; }
 
-        .flex-row{display:flex;gap:8px;align-items:center}
-        .scroll-area{max-height:250px;overflow-y:auto;padding-right:5px; border:1px solid #eee; border-radius:8px; padding:5px; background:#fafafa}
+        /* Sol Panel - Düzenleme */
+        .left-panel { flex: 1; max-width: 480px; padding: 20px; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--border); box-shadow: 2px 0 5px rgba(0,0,0,0.05); z-index: 10; display: flex; flex-direction: column; }
+        
+        /* Sağ Panel - Projeksiyon */
+        .right-panel { flex: 2; padding: 30px; overflow-y: auto; background: #e9eaef; position: relative; }
+
+        h1 { font-size: 1.5rem; margin-bottom: 20px; color: var(--primary); display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f0f2f5; padding-bottom: 12px; }
+        .proj-header { font-size: 1.8rem; margin-bottom: 24px; color: #1c1e21; border-bottom: 2px solid #dadde1; padding-bottom: 10px; }
+
+        .card { background: var(--surface); border-radius: 8px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .card label { display: block; font-weight: bold; margin-bottom: 12px; color: var(--primary); font-size: 1.1rem; }
+
+        .flex-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+        
+        input, select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; flex: 1; background: #f5f6f7; transition: 0.2s; }
+        input:focus, select:focus { border-color: var(--primary); background: #fff; }
+        input[type="number"] { max-width: 90px; }
+        input[type="file"] { padding: 6px; background: #fff; font-size: 12px; cursor: pointer; }
+
+        button { background-color: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        button:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        button.danger { background-color: var(--danger); }
+        button.danger:hover { background-color: #c9182b; }
+        button.purple { background-color: var(--purple); }
+        button.purple:hover { background-color: #512da8; }
+        button.orange { background-color: var(--orange); }
+        button.orange:hover { background-color: #e65100; }
+        button.success { background-color: var(--success); font-size: 15px; padding: 14px; }
+        button.success:hover { background-color: #27823b; }
+
+        button.toggle-btn { background: #f5f6f7; border: 1px solid var(--border); color: var(--text-secondary); width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+        button.toggle-btn:hover { background: #e4e6eb; color: var(--text); transform: none; }
+
+        /* Listeleme Satırları */
+        .data-row { background: var(--surface); padding: 10px; border-radius: 6px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid var(--border); border-left: 4px solid var(--border); font-size: 13px; }
+        
+        /* Izgaralar */
+        .parties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+        .party-box { background: #f8f9fa; border: 1px solid var(--border); padding: 8px; border-radius: 6px; text-align: center; }
+        .party-box span { display: block; font-size: 11px; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .party-box input { width: 100%; text-align: center; margin: 0; padding: 6px; font-weight: bold; color: var(--primary); }
+
+        .similarity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+        .sim-input-box { background: #f5f6f7; padding: 8px; border-radius: 6px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+        .sim-input-box span { font-size: 10px; color: var(--text-secondary); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sim-input-box input { padding: 4px; margin: 0; font-size: 12px; }
+
+        /* Ortak Liste Şık Parti Butonları */
+        .coal-sim-box { background: #f5f6f7; padding: 10px; border-radius: 6px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; text-align: center; }
+        .coal-sim-box:hover { background: #e8f0fe; border-color: var(--primary); }
+        .coal-sim-box.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 4px rgba(26,115,232,0.3); }
+        .coal-sim-box.active span { color: white; }
+        .coal-sim-box span { font-size: 11px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-secondary); pointer-events: none; }
+
+        .scroll-area { max-height: 250px; overflow-y: auto; padding-right: 5px; }
+
+        /* Aksiyon Çubuğu (Sabit) */
+        .action-bar { position: sticky; bottom: -20px; background: var(--surface); z-index: 10; padding-top: 16px; padding-bottom: 20px; border-top: 2px solid #f0f2f5; margin-top: auto; }
+
+        /* --- SAĞ PANEL (PROJEKSİYON) STİLLERİ --- */
+        #results { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start; }
+        
+        .dist-card { background: var(--surface); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); border-top: 5px solid var(--primary); transition: transform 0.2s; }
+        .dist-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+        
+        .dist-card h3 { margin: 0 0 16px 0; font-size: 1.3rem; color: var(--text); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f2f5; padding-bottom: 10px; }
+        .dist-card h3 span { background: #e8f0fe; color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: 1rem; }
+        
+        .p-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f5f6f7; }
+        .p-line:last-child { border-bottom: none; }
+        .p-line.is-coal { background: #f8faff; border-left: 3px solid var(--primary); padding-left: 8px; margin-left: -12px; padding-right: 12px; border-radius: 0 6px 6px 0; }
+        
+        .p-name-area { display: flex; flex-direction: column; }
+        .p-name { font-weight: bold; font-size: 13px; color: var(--text); }
+        .p-coal-members { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+        
+        .p-stats-area { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .p-pct { color: var(--text-secondary); font-size: 12px; font-weight: bold; }
+        .mv-tag { background: var(--primary); color: #fff; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+
+        /* Expand Butonları */
+        .expand-btn { width: 100%; background: #f8f9fa; border: 1px solid var(--border); color: var(--text-secondary); padding: 8px; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 6px; margin-top: 8px; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 4px; }
+        .expand-btn:hover { background: #e8f0fe; color: var(--primary); border-color: var(--primary); }
+        .tier { display: flex; flex-direction: column; }
+
+        .empty-state { grid-column: 1/-1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100px 20px; color: var(--text-secondary); text-align: center; }
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
+        .empty-state h2 { font-size: 1.5rem; color: var(--text); margin-bottom: 8px; }
 
         /* Cumhurbaşkanlığı Projeksiyonu Sabit Butonu */
         .floating-cb-btn {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            background: var(--purple);
-            color: #fff;
-            padding: 12px 20px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 13px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            transition: all 0.2s ease-in-out;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border: 2px solid #fff;
+            position: fixed; top: 20px; right: 30px;
+            background: var(--purple); color: #fff; padding: 10px 20px;
+            border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 13px;
+            box-shadow: 0 4px 6px rgba(103, 58, 183, 0.3); transition: transform 0.2s, background 0.2s;
+            z-index: 1000; display: flex; align-items: center; gap: 8px; border: none;
         }
-
-        .floating-cb-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-            color: #fff;
-        }
+        .floating-cb-btn:hover { transform: translateY(-2px); background: #512da8; }
     </style>
 </head>
 <body>
 
-<h1>🗳️ Seçim Simülatörü Pro v5.6 <small style="font-weight:400; font-size:12px; color:#666">| Genişletilebilir Arayüz</small></h1>
+<div class="left-panel">
+    <h1>🗳️ Seçim Simülatörü Pro</h1>
 
-<div class="container">
-    <div class="sidebar">
-        <div class="card">
-            <label>1. Veri Setleri (.txt)</label>
-            <input type="file" id="fileInp" accept=".txt" multiple>
-            <div id="datasetsList" class="scroll-area"></div>
-        </div>
-
-        <div class="card">
-            <label>2. Hedef Ülke Oy Oranları (%)</label>
-            <div id="basePartiesArea" class="parties-grid"></div>
-        </div>
-
-        <div class="card">
-            <label>3. Yeni Parti Ekle</label>
-            <div class="flex-row">
-                <input id="newPName" placeholder="Ad">
-                <input id="newPNat" type="number" placeholder="%" style="width:70px">
-                <button onclick="addExtraParty()" style="width:50px">+</button>
-            </div>
-            <div id="extraPartiesArea"></div>
-        </div>
-
-        <div class="card">
-            <label>4. Ortak Listeler (İttifak)</label>
-            <div class="flex-row">
-                <input id="coalName" placeholder="Liste Adı">
-                <button onclick="addCoalition()" style="width:50px">+</button>
-            </div>
-            <div id="coalitionArea" class="scroll-area"></div>
-        </div>
-
-        <div class="card" style="position: sticky; bottom: 0; background: #fff; z-index: 10; padding-top: 10px; border-top: 2px solid var(--primary);">
-            <button id="runBtn" style="background:var(--accent); font-size:15px; padding:16px; margin-bottom:10px">🚀 HESAPLA</button>
-            
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px">
-                <button onclick="saveProject()" class="purple">📁 PROJEYİ KAYDET (.JSON)</button>
-                <button onclick="$('projectLoader').click()" class="orange">📂 PROJE YÜKLE (.JSON)</button>
-            </div>
-            <input type="file" id="projectLoader" accept=".json" style="display:none" onchange="loadProject(this)">
-            
-            <button onclick="downloadResults()" class="danger" style="margin-top:5px">💾 SONUÇLARI İNDİR (.TXT)</button>
-        </div>
+    <div class="card">
+        <label>1. Veri Setleri (.txt)</label>
+        <input type="file" id="fileInp" accept=".txt" multiple style="width: 100%; margin-bottom: 12px;">
+        <div id="datasetsList" class="scroll-area"></div>
     </div>
 
-    <div id="results">
-        <div style="grid-column:1/-1; color:#888; text-align:center; padding:100px; font-size:14px">
-            Seçim sonuçlarını görmek için veri setlerini yükleyin veya hazır proje dosyası (.json) açın.
+    <div class="card">
+        <label>2. Hedef Ülke Oy Oranları (%)</label>
+        <div id="basePartiesArea" class="parties-grid"></div>
+    </div>
+
+    <div class="card">
+        <label>3. Yeni Parti Ekle</label>
+        <div class="flex-row">
+            <input id="newPName" placeholder="Parti Adı">
+            <input id="newPNat" type="number" placeholder="Oy (%)" style="width:80px">
+            <button onclick="addExtraParty()" style="width:40px; font-size: 16px;">+</button>
         </div>
+        <div id="extraPartiesArea"></div>
+    </div>
+
+    <div class="card">
+        <label>4. Ortak Listeler (İttifak)</label>
+        <div class="flex-row">
+            <input id="coalName" placeholder="Liste Adı (Örn: CUMHUR)">
+            <button onclick="addCoalition()" style="width:40px; font-size: 16px;">+</button>
+        </div>
+        <div id="coalitionArea" class="scroll-area"></div>
+    </div>
+
+    <div class="action-bar">
+        <button id="runBtn" class="success" style="width: 100%; margin-bottom:12px;">🚀 PROJEKSİYONU HESAPLA</button>
+        
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <button onclick="saveProject()" class="purple" style="flex:1;">💾 Kaydet (.JSON)</button>
+            <button onclick="document.getElementById('projectLoader').click()" class="orange" style="flex:1;">📂 Yükle (.JSON)</button>
+        </div>
+        <input type="file" id="projectLoader" accept=".json" style="display:none" onchange="loadProject(this)">
+        
+        <button onclick="downloadResults()" class="danger" style="width: 100%;">📥 Sonuçları İndir (.TXT)</button>
     </div>
 </div>
 
-<a href="cb_index.html" target="_blank" class="floating-cb-btn">
-    🇹🇷 Cumhurbaşkanlığı Projeksiyonu ➔
-</a>
+<div class="right-panel">
+    <a href="cb_index.html" target="_blank" class="floating-cb-btn">
+        🇹🇷 CB Projeksiyonu ➔
+    </a>
+    <div class="proj-header">Seçim Çevresi Sonuçları</div>
+    
+    <div id="results">
+        <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+            <h2>Veri Bekleniyor</h2>
+            <p>Seçim sonuçlarını görmek için sol panelden veri setlerini yükleyin veya hazır proje dosyası (.json) açın.</p>
+        </div>
+    </div>
+</div>
 
 <script>
 const $ = id => document.getElementById(id);
@@ -224,12 +289,13 @@ function updateGlobalParties(){
 
 function renderDatasets(){
     $('datasetsList').innerHTML = datasets.map(ds => `
-        <div class="data-row flex-row">
-            <span style="flex:1; overflow:hidden; font-size:11px"><b>${ds.name}</b></span>
-            <div style="display:flex; align-items:center; gap:3px">
-                W:<input type="number" step="0.1" value="${ds.w}" class="ds-weight-input" data-id="${ds.id}" style="width:40px; margin:0">
+        <div class="data-row flex-row" style="border-left-color: var(--primary);">
+            <span style="flex:1; overflow:hidden; font-weight:bold; white-space:nowrap; text-overflow:ellipsis;" title="${ds.name}">${ds.name}</span>
+            <div style="display:flex; align-items:center; gap:6px">
+                <span style="font-size:11px; color:var(--text-secondary); font-weight:bold;">Ağırlık:</span>
+                <input type="number" step="0.1" value="${ds.w}" class="ds-weight-input" data-id="${ds.id}" style="width:50px; margin:0; padding:4px;">
             </div>
-            <button class="danger" onclick="datasets=datasets.filter(x=>x.id!=${ds.id});renderDatasets();updateGlobalParties();" style="width:22px; margin:0; padding:2px">x</button>
+            <button class="danger" onclick="datasets=datasets.filter(x=>x.id!=${ds.id});renderDatasets();updateGlobalParties();" style="width:26px; height:26px; padding:0;">✖</button>
         </div>
     `).join('');
 }
@@ -240,7 +306,7 @@ function renderBaseInputs(){
     area.querySelectorAll('input').forEach(i => oldVals[i.dataset.p] = i.value);
     area.innerHTML = [...globalParties].sort().map(p => `
         <div class="party-box">
-            <span>${p}</span>
+            <span title="${p}">${p}</span>
             <input data-p="${p}" type="number" step="0.1" value="${oldVals[p]||0}">
         </div>
     `).join('');
@@ -250,7 +316,6 @@ function addExtraParty(){
     const name = $('newPName').value.trim().toUpperCase();
     const nat = parseFloat($('newPNat').value)||0;
     if(!name) return;
-    // isOpen: true default olarak açık gelir
     extraParties.push({ name, nat, similarity:{}, isOpen: true });
     $('newPName').value = '';
     $('newPNat').value = '';
@@ -264,19 +329,19 @@ function toggleExtraParty(idx) {
 
 function renderExtraParties(){
     $('extraPartiesArea').innerHTML = extraParties.map((ep, idx) => `
-        <div class="data-row">
-            <div class="flex-row">
+        <div class="data-row" style="border-left-color: var(--orange);">
+            <div class="flex-row" style="margin-bottom:0;">
                 <button class="toggle-btn" onclick="toggleExtraParty(${idx})">${ep.isOpen ? '▲' : '▼'}</button>
-                <b style="width:80px; overflow:hidden; text-overflow:ellipsis;">${ep.name}</b> 
-                <input type="number" step="0.1" value="${ep.nat}" style="width:60px; margin:0; font-weight:bold" 
+                <b style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${ep.name}</b> 
+                <input type="number" step="0.1" value="${ep.nat}" style="width:70px; margin:0; font-weight:bold; color:var(--primary);" 
                        onchange="extraParties[${idx}].nat = parseFloat(this.value)||0">
-                <span>%</span>
-                <button class="danger" onclick="extraParties.splice(${idx},1);renderExtraParties();" style="width:25px; margin-left:auto">x</button>
+                <span style="font-weight:bold; color:var(--text-secondary);">%</span>
+                <button class="danger" onclick="extraParties.splice(${idx},1);renderExtraParties();" style="width:26px; height:26px; padding:0; margin-left:4px;">✖</button>
             </div>
             <div class="similarity-grid" style="display: ${ep.isOpen ? 'grid' : 'none'}">
                 ${[...globalParties].sort().map(p => `
                     <div class="sim-input-box">
-                        <span style="font-size:9px; color:#555">${p}</span>
+                        <span title="${p}">${p}</span>
                         <input type="number" placeholder="%" value="${(ep.similarity[p]||0)*100}" 
                                onchange="extraParties[${idx}].similarity['${p}']=parseFloat(this.value)/100">
                     </div>
@@ -289,7 +354,6 @@ function renderExtraParties(){
 function addCoalition(){
     const name = $('coalName').value.trim().toUpperCase();
     if(!name) return;
-    // isOpen: true default olarak açık gelir
     coalitions.push({ name, members:[], isOpen: true });
     $('coalName').value = ''; 
     renderCoalitions();
@@ -303,18 +367,18 @@ function toggleCoalition(idx) {
 function renderCoalitions(){
     const all = [...globalParties, ...extraParties.map(e=>e.name)].sort();
     $('coalitionArea').innerHTML = coalitions.map((c, idx) => `
-        <div class="data-row">
-            <div class="flex-row">
+        <div class="data-row" style="border-left-color: var(--purple);">
+            <div class="flex-row" style="margin-bottom:0;">
                 <button class="toggle-btn" onclick="toggleCoalition(${idx})">${c.isOpen ? '▲' : '▼'}</button>
-                <b>${c.name}</b> 
-                <button class="danger" onclick="coalitions.splice(${idx},1);renderCoalitions();" style="width:25px; margin-left:auto">x</button>
+                <b style="flex:1;">${c.name}</b> 
+                <button class="danger" onclick="coalitions.splice(${idx},1);renderCoalitions();" style="width:26px; height:26px; padding:0;">✖</button>
             </div>
-            <div style="margin-top:8px; display: ${c.isOpen ? 'block' : 'none'}">
+            <div style="margin-top:10px; display: ${c.isOpen ? 'grid' : 'none'}; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; border-top: 1px dashed var(--border); padding-top:10px;">
                 ${all.map(p => `
-                    <label class="coal-member-label">
-                        <input type="checkbox" ${c.members.includes(p)?'checked':''} 
-                            onchange="const m=coalitions[${idx}].members; this.checked ? m.push('${p}') : coalitions[${idx}].members=m.filter(x=>x!=='${p}')">
-                        ${p}
+                    <label class="coal-sim-box ${c.members.includes(p)?'active':''}" title="${p}">
+                        <input type="checkbox" style="display:none;" ${c.members.includes(p)?'checked':''} 
+                            onchange="const m=coalitions[${idx}].members; this.checked ? m.push('${p}') : coalitions[${idx}].members=m.filter(x=>x!=='${p}'); renderCoalitions();">
+                        <span>${p}</span>
                     </label>
                 `).join('')}
             </div>
@@ -322,7 +386,7 @@ function renderCoalitions(){
     `).join('');
 }
 
-// === PROJE KAYDETME VE YÜKLEME FONKSİYONLARI ===
+// === PROJE KAYDETME VE YÜKLEME ===
 
 function saveProject() {
     const currentTargets = {};
@@ -357,8 +421,6 @@ async function loadProject(inp) {
         if(!data.datasets) throw new Error("Geçersiz proje dosyası");
 
         datasets = data.datasets || [];
-        
-        // Geriye dönük uyumluluk: Eğer eski bir proje ise isOpen özelliği yoktur, true atayalım.
         extraParties = (data.extraParties || []).map(ep => ({...ep, isOpen: (ep.isOpen !== undefined ? ep.isOpen : true)}));
         coalitions = (data.coalitions || []).map(c => ({...c, isOpen: (c.isOpen !== undefined ? c.isOpen : true)}));
 
@@ -409,7 +471,6 @@ $('runBtn').onclick = () => {
 
         if(seats === 0) return; 
 
-        // Gerçekçi ilçe büyüklüğünü (toplam oyu) verisetlerinden tahmin et
         let districtTotalVotes = 0;
         let dWeightSum = 0;
         datasets.forEach(ds => {
@@ -420,7 +481,6 @@ $('runBtn').onclick = () => {
                 dWeightSum += ds.w;
             }
         });
-        // Eğer verisetinden oran alınamazsa varsayılan büyüklük ata
         districtTotalVotes = dWeightSum > 0 ? (districtTotalVotes / dWeightSum) : 100000;
 
         const scoreMap = {};
@@ -464,7 +524,6 @@ $('runBtn').onclick = () => {
 
         const totalScore = Object.values(scoreMap).reduce((a,b)=>a+b,0);
         const finalVotes = {};
-        // Önceden sabit 1.000.000 oy atanıyordu, şimdi gerçek çevresel oy ağırlığı ile dağıtılıyor
         for(let p in scoreMap) finalVotes[p] = (scoreMap[p]/(totalScore||1)) * districtTotalVotes;
 
         const dhondtInput = {...finalVotes};
@@ -499,7 +558,7 @@ $('runBtn').onclick = () => {
             dhondt: dhondtInput,
             mvs: finalSeats,
             seats,
-            totalVotes: districtTotalVotes // Hesaplanan toplam oyu UI için kaydediyoruz
+            totalVotes: districtTotalVotes
         };
     });
 
@@ -519,13 +578,38 @@ function runDhondt(v, s){
     return res;
 }
 
+// Global Toggle Fonksiyonu (Kartlardaki Tiers İçin)
+window.toggleTier = function(btn, targetTier) {
+    const card = btn.parentElement;
+    if (targetTier === 2) {
+        const t2 = card.querySelector('.tier-2');
+        if(t2) t2.style.display = 'flex';
+        btn.style.display = 'none';
+        const t2Btn = card.querySelector('.t2-btn');
+        if(t2Btn) t2Btn.style.display = 'flex';
+    } else if (targetTier === 3) {
+        const t3 = card.querySelector('.tier-3');
+        if(t3) t3.style.display = 'flex';
+        btn.style.display = 'none';
+    }
+};
+
 function renderResults(res){
     const area = $('results');
     area.innerHTML = '';
     const sortedNames = Object.keys(res).sort();
 
     if(sortedNames.length === 0) {
-        area.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px">MV koltuğu tanımlanmış seçim çevresi bulunamadı.</div>';
+        area.innerHTML = `
+        <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <h2>Geçersiz Veri</h2>
+            <p>MV koltuğu tanımlanmış seçim çevresi bulunamadı. Lütfen veri setlerini kontrol edin.</p>
+        </div>`;
         return;
     }
 
@@ -533,14 +617,19 @@ function renderResults(res){
         const item = res[d];
         const card = document.createElement('div');
         card.className = 'dist-card';
-        card.innerHTML = `<h3>${d} <span>${item.seats} MV</span></h3>`;
+        
+        let tier1Html = '';
+        let tier2Html = '';
+        let tier3Html = '';
+        let tier2Count = 0;
+        let tier3Count = 0;
         
         Object.entries(item.dhondt).sort((a,b)=>b[1]-a[1]).forEach(([p, v])=> {
             if(v < 10) return;
             
             const isCoal = coalitions.find(c => c.name === p);
-            // Sabit 1m hesaplaması düzeltildi
-            const pct = ((v / (item.totalVotes || 1)) * 100).toFixed(2);
+            const pctVal = (v / (item.totalVotes || 1)) * 100;
+            const pct = pctVal.toFixed(2);
             let totalMv = 0;
 
             if(isCoal) {
@@ -549,20 +638,52 @@ function renderResults(res){
                 totalMv = item.mvs[p] || 0;
             }
 
-            const line = document.createElement('div');
-            line.className = `p-line ${isCoal?'is-coal':''}`;
-            line.innerHTML = `
-                <div style="display:flex; flex-direction:column; justify-content:center">
-                    <span style="font-weight:600; font-size:11px">${p}</span>
-                    ${isCoal ? `<span style="font-size:9px; font-weight:normal">${isCoal.members.map(m=> m + (item.mvs[m]>0 ? ` (${item.mvs[m]})` : '')).join(', ')}</span>` : ''}
-                </div>
-                <div style="text-align:right">
-                    <small style="color:#666; font-size:10px">%${pct}</small>
-                    ${totalMv > 0 ? `<span class="mv-tag">${totalMv} MV</span>` : ''}
+            const rowHtml = `
+                <div class="p-line ${isCoal?'is-coal':''}">
+                    <div class="p-name-area">
+                        <span class="p-name">${p}</span>
+                        ${isCoal ? `<span class="p-coal-members">${isCoal.members.map(m=> m + (item.mvs[m]>0 ? ` (${item.mvs[m]})` : '')).join(', ')}</span>` : ''}
+                    </div>
+                    <div class="p-stats-area">
+                        <span class="p-pct">%${pct}</span>
+                        ${totalMv > 0 ? `<span class="mv-tag">${totalMv} MV</span>` : ''}
+                    </div>
                 </div>
             `;
-            card.appendChild(line);
+            
+            // Kademeli Listeleme Mantığı
+            if (totalMv > 0) {
+                tier1Html += rowHtml;
+            } else if (pctVal >= 1) {
+                tier2Html += rowHtml;
+                tier2Count++;
+            } else {
+                tier3Html += rowHtml;
+                tier3Count++;
+            }
         });
+        
+        let cardContent = `<h3>${d} <span>${item.seats} MV</span></h3>`;
+        cardContent += `<div class="tier tier-1">${tier1Html || '<div class="p-line" style="justify-content:center; color:#999; font-size:12px; padding:12px 0;">MV çıkaran parti/ittifak yok</div>'}</div>`;
+        
+        let btn1Html = '';
+        let btn2Html = '';
+
+        if (tier2Count > 0) {
+            btn1Html = `<button class="expand-btn t1-btn" onclick="toggleTier(this, 2)">▼ %1 Üzeri Partiler (${tier2Count})</button>`;
+            if (tier3Count > 0) {
+                btn2Html = `<button class="expand-btn t2-btn" style="display:none;" onclick="toggleTier(this, 3)">▼ Diğer Tüm Partiler (${tier3Count})</button>`;
+            }
+        } else if (tier3Count > 0) {
+            btn1Html = `<button class="expand-btn t1-btn" onclick="toggleTier(this, 3)">▼ Diğer Tüm Partiler (${tier3Count})</button>`;
+        }
+
+        if (btn1Html) cardContent += btn1Html;
+        if (tier2Count > 0) cardContent += `<div class="tier tier-2" style="display:none;">${tier2Html}</div>`;
+        if (btn2Html) cardContent += btn2Html;
+        if (tier3Count > 0) cardContent += `<div class="tier tier-3" style="display:none;">${tier3Html}</div>`;
+
+        card.innerHTML = cardContent;
         area.appendChild(card);
     });
 }
@@ -578,7 +699,6 @@ function downloadResults(){
         txt += `${dName}-${item.seats}\n`;
         Object.entries(item.dhondt).forEach(([party, count]) => {
             const c = Math.floor(count);
-            // Sadece oyu 0'dan büyük olanları .txt'e dahil et
             if (c > 0) {
                 txt += `${party} ${c}\n`;
             }
