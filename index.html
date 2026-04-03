@@ -68,6 +68,10 @@
         button.toggle-btn { background: #f5f6f7; border: 1px solid var(--border); color: var(--text-secondary); width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
         button.toggle-btn:hover { background: #e4e6eb; color: var(--text); transform: none; }
 
+        /* Yeni: İttifak Durum Butonu */
+        button.status-btn { background: #f5f6f7; border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-right: 8px; }
+        button.status-btn.active { background: var(--success); color: white; border-color: var(--success); }
+
         /* Listeleme Satırları */
         .data-row { background: var(--surface); padding: 10px; border-radius: 6px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid var(--border); border-left: 4px solid var(--border); font-size: 13px; }
         
@@ -147,7 +151,12 @@
     </div>
 
     <div class="card">
-        <label>2. Hedef Ülke Oy Oranları (%)</label>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <label style="margin-bottom: 0;">2. Hedef Ülke Oy Oranları (%)</label>
+            <div id="voteTotalTracker" style="font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 4px; background: #e8f0fe; color: var(--primary); border: 1px solid var(--primary); transition: 0.3s;">
+                Toplam: %0.00 | Kalan: %100.00
+            </div>
+        </div>
         <div id="basePartiesArea" class="parties-grid"></div>
     </div>
 
@@ -155,7 +164,7 @@
         <label>3. Yeni Parti Ekle</label>
         <div class="flex-row">
             <input id="newPName" placeholder="Parti Adı">
-            <input id="newPNat" type="number" placeholder="Oy (%)" style="width:80px">
+            <input id="newPNat" type="number" step="0.01" placeholder="Oy (%)" style="width:80px">
             <button onclick="addExtraParty()" style="width:40px; font-size: 16px;">+</button>
         </div>
         <div id="extraPartiesArea"></div>
@@ -164,7 +173,7 @@
     <div class="card">
         <label>4. Ortak Listeler (İttifak)</label>
         <div class="flex-row">
-            <input id="coalName" placeholder="Liste Adı (Örn: CUMHUR)">
+            <input id="coalName" placeholder="Liste Adı (Örn: Cumhur İttifakı)">
             <button onclick="addCoalition()" style="width:40px; font-size: 16px;">+</button>
         </div>
         <div id="coalitionArea" class="scroll-area"></div>
@@ -210,7 +219,54 @@ let coalitions = [];
 let globalParties = new Set();
 let globalResults = {}; 
 
-// Veri Okuma ve Ayrıştırma
+// JS string içine güvenle yazdırmak için tırnakları escape eden fonksiyon
+function escapeStr(str) {
+    return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// Toplam Oy Oranını Hesaplayan Fonksiyon
+function updateTotalTracker() {
+    let total = 0;
+    
+    // Ana partilerin oyları
+    $('basePartiesArea').querySelectorAll('input').forEach(i => {
+        total += parseFloat(i.value) || 0;
+    });
+    
+    // Eklenen ekstra partilerin oyları
+    extraParties.forEach(ep => {
+        total += parseFloat(ep.nat) || 0;
+    });
+
+    // JavaScript'in ondalık hatalarını (ör: 99.999999) önlemek için
+    total = Math.round(total * 100) / 100;
+    let remaining = Math.round((100 - total) * 100) / 100;
+
+    const tracker = $('voteTotalTracker');
+    if(!tracker) return;
+
+    let bgColor = '#e8f0fe';
+    let textColor = 'var(--primary)';
+    let remColor = 'var(--orange)';
+
+    if (total === 100) {
+        bgColor = '#e6f4ea';
+        textColor = 'var(--success)';
+        remColor = 'var(--success)';
+    } else if (total > 100) {
+        bgColor = '#fce8e8';
+        textColor = 'var(--danger)';
+        remColor = 'var(--danger)';
+    }
+
+    tracker.style.background = bgColor;
+    tracker.style.color = textColor;
+    tracker.style.borderColor = textColor;
+    
+    tracker.innerHTML = `Toplam: %${total.toFixed(2)} | Kalan: <span style="color:${remColor}; font-weight:900;">%${remaining.toFixed(2)}</span>`;
+}
+
+// Veri Okuma ve Ayrıştırma (.toUpperCase() KALDIRILDI)
 $('fileInp').onchange = async (e) => {
     for(let file of e.target.files){
         const text = await file.text();
@@ -231,13 +287,14 @@ function parseTxt(t){
         let header = lines[0].trim();
         let parts = header.split('-');
         let seats = parseInt(parts.pop()) || 0;
-        let name = parts.join('-').trim().toUpperCase();
+        let name = parts.join('-').trim(); // Orijinal hali korunuyor
         
         const votes = {};
         lines.slice(1).forEach(l => {
-            const p = l.split(/\s+/);
+            const p = l.trim().split(/\s+/);
             const v = parseInt(p.pop().replace(/\D/g,''));
-            if(!isNaN(v)) votes[p.join(' ').toUpperCase()] = v;
+            const pName = p.join(' ').trim(); // Orijinal hali korunuyor
+            if(!isNaN(v) && pName) votes[pName] = v;
         });
         out[name] = { votes, seats };
     });
@@ -290,7 +347,7 @@ function updateGlobalParties(){
 function renderDatasets(){
     $('datasetsList').innerHTML = datasets.map(ds => `
         <div class="data-row flex-row" style="border-left-color: var(--primary);">
-            <span style="flex:1; overflow:hidden; font-weight:bold; white-space:nowrap; text-overflow:ellipsis;" title="${ds.name}">${ds.name}</span>
+            <span style="flex:1; overflow:hidden; font-weight:bold; white-space:nowrap; text-overflow:ellipsis;" title="${escapeStr(ds.name)}">${ds.name}</span>
             <div style="display:flex; align-items:center; gap:6px">
                 <span style="font-size:11px; color:var(--text-secondary); font-weight:bold;">Ağırlık:</span>
                 <input type="number" step="0.1" value="${ds.w}" class="ds-weight-input" data-id="${ds.id}" style="width:50px; margin:0; padding:4px;">
@@ -304,16 +361,21 @@ function renderBaseInputs(){
     const area = $('basePartiesArea');
     const oldVals = {}; 
     area.querySelectorAll('input').forEach(i => oldVals[i.dataset.p] = i.value);
-    area.innerHTML = [...globalParties].sort().map(p => `
+    
+    // Partileri Türkçe karakter uyumlu alfabetik sırala
+    const sortedParties = [...globalParties].sort((a,b) => a.localeCompare(b, 'tr'));
+    
+    area.innerHTML = sortedParties.map(p => `
         <div class="party-box">
-            <span title="${p}">${p}</span>
-            <input data-p="${p}" type="number" step="0.1" value="${oldVals[p]||0}">
+            <span title="${escapeStr(p)}">${p}</span>
+            <input data-p="${escapeStr(p)}" type="number" step="0.01" value="${oldVals[p]||0}" oninput="updateTotalTracker()">
         </div>
     `).join('');
+    updateTotalTracker();
 }
 
 function addExtraParty(){
-    const name = $('newPName').value.trim().toUpperCase();
+    const name = $('newPName').value.trim(); // .toUpperCase() KALDIRILDI
     const nat = parseFloat($('newPNat').value)||0;
     if(!name) return;
     extraParties.push({ name, nat, similarity:{}, isOpen: true });
@@ -328,33 +390,36 @@ function toggleExtraParty(idx) {
 }
 
 function renderExtraParties(){
+    const sortedGlobal = [...globalParties].sort((a,b) => a.localeCompare(b, 'tr'));
+    
     $('extraPartiesArea').innerHTML = extraParties.map((ep, idx) => `
         <div class="data-row" style="border-left-color: var(--orange);">
             <div class="flex-row" style="margin-bottom:0;">
                 <button class="toggle-btn" onclick="toggleExtraParty(${idx})">${ep.isOpen ? '▲' : '▼'}</button>
                 <b style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${ep.name}</b> 
-                <input type="number" step="0.1" value="${ep.nat}" style="width:70px; margin:0; font-weight:bold; color:var(--primary);" 
-                       onchange="extraParties[${idx}].nat = parseFloat(this.value)||0">
+                <input type="number" step="0.01" value="${ep.nat}" style="width:70px; margin:0; font-weight:bold; color:var(--primary);" 
+                       oninput="extraParties[${idx}].nat = parseFloat(this.value)||0; updateTotalTracker();">
                 <span style="font-weight:bold; color:var(--text-secondary);">%</span>
                 <button class="danger" onclick="extraParties.splice(${idx},1);renderExtraParties();" style="width:26px; height:26px; padding:0; margin-left:4px;">✖</button>
             </div>
             <div class="similarity-grid" style="display: ${ep.isOpen ? 'grid' : 'none'}">
-                ${[...globalParties].sort().map(p => `
+                ${sortedGlobal.map(p => `
                     <div class="sim-input-box">
-                        <span title="${p}">${p}</span>
+                        <span title="${escapeStr(p)}">${p}</span>
                         <input type="number" placeholder="%" value="${(ep.similarity[p]||0)*100}" 
-                               onchange="extraParties[${idx}].similarity['${p}']=parseFloat(this.value)/100">
+                               onchange="extraParties[${idx}].similarity['${escapeStr(p)}']=parseFloat(this.value)/100">
                     </div>
                 `).join('')}
             </div>
         </div>
     `).join('');
+    updateTotalTracker();
 }
 
 function addCoalition(){
-    const name = $('coalName').value.trim().toUpperCase();
+    const name = $('coalName').value.trim(); // .toUpperCase() KALDIRILDI
     if(!name) return;
-    coalitions.push({ name, members:[], isOpen: true });
+    coalitions.push({ name, members:[], isOpen: true, isEnabled: true });
     $('coalName').value = ''; 
     renderCoalitions();
 }
@@ -364,20 +429,30 @@ function toggleCoalition(idx) {
     renderCoalitions();
 }
 
+function toggleCoalitionActive(idx) {
+    if (coalitions[idx].isEnabled === undefined) coalitions[idx].isEnabled = true;
+    coalitions[idx].isEnabled = !coalitions[idx].isEnabled;
+    renderCoalitions();
+}
+
 function renderCoalitions(){
-    const all = [...globalParties, ...extraParties.map(e=>e.name)].sort();
+    const all = [...globalParties, ...extraParties.map(e=>e.name)].sort((a,b) => a.localeCompare(b, 'tr'));
+    
     $('coalitionArea').innerHTML = coalitions.map((c, idx) => `
         <div class="data-row" style="border-left-color: var(--purple);">
             <div class="flex-row" style="margin-bottom:0;">
                 <button class="toggle-btn" onclick="toggleCoalition(${idx})">${c.isOpen ? '▲' : '▼'}</button>
+                <button class="status-btn ${c.isEnabled !== false ? 'active' : ''}" onclick="toggleCoalitionActive(${idx})">
+                    ${c.isEnabled !== false ? 'AKTİF' : 'PASİF'}
+                </button>
                 <b style="flex:1;">${c.name}</b> 
                 <button class="danger" onclick="coalitions.splice(${idx},1);renderCoalitions();" style="width:26px; height:26px; padding:0;">✖</button>
             </div>
             <div style="margin-top:10px; display: ${c.isOpen ? 'grid' : 'none'}; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; border-top: 1px dashed var(--border); padding-top:10px;">
                 ${all.map(p => `
-                    <label class="coal-sim-box ${c.members.includes(p)?'active':''}" title="${p}">
+                    <label class="coal-sim-box ${c.members.includes(p)?'active':''}" title="${escapeStr(p)}">
                         <input type="checkbox" style="display:none;" ${c.members.includes(p)?'checked':''} 
-                            onchange="const m=coalitions[${idx}].members; this.checked ? m.push('${p}') : coalitions[${idx}].members=m.filter(x=>x!=='${p}'); renderCoalitions();">
+                            onchange="const m=coalitions[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : coalitions[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderCoalitions();">
                         <span>${p}</span>
                     </label>
                 `).join('')}
@@ -422,7 +497,11 @@ async function loadProject(inp) {
 
         datasets = data.datasets || [];
         extraParties = (data.extraParties || []).map(ep => ({...ep, isOpen: (ep.isOpen !== undefined ? ep.isOpen : true)}));
-        coalitions = (data.coalitions || []).map(c => ({...c, isOpen: (c.isOpen !== undefined ? c.isOpen : true)}));
+        coalitions = (data.coalitions || []).map(c => ({
+            ...c, 
+            isOpen: (c.isOpen !== undefined ? c.isOpen : true),
+            isEnabled: (c.isEnabled !== undefined ? c.isEnabled : true)
+        }));
 
         updateGlobalParties(); 
         renderDatasets();
@@ -437,6 +516,8 @@ async function loadProject(inp) {
                 }
             });
         }
+        
+        updateTotalTracker();
 
         alert("Proje başarıyla yüklendi!");
         $('fileInp').value = ''; 
@@ -529,6 +610,8 @@ $('runBtn').onclick = () => {
         const dhondtInput = {...finalVotes};
         
         coalitions.forEach(c => {
+            if (c.isEnabled === false) return; // İttifak devre dışıysa hesaplamayı atla
+            
             let cSum = 0;
             c.members.forEach(m => { 
                 if(dhondtInput[m]) {
@@ -542,7 +625,7 @@ $('runBtn').onclick = () => {
         const coalitionSeats = runDhondt(dhondtInput, seats);
         const finalSeats = {};
         Object.keys(coalitionSeats).forEach(winner => {
-            const coal = coalitions.find(c => c.name === winner);
+            const coal = coalitions.find(c => c.name === winner && c.isEnabled !== false); // Sadece aktif ittifakları tespit et
             if(coal) {
                 const subVotes = {};
                 coal.members.forEach(m => subVotes[m] = finalVotes[m] || 0);
@@ -597,7 +680,7 @@ window.toggleTier = function(btn, targetTier) {
 function renderResults(res){
     const area = $('results');
     area.innerHTML = '';
-    const sortedNames = Object.keys(res).sort();
+    const sortedNames = Object.keys(res).sort((a,b) => a.localeCompare(b, 'tr'));
 
     if(sortedNames.length === 0) {
         area.innerHTML = `
@@ -627,7 +710,7 @@ function renderResults(res){
         Object.entries(item.dhondt).sort((a,b)=>b[1]-a[1]).forEach(([p, v])=> {
             if(v < 10) return;
             
-            const isCoal = coalitions.find(c => c.name === p);
+            const isCoal = coalitions.find(c => c.name === p && c.isEnabled !== false); // Pasif olan ittifaklar hesaplanmaz
             const pctVal = (v / (item.totalVotes || 1)) * 100;
             const pct = pctVal.toFixed(2);
             let totalMv = 0;
@@ -692,7 +775,7 @@ function downloadResults(){
     if(Object.keys(globalResults).length === 0) return alert("Önce hesaplama yapın!");
 
     let txt = "";
-    const sortedDistricts = Object.keys(globalResults).sort();
+    const sortedDistricts = Object.keys(globalResults).sort((a,b) => a.localeCompare(b, 'tr'));
 
     sortedDistricts.forEach(dName => {
         const item = globalResults[dName];
