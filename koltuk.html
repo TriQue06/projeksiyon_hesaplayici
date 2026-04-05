@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>PGM - Koltuk Verisi Düzenleyici</title>
+    <style>
+        @font-face {
+            font-family: 'Product Sans';
+            src: url('ProductSans-Bold.ttf') format('truetype');
+            font-weight: bold;
+        }
+
+        :root {
+            --primary: #673ab7;
+            --primary-hover: #512da8;
+            --bg: #f0f2f5;
+            --surface: #ffffff;
+            --text: #1c1e21;
+            --text-secondary: #606770;
+            --border: #dadde1;
+            --danger: #e41e3f;
+            --success: #31a24c;
+            --shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Product Sans', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 40px 20px; }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+        .header h1 { color: var(--primary); font-size: 2rem; display: flex; align-items: center; gap: 10px; }
+        
+        .card { background: var(--surface); border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .card-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 16px; color: var(--text); border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+        
+        .upload-area { display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed var(--primary); padding: 40px; border-radius: 12px; background: #f8f9fc; cursor: pointer; transition: 0.2s; }
+        .upload-area:hover { background: #f1ebff; }
+        .upload-area span { font-size: 1.2rem; color: var(--primary); font-weight: bold; margin-top: 10px; }
+        .upload-area input { display: none; }
+
+        .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .control-box { background: var(--bg); padding: 16px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+        
+        .control-box label { font-weight: bold; font-size: 0.9rem; color: var(--text-secondary); }
+        .control-box input[type="number"] { padding: 10px; font-size: 1.2rem; font-weight: bold; color: var(--primary); border: 1px solid var(--border); border-radius: 6px; outline: none; transition: 0.2s; text-align: center; }
+        .control-box input[type="number"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(103, 58, 183, 0.2); }
+        
+        button { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(103, 58, 183, 0.3); }
+        button.success { background: var(--success); }
+        button.success:hover { background: #27823b; box-shadow: 0 4px 12px rgba(49, 162, 76, 0.3); }
+        
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; color: var(--text); margin-top: 5px; }
+
+        .districts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 20px; }
+        .dist-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .dist-item:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .dist-name { font-weight: bold; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+        .dist-input { width: 55px; padding: 6px; font-size: 1rem; font-weight: bold; text-align: right; border: 1px solid var(--border); border-radius: 6px; color: var(--primary); background: #f8f9fa; outline:none;}
+        .dist-input:focus { border-color: var(--primary); background: #fff; }
+
+        .total-display { font-size: 2.5rem; font-weight: bold; color: var(--text); text-align: center; }
+        
+        #workspace { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>💺 Koltuk Verisi Düzenleyici</h1>
+        <button onclick="document.getElementById('uploadFile').click()" style="background:var(--surface); color:var(--text); border:1px solid var(--border); font-size:14px;">
+            📂 Yeni Dosya Yükle
+        </button>
+    </div>
+
+    <div class="card" id="uploadArea">
+        <div class="card-title">Düzenlenecek Veriyi Aktarın</div>
+        <p style="color:var(--text-secondary); margin-bottom:20px;">Ana seçim simülatöründen indirdiğiniz .json uzantılı koltuk verisini buraya yükleyin.</p>
+        <label class="upload-area" for="uploadFile">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <span>JSON Dosyası Seç (.json)</span>
+            <input type="file" id="uploadFile" accept=".json" onchange="handleUpload(this)">
+        </label>
+    </div>
+
+    <div id="workspace">
+        <div class="card">
+            <div class="card-title">Orantısal Dağıtım (Toplu İşlem)</div>
+            <div class="controls-grid">
+                <div class="control-box" style="align-items: center; justify-content: center; background: #f8f9fa;">
+                    <label>Mevcut Toplam Koltuk</label>
+                    <div class="total-display" id="displayCurrentTotal">600</div>
+                </div>
+                
+                <div class="control-box">
+                    <label>Hedef Toplam Koltuk</label>
+                    <input type="number" id="targetTotalInp" value="430" min="1">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="min1Check" checked>
+                        Her çevreye en az 1 vekil garantisi
+                    </label>
+                </div>
+                
+                <div class="control-box" style="justify-content: center;">
+                    <button onclick="distributeSeats()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 6.3-6.4 2.1 2-6.3z"></path></svg>
+                        Matematiksel Orantıyla Dağıt
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+            <button class="success" onclick="downloadModifiedData()" style="width: 100%; font-size: 1.1rem; padding: 16px;">
+                📥 Düzenlenmiş Veriyi İndir (.JSON)
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>Seçim Çevreleri</span>
+                <span style="font-size: 0.9rem; font-weight: normal; color:var(--text-secondary)">Teker teker elle düzenleme yapabilirsiniz.</span>
+            </div>
+            <div class="districts-grid" id="districtsGrid">
+                </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let seatData = {};
+
+    function escapeStr(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+    // Dosya Yükleme İşlemi
+    async function handleUpload(inp) {
+        const file = inp.files[0];
+        if(!file) return;
+        try {
+            const text = await file.text();
+            seatData = JSON.parse(text);
+            
+            document.getElementById('uploadArea').style.display = 'none';
+            document.getElementById('workspace').style.display = 'block';
+            
+            renderList();
+        } catch (err) {
+            alert("Hata: Geçersiz JSON dosyası! Seçim simülatöründen indirilmiş doğru bir koltuk verisi yüklediğinize emin olun.");
+        }
+        inp.value = '';
+    }
+
+    // Ekranı Render Et
+    function renderList() {
+        const grid = document.getElementById('districtsGrid');
+        grid.innerHTML = '';
+        let total = 0;
+
+        // İl ismine göre alfabetik sırala
+        const sortedDistricts = Object.keys(seatData).sort((a,b) => a.localeCompare(b, 'tr'));
+
+        sortedDistricts.forEach(dName => {
+            const seats = seatData[dName];
+            total += seats;
+
+            const div = document.createElement('div');
+            div.className = 'dist-item';
+            div.innerHTML = `
+                <span class="dist-name" title="${escapeStr(dName)}">${dName}</span>
+                <input type="number" class="dist-input" value="${seats}" min="0" oninput="updateSingleSeat('${escapeStr(dName)}', this.value)">
+            `;
+            grid.appendChild(div);
+        });
+
+        document.getElementById('displayCurrentTotal').innerText = total;
+        document.getElementById('targetTotalInp').value = total;
+    }
+
+    // Tekil Elle Değiştirme
+    function updateSingleSeat(dName, value) {
+        let val = parseInt(value);
+        if (isNaN(val) || val < 0) val = 0;
+        seatData[dName] = val;
+        
+        // Sadece toplamı güncelle, tüm listeyi baştan render etme (imleç kaybolmasın diye)
+        let total = Object.values(seatData).reduce((a, b) => a + b, 0);
+        document.getElementById('displayCurrentTotal').innerText = total;
+    }
+
+    // Hamilton Methodu (En Büyük Artık) ile Orantısal Dağıtım
+    function distributeSeats() {
+        const target = parseInt(document.getElementById('targetTotalInp').value);
+        const min1 = document.getElementById('min1Check').checked;
+        
+        const keys = Object.keys(seatData);
+        let currentTotal = keys.reduce((sum, k) => sum + seatData[k], 0);
+
+        if (isNaN(target) || target < 1) return alert("Lütfen geçerli bir hedef toplam girin.");
+        if (currentTotal === 0) return alert("Mevcut verideki tüm koltuklar 0 olduğu için oran hesaplanamıyor.");
+        if (min1 && target < keys.length) {
+            return alert(`Her il için en az 1 vekil garanti seçeneği aktifken, hedef sayı (${target}) il sayısından (${keys.length}) küçük olamaz!`);
+        }
+
+        let newSeats = {};
+        let remainders = [];
+        let assignedSeats = 0;
+
+        // Dağıtılacak serbest vekil sayısı
+        let distributeTarget = target;
+        
+        // Eğer "En az 1 garanti" varsa, önce herkese 1 tane verip hedeften düşüyoruz
+        if (min1) {
+            keys.forEach(k => newSeats[k] = 1);
+            distributeTarget = target - keys.length;
+        } else {
+            keys.forEach(k => newSeats[k] = 0);
+        }
+
+        if (distributeTarget > 0) {
+            // Matematiksel payları hesapla
+            keys.forEach(k => {
+                let exactShare = (seatData[k] / currentTotal) * distributeTarget;
+                let floorShare = Math.floor(exactShare); // Tam kısmı ver
+                
+                newSeats[k] += floorShare;
+                assignedSeats += floorShare;
+                
+                // Artıkları listeye ekle (küsüratlar)
+                remainders.push({ name: k, rem: exactShare - floorShare });
+            });
+
+            // En büyük artık (Largest Remainder) metoduna göre eksikleri dağıt
+            remainders.sort((a, b) => b.rem - a.rem);
+            let neededSeats = distributeTarget - assignedSeats;
+            
+            for(let i = 0; i < neededSeats; i++) {
+                newSeats[remainders[i].name]++;
+            }
+        }
+
+        seatData = newSeats;
+        renderList();
+    }
+
+    // Güncellenmiş Dosyayı İndir
+    function downloadModifiedData() {
+        const blob = new Blob([JSON.stringify(seatData, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'guncel_koltuk_verisi_' + new Date().toISOString().slice(0,10) + '.json';
+        a.click();
+    }
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>PGM Projeksiyon Arayüzü v7.0</title>
+    <title>PGM Projeksiyon Arayüzü v7.5 - Tam Sürüm</title>
     <style>
         @font-face {
             font-family: 'Product Sans';
@@ -35,7 +35,7 @@
         ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #aaa; }
 
-        /* Sol panel genişletildi */
+        /* Sol panel */
         .left-panel { flex: 1; min-width: 450px; max-width: 540px; padding: 20px; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--border); box-shadow: 2px 0 5px rgba(0,0,0,0.05); z-index: 10; display: flex; flex-direction: column; }
         .right-panel { flex: 2; padding: 30px; overflow-y: auto; background: #e9eaef; position: relative; }
 
@@ -64,13 +64,13 @@
         button.teal:hover { background-color: #00695c; }
         button.success { background-color: var(--success); font-size: 15px; padding: 14px; }
         button.success:hover { background-color: #27823b; }
+        button.blue { background-color: #0288d1; }
+        button.blue:hover { background-color: #01579b; }
 
-        /* Buton boyutlandırmaları */
         button.toggle-btn { flex-shrink: 0; background: #f5f6f7; border: 1px solid var(--border); color: var(--text-secondary); width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 15px; }
         button.toggle-btn:hover { background: #e4e6eb; color: var(--text); transform: none; }
         .data-row .danger { flex-shrink: 0; width: 32px !important; height: 32px !important; border-radius: 8px !important; font-size: 15px; }
 
-        /* Aktif Pasif Buton Stili */
         button.status-btn { flex-shrink: 0; background: #f5f6f7; border: 1px solid var(--border); color: var(--text-secondary); padding: 0; width: 32px; height: 32px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; }
         button.status-btn.active { background: var(--success); color: white; border-color: var(--success); }
 
@@ -109,11 +109,14 @@
         .dist-card h3 { margin: 0 0 16px 0; font-size: 1.3rem; color: var(--text); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f2f5; padding-bottom: 10px; }
         .dist-card h3 span.seat-editor { background: #e8f0fe; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-size: 1rem; display:flex; align-items:center; border: 1px solid var(--primary); transition: 0.2s; }
         .dist-card h3 span.seat-editor:focus-within { box-shadow: 0 0 0 2px rgba(26,115,232,0.3); }
-        .dist-card h3 span.seat-editor input { background:transparent; border:none; color:var(--primary); font-weight:bold; width:35px; text-align:right; font-size:1rem; padding:0 4px 0 0; outline:none; }
+        .dist-card h3 span.seat-editor input { background:transparent; border:none; color:inherit; font-weight:bold; width:35px; text-align:right; font-size:1rem; padding:0 4px 0 0; outline:none; }
         
-        .p-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f5f6f7; }
+        /* Satır Düzeni Güncellemesi (Inline Bar İçin) */
+        .p-line { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f5f6f7; }
         .p-line:last-child { border-bottom: none; }
         .p-line.is-coal { background: #f8faff; border-left: 3px solid var(--primary); padding-left: 8px; margin-left: -12px; padding-right: 12px; border-radius: 0 6px 6px 0; }
+        
+        .p-line-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         
         .p-name-area { display: flex; flex-direction: column; }
         .p-name { font-weight: bold; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 4px; }
@@ -124,6 +127,10 @@
         .mv-tag { background: var(--primary); color: #fff; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         .fail-tag { background: #ffebee; color: #d32f2f; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; border: 1px solid #ef9a9a; }
         .alliance-tag { font-size: 9px; color: var(--teal); background: #e0f2f1; padding: 2px 4px; border-radius: 4px; font-weight: normal; }
+
+        /* Kartlardaki Küçük Grafik */
+        .p-line-bar { width: 100%; height: 4px; background: transparent; border-radius: 4px; margin-top: 6px; overflow: hidden; display: flex; }
+        .p-line-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease-out; }
 
         .expand-btn { width: 100%; background: #f8f9fa; border: 1px solid var(--border); color: var(--text-secondary); padding: 8px; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 6px; margin-top: 8px; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 4px; }
         .expand-btn:hover { background: #e8f0fe; color: var(--primary); border-color: var(--primary); }
@@ -146,6 +153,27 @@
         /* Sıralama Paneli */
         .sort-panel { background: var(--surface); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; box-shadow: var(--shadow); }
         .sort-panel select { max-width: 250px; font-weight: bold; cursor: pointer; }
+
+        /* Yeni: İçerik Kapsayıcı (Overlay açılınca gizlenecek kısım) */
+        #mainContentWrapper { display: block; animation: fadeIn 0.2s ease; }
+
+        /* Seçim Çevresi Detay Overlay Stilleri */
+        #districtOverlay {
+            display: none; width: 100%; box-sizing: border-box; animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .do-container {
+            background: var(--surface); border-radius: 12px; padding: 25px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--border); 
+            border-top: 6px solid var(--primary); margin: 0 auto; max-width: 950px;
+        }
+        .nav-btn {
+            background: #f0f2f5; color: var(--text); border: 1px solid var(--border); 
+            padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 16px; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .nav-btn:hover { background: #e4e6eb; transform: scale(1.05); }
     </style>
 </head>
 <body>
@@ -156,8 +184,9 @@
     <h1>🗳️ PGM Projeksiyon Arayüzü</h1>
 
     <div class="card">
-        <label>1. Veri Setleri (.txt)</label>
-        <input type="file" id="fileInp" accept=".txt" multiple style="width: 100%; margin-bottom: 12px;">
+        <label>1. Seçim Verisi Yükle (.txt)</label>
+        <span style="font-size: 11px; margin-bottom: 8px; color: var(--text-secondary); display:block;">Bilgisayarınızdan yerel seçim sonuçlarını (.txt dosyası) aktarın.</span>
+        <input type="file" id="fileInp" accept=".txt" multiple style="width: 100%; margin-bottom: 12px; background: #f8f9fa;">
         <div id="datasetsList" class="scroll-area"></div>
     </div>
 
@@ -198,6 +227,16 @@
         <div id="allianceArea" class="scroll-area"></div>
     </div>
 
+    <div class="card">
+        <label>5. İl/Çevre Koltuk Verisi</label>
+        <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Tüm illerin koltuk sayılarını topluca değiştirmek için .JSON formatında veri yükleyebilir veya mevcut dağılımı indirebilirsiniz. Eklenen veriler ana dosyadaki sayıları ezer.</span>
+        <div style="display:flex; gap:8px;">
+            <button onclick="downloadSeatData()" class="blue" style="flex:1;">📥 Koltukları İndir (.JSON)</button>
+            <button onclick="document.getElementById('seatDataLoader').click()" class="orange" style="flex:1;">📤 Koltuk Verisi Yükle (.JSON)</button>
+            <input type="file" id="seatDataLoader" accept=".json" style="display:none" onchange="loadSeatData(this)">
+        </div>
+    </div>
+
     <div class="card" style="border-top: 4px solid var(--primary);">
         <label style="margin-bottom: 8px;">⚙️ Seçim Ayarları</label>
         <div class="flex-row" style="gap: 12px; margin-bottom:0;">
@@ -213,6 +252,32 @@
                 </select>
             </div>
         </div>
+        <div class="flex-row" style="gap: 12px; margin-bottom:0; margin-top:12px; border-top:1px dashed var(--border); padding-top:12px;">
+            <div style="flex: 1; display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="mbEnabledInp" style="flex:none; width:16px; height:16px;" onchange="document.getElementById('mbSettingsWrapper').style.display = this.checked ? 'flex' : 'none'">
+                <span style="font-size:12px; font-weight:bold; color:var(--text-secondary);">Milli Bakiye Ekle</span>
+            </div>
+            <div id="mbSettingsWrapper" style="flex: 2; display:none; gap:12px;">
+                <div style="flex:1;">
+                    <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">MB D'Hondt Modeli</span>
+                    <select id="mbCalcMethodInp" style="width:100%; font-weight:bold; padding: 7px; color:var(--purple);">
+                        <option value="classic">Klasik (2022)</option>
+                        <option value="alliance">İttifaklı (2018)</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">MB Koltuk Sayısı</span>
+                    <input type="number" id="mbSeatsInp" value="50" min="1" style="width:100%; font-weight:bold; color:var(--purple);">
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex-row" style="gap: 12px; margin-bottom:0; margin-top:12px; border-top:1px dashed var(--border); padding-top:12px;">
+            <div style="flex: 1; display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="showVoteCountsInp" style="flex:none; width:16px; height:16px;" onchange="if(currentOverlayData) renderDistrictOverlay();">
+                <span style="font-size:12px; font-weight:bold; color:var(--text-secondary);">Detayda (Tam Ekranda) Oy Sayılarını Göster</span>
+            </div>
+        </div>
     </div>
 
     <div class="action-bar">
@@ -220,48 +285,79 @@
         
         <div style="display:flex; gap:8px; margin-bottom:8px;">
             <button onclick="saveProject()" class="purple" style="flex:1;">💾 Kaydet (.JSON)</button>
-            <button onclick="document.getElementById('projectLoader').click()" class="orange" style="flex:1;">📂 Yükle (.JSON)</button>
+            <button onclick="document.getElementById('projectLoader').click()" class="teal" style="flex:1;">📂 Yükle (.JSON)</button>
         </div>
         <input type="file" id="projectLoader" accept=".json" style="display:none" onchange="loadProject(this)">
         
-        <button onclick="downloadResults()" class="danger" style="width: 100%; margin-bottom: 8px;">📥 Sonuçları İndir (Normal .TXT)</button>
-        <button onclick="downloadAdvancedResults()" class="danger" style="width: 100%; background-color:#8e24aa;">📥 Gelişmiş İndir (.TXT)</button>
+        <button onclick="downloadAdvancedResults()" class="danger" style="width: 100%; background-color:#8e24aa;">📥 Gelişmiş Sonuçları İndir (.TXT)</button>
     </div>
 </div>
 
 <div class="right-panel">
     
-    <div class="proj-header">
-        <div>Seçim Çevresi Sonuçları</div>
-    </div>
-    
-    <div class="sort-panel" id="sortPanelContainer" style="display:none;">
-        <div style="display:flex; align-items:center; gap:8px; flex:1;">
-            <span style="font-size:12px; color:var(--text-secondary);">Görüntüleme Sıralaması:</span>
-            <select id="sortPartySel" onchange="applySorting()"><option value="default">Alfabetik (İl Adına Göre)</option></select>
+    <!-- Ana Grid ve Grafikler (Overlay açıkken gizlenir) -->
+    <div id="mainContentWrapper">
+        <div class="proj-header">
+            <div>Seçim Çevresi Sonuçları</div>
         </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-            <select id="sortOrderSel" onchange="applySorting()">
-                <option value="desc">Azalan (Yüksekten Düşüğe)</option>
-                <option value="asc">Artan (Düşükten Yükseğe)</option>
-            </select>
+        
+        <div class="sort-panel" id="sortPanelContainer" style="display:none;">
+            <div style="display:flex; align-items:center; gap:8px; flex:1;">
+                <span style="font-size:12px; color:var(--text-secondary);">Görüntüleme Sıralaması:</span>
+                <select id="sortPartySel" onchange="applySorting()"><option value="default">Alfabetik (İl Adına Göre)</option></select>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <select id="sortOrderSel" onchange="applySorting()">
+                    <option value="desc">Azalan (Yüksekten Düşüğe)</option>
+                    <option value="asc">Artan (Düşükten Yükseğe)</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="parliamentContainer" class="card" style="display:none; margin-bottom: 24px; text-align:center; padding-top: 24px;">
+            <h3 style="margin:0 0 16px 0; color:var(--text); font-size:1.4rem;">Türkiye Geneli Koltuk Dağılımı</h3>
+            <div id="parliamentChartArea" style="width:100%;"></div>
+        </div>
+
+        <div id="results">
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+                <h2>Veri Bekleniyor</h2>
+                <p>Seçim sonuçlarını görmek için sol panelden veri setlerini yükleyin, partilerinizi tanımlayın ve hesaplamayı başlatın.</p>
+            </div>
         </div>
     </div>
 
-    <div id="parliamentContainer" class="card" style="display:none; margin-bottom: 24px; text-align:center; padding-top: 24px;">
-        <h3 style="margin:0 0 16px 0; color:var(--text); font-size:1.4rem;">Türkiye Geneli Koltuk Dağılımı</h3>
-        <div id="parliamentChartArea" style="width:100%;"></div>
-    </div>
+    <!-- SEÇİM ÇEVRESİ DETAY OVERLAY (GÜNCELLENDİ) -->
+    <div id="districtOverlay">
+        <div class="do-container">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px; border-bottom: 2px solid #f0f2f5; padding-bottom: 15px;">
+                
+                <div style="display:flex; align-items:center; gap:12px; flex:1;">
+                    <h2 style="color:var(--text); margin:0; font-size: 1.8rem; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <span id="doTitleName"></span>
+                        <span id="doTitleWinner"></span>
+                    </h2>
+                </div>
+                
+                <div id="doTitleMv" style="background:#e8f0fe; color:var(--primary); padding:6px 12px; border-radius:6px; font-size:1.1rem; border:1px solid var(--primary); font-weight:bold; white-space:nowrap; margin-right: 20px;"></div>
 
-    <div id="results">
-        <div class="empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="3" y1="9" x2="21" y2="9"></line>
-                <line x1="9" y1="21" x2="9" y2="9"></line>
-            </svg>
-            <h2>Veri Bekleniyor</h2>
-            <p>Seçim sonuçlarını görmek için sol panelden veri setlerini yükleyin, partilerinizi tanımlayın ve hesaplamayı başlatın.</p>
+                <!-- Sabit Navigasyon Butonları (En Sağda) -->
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <button onclick="navigateDistrict(-1)" class="nav-btn" title="Önceki Seçim Çevresi (Sol Ok)">◀</button>
+                    <button onclick="navigateDistrict(1)" class="nav-btn" title="Sonraki Seçim Çevresi (Sağ Ok)">▶</button>
+                    <div style="width: 1px; height: 24px; background: var(--border); margin: 0 8px;"></div>
+                    <button onclick="closeDistrictOverlay()" class="danger" style="width: auto; margin:0; padding:10px 20px; font-size:14px; box-shadow: var(--shadow);" title="Kapat (ESC)">Kapat ✖</button>
+                </div>
+            </div>
+            
+            <div id="doUnifiedList" style="display:flex; flex-direction:column; gap:10px; margin-bottom: 20px;"></div>
+            
+            <button id="doShowAllBtn" onclick="showAllPartiesInOverlay()" style="background: var(--text-secondary); display:none; padding: 12px; font-size: 14px; width: 100%;">Gizlenen Tüm Partileri Göster ▼</button>
         </div>
     </div>
 </div>
@@ -288,7 +384,6 @@ let globalParties = new Set();
 let customSeatOverrides = {}; 
 let globalResults = {}; 
 
-/* Sürükle-Bırak Değişkenleri */
 let dragCtx = { type: null, idx: null };
 
 function escapeStr(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
@@ -393,7 +488,6 @@ function renderDatasets(){
     `).join('');
 }
 
-/* Sürükle Bırak Mantığı (Drag & Drop) */
 window.handleDragStart = function(e, type, idx) { dragCtx = { type, idx }; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', idx); };
 window.handleDragOver = function(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; e.currentTarget.classList.add('drag-over'); };
 window.handleDragLeave = function(e) { e.currentTarget.classList.remove('drag-over'); };
@@ -411,7 +505,6 @@ window.handleDrop = function(e, targetType, targetIdx) {
     if (targetType === 'alliance') { renderAlliances(); }
 };
 
-/* İsim Değiştirme (Renaming) Mantığı */
 window.renameParty = function(idx, newName) {
     newName = newName.trim();
     if(!newName) { renderExtraParties(); return; }
@@ -451,7 +544,6 @@ function addExtraParty(){
     renderExtraParties(); renderCoalitions(); renderAlliances();
 }
 
-/* Renk Modalı İşlemleri */
 let activeColorTarget = { type: null, idx: null };
 
 window.updateColorModal = function(type, idx) {
@@ -584,13 +676,58 @@ function renderAlliances(){
     `).join('');
 }
 
+function downloadSeatData() {
+    const masterDistricts = getMasterDistricts();
+    if (masterDistricts.length === 0) return alert("Önce seçim verisi (.txt) yüklemelisiniz! İndirilecek çevre listesi oluşturulamadı.");
+    
+    let seatData = {};
+    masterDistricts.forEach(dName => {
+        let seats = customSeatOverrides[dName];
+        if (seats === undefined) {
+            for(let ds of datasets) {
+                const match = getDistrictDataWithPatch(ds, dName);
+                if(match && match.seats !== undefined) { seats = match.seats; break; }
+            }
+        }
+        seatData[dName] = parseInt(seats) || 0;
+    });
+    
+    const blob = new Blob([JSON.stringify(seatData, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'koltuk_verisi_' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+}
+
+async function loadSeatData(inp) {
+    const file = inp.files[0];
+    if(!file) return;
+    try {
+        const data = JSON.parse(await file.text());
+        let updatedCount = 0;
+        for (let dName in data) {
+            customSeatOverrides[dName] = parseInt(data[dName]) || 0;
+            updatedCount++;
+        }
+        alert(`Koltuk verisi başarıyla içe aktarıldı! (${updatedCount} çevre güncellendi)`);
+        inp.value = '';
+        if (Object.keys(globalResults).length > 0) runProjection();
+    } catch (err) {
+        alert("Hata: Geçersiz JSON dosyası! Lütfen uygun formatta bir koltuk verisi dosyası yükleyin.\\nDetay: " + err.message);
+    }
+}
+
 function saveProject() {
     const projectData = {
-        meta: { version: "7.0", date: new Date().toISOString() },
+        meta: { version: "7.5", date: new Date().toISOString() },
         datasets, extraParties, coalitions, electoralAlliances, customSeatOverrides,
         settings: {
             threshold: parseFloat($('thresholdInp').value) || 7,
-            calcMethod: $('calcMethodInp').value || 'classic'
+            calcMethod: $('calcMethodInp').value || 'classic',
+            mbEnabled: $('mbEnabledInp').checked,
+            mbCalcMethod: $('mbCalcMethodInp').value || 'classic',
+            mbSeats: parseInt($('mbSeatsInp').value) || 0,
+            showVoteCounts: $('showVoteCountsInp').checked
         }
     };
     const blob = new Blob([JSON.stringify(projectData, null, 2)], {type:'application/json'});
@@ -627,6 +764,13 @@ async function loadProject(inp) {
         if(data.settings) {
             if(data.settings.threshold !== undefined) $('thresholdInp').value = data.settings.threshold;
             if(data.settings.calcMethod) $('calcMethodInp').value = data.settings.calcMethod;
+            if(data.settings.mbEnabled !== undefined) {
+                $('mbEnabledInp').checked = data.settings.mbEnabled;
+                $('mbSettingsWrapper').style.display = data.settings.mbEnabled ? 'flex' : 'none';
+            }
+            if(data.settings.mbCalcMethod) $('mbCalcMethodInp').value = data.settings.mbCalcMethod;
+            if(data.settings.mbSeats !== undefined) $('mbSeatsInp').value = data.settings.mbSeats;
+            if(data.settings.showVoteCounts !== undefined) $('showVoteCountsInp').checked = data.settings.showVoteCounts;
         }
 
         updateGlobalParties(); renderDatasets(); renderExtraParties(); renderCoalitions(); renderAlliances();
@@ -647,6 +791,7 @@ function updateSortDropdown() {
     
     const allValidParties = new Set();
     for(let d in globalResults) {
+        if (globalResults[d].isMilliBakiye) continue;
         Object.keys(globalResults[d].pureVotes).forEach(p => allValidParties.add(p));
     }
     
@@ -663,6 +808,21 @@ window.applySorting = function() {
     if(Object.keys(globalResults).length > 0) renderResults(globalResults);
 };
 
+function runDhondt(v, s){
+    const res = {}; Object.keys(v).forEach(p=>res[p]=0);
+    let lastQ = 0;
+    if(s <= 0) return { seats: res, lastQ: 0 };
+    for(let i=0; i<s; i++){
+        let maxQ = -1, winP = null;
+        for(let p in v){
+            let q = v[p] / (res[p]+1);
+            if(q > maxQ){ maxQ = q; winP = p; }
+        }
+        if(winP) { res[winP]++; lastQ = maxQ; }
+    }
+    return { seats: res, lastQ };
+}
+
 function runProjection() {
     if(!datasets.length) return alert("Önce veri yükleyin!");
     if(extraParties.length === 0) return alert("Simülasyona girecek en az 1 parti oluşturmalısınız!");
@@ -674,6 +834,9 @@ function runProjection() {
 
     const threshold = parseFloat($('thresholdInp').value) || 0;
     const calcMethod = $('calcMethodInp').value;
+    const mbEnabled = $('mbEnabledInp').checked;
+    const mbCalcMethod = $('mbCalcMethodInp').value;
+    const mbSeats = parseInt($('mbSeatsInp').value) || 0;
 
     const baseTargetNat = {};
     extraParties.forEach(ep => {
@@ -705,6 +868,8 @@ function runProjection() {
     });
 
     globalResults = {}; 
+    let mbPartyPool = {};
+
     const masterDistrictNames = getMasterDistricts();
 
     masterDistrictNames.forEach(dName => {
@@ -731,14 +896,11 @@ function runProjection() {
         
         extraParties.forEach(ep => {
             if(ep.isEnabled === false) return;
-            
             let epScore = 0;
             let hasSimilarity = false;
-            
             for(let key in ep.similarity) {
                 if(ep.similarity[key] > 0) hasSimilarity = true;
             }
-
             if(!hasSimilarity) epScore = 1.0; 
             else {
                 for(let donor in ep.similarity){
@@ -780,7 +942,13 @@ function runProjection() {
         const finalSeats = {};
 
         if (calcMethod === 'classic') {
-            Object.assign(finalSeats, runDhondt(eligibleVotes, seats));
+            const dhRes = runDhondt(eligibleVotes, seats);
+            Object.assign(finalSeats, dhRes.seats);
+            
+            Object.keys(eligibleVotes).forEach(p => {
+                let rem = eligibleVotes[p] - (dhRes.seats[p] * dhRes.lastQ);
+                mbPartyPool[p] = (mbPartyPool[p] || 0) + Math.max(0, rem);
+            });
         } else {
             const allianceGroupedVotes = {};
             const partyToAllianceMap = {};
@@ -801,19 +969,37 @@ function runProjection() {
                 if (!partyToAllianceMap[p]) allianceGroupedVotes[p] = eligibleVotes[p];
             });
 
-            const firstDhondtSeats = runDhondt(allianceGroupedVotes, seats);
+            const aDhRes = runDhondt(allianceGroupedVotes, seats);
+            const firstDhondtSeats = aDhRes.seats;
 
-            Object.keys(firstDhondtSeats).forEach(winner => {
+            Object.keys(allianceGroupedVotes).forEach(winner => {
+                let rem = allianceGroupedVotes[winner] - (firstDhondtSeats[winner] * aDhRes.lastQ);
+                
                 const allianceObj = electoralAlliances.find(a => a.name === winner && a.isEnabled !== false);
-                if (allianceObj && firstDhondtSeats[winner] > 0) {
+                if (allianceObj) {
                     const internalVotes = {};
+                    let totalInternal = 0;
                     allianceObj.members.forEach(m => {
-                        if (eligibleVotes[m] !== undefined) internalVotes[m] = eligibleVotes[m];
+                        if (eligibleVotes[m] !== undefined) {
+                            internalVotes[m] = eligibleVotes[m];
+                            totalInternal += eligibleVotes[m];
+                        }
                     });
-                    const internalSeats = runDhondt(internalVotes, firstDhondtSeats[winner]);
-                    Object.assign(finalSeats, internalSeats);
+                    
+                    Object.keys(internalVotes).forEach(m => {
+                        let proportion = totalInternal > 0 ? (internalVotes[m] / totalInternal) : 0;
+                        mbPartyPool[m] = (mbPartyPool[m] || 0) + Math.max(0, rem * proportion);
+                    });
+
+                    if (firstDhondtSeats[winner] > 0) {
+                        const intDhRes = runDhondt(internalVotes, firstDhondtSeats[winner]);
+                        Object.assign(finalSeats, intDhRes.seats);
+                    } else {
+                        finalSeats[winner] = 0;
+                    }
                 } else {
                     finalSeats[winner] = firstDhondtSeats[winner] || 0;
+                    mbPartyPool[winner] = (mbPartyPool[winner] || 0) + Math.max(0, rem);
                 }
             });
         }
@@ -824,9 +1010,68 @@ function runProjection() {
             mvs: finalSeats,
             seats,
             totalVotes: districtTotalVotes,
-            passed: passedThreshold
+            passed: passedThreshold,
+            isMilliBakiye: false
         };
     });
+
+    if (mbEnabled && mbSeats > 0) {
+        const mbFinalSeats = {};
+        const displayRemainders = { ...mbPartyPool };
+        
+        if (mbCalcMethod === 'classic') {
+            const mbRes = runDhondt(mbPartyPool, mbSeats);
+            Object.assign(mbFinalSeats, mbRes.seats);
+        } else {
+            const mbAllianceGrouped = {};
+            const mbPartyToAlliance = {};
+            
+            electoralAlliances.forEach(a => {
+                if (a.isEnabled === false) return;
+                let aSum = 0;
+                a.members.forEach(m => {
+                    if (mbPartyPool[m] !== undefined) {
+                        aSum += mbPartyPool[m];
+                        mbPartyToAlliance[m] = a.name;
+                    }
+                });
+                if (aSum > 0) mbAllianceGrouped[a.name] = aSum;
+            });
+
+            Object.keys(mbPartyPool).forEach(p => {
+                if (!mbPartyToAlliance[p]) mbAllianceGrouped[p] = mbPartyPool[p];
+            });
+
+            const mbADhRes = runDhondt(mbAllianceGrouped, mbSeats);
+            
+            Object.keys(mbADhRes.seats).forEach(winner => {
+                const allianceObj = electoralAlliances.find(a => a.name === winner && a.isEnabled !== false);
+                if (allianceObj) {
+                    const internalVotes = {};
+                    allianceObj.members.forEach(m => {
+                        if (mbPartyPool[m] !== undefined) internalVotes[m] = mbPartyPool[m];
+                    });
+                    
+                    if (mbADhRes.seats[winner] > 0) {
+                        const intMbRes = runDhondt(internalVotes, mbADhRes.seats[winner]);
+                        Object.assign(mbFinalSeats, intMbRes.seats);
+                    }
+                } else {
+                    mbFinalSeats[winner] = mbADhRes.seats[winner] || 0;
+                }
+            });
+        }
+
+        globalResults['🌟 Milli Bakiye (Türkiye Geneli)'] = {
+            pureVotes: displayRemainders, 
+            rawVotes: displayRemainders,
+            mvs: mbFinalSeats,
+            seats: mbSeats,
+            totalVotes: Object.values(displayRemainders).reduce((a,b)=>a+b,0) || 1,
+            passed: passedThreshold,
+            isMilliBakiye: true
+        };
+    }
 
     updateSortDropdown();
     $('sortPanelContainer').style.display = 'flex';
@@ -834,19 +1079,6 @@ function runProjection() {
 }
 
 $('runBtn').onclick = runProjection;
-
-function runDhondt(v, s){
-    const res = {}; Object.keys(v).forEach(p=>res[p]=0);
-    for(let i=0; i<s; i++){
-        let maxQ = -1, winP = null;
-        for(let p in v){
-            let q = v[p] / (res[p]+1);
-            if(q > maxQ){ maxQ = q; winP = p; }
-        }
-        if(winP) res[winP]++;
-    }
-    return res;
-}
 
 window.toggleTier = function(btn, targetTier) {
     const card = btn.parentElement;
@@ -871,7 +1103,6 @@ function getPartyColor(pName) {
     return '#000000';
 }
 
-/* Tooltips */
 window.showChartTooltip = function(e, party, seats, total) {
     const tt = $('chartTooltip');
     const pct = ((seats / total) * 100).toFixed(1);
@@ -882,7 +1113,6 @@ window.showChartTooltip = function(e, party, seats, total) {
 };
 window.hideChartTooltip = function() { $('chartTooltip').style.display = 'none'; };
 
-/* GRAFİKLERDE AKILLI ORANLAMA (GÖRSEL BOOST) YAPAN FONKSİYON */
 function getVisualSeats(seatsObj, total) {
     let visualObj = {};
     let visualTotal = 0;
@@ -960,17 +1190,22 @@ function renderResults(res){
     const sortOrder = $('sortOrderSel').value;
     
     let sortedNames = Object.keys(res);
+    const mbKey = '🌟 Milli Bakiye (Türkiye Geneli)';
+    let normalNames = sortedNames.filter(n => n !== mbKey);
     
     if(sortParty === 'default') {
-        if(sortOrder === 'desc') sortedNames.sort((a,b) => a.localeCompare(b, 'tr')); 
-        else sortedNames.sort((a,b) => b.localeCompare(a, 'tr'));
+        if(sortOrder === 'desc') normalNames.sort((a,b) => a.localeCompare(b, 'tr')); 
+        else normalNames.sort((a,b) => b.localeCompare(a, 'tr'));
     } else {
-        sortedNames.sort((a,b) => {
+        normalNames.sort((a,b) => {
             let pA = (res[a].pureVotes[sortParty] || 0) / res[a].totalVotes;
             let pB = (res[b].pureVotes[sortParty] || 0) / res[b].totalVotes;
             return sortOrder === 'asc' ? (pA - pB) : (pB - pA);
         });
     }
+
+    if(res[mbKey]) normalNames.unshift(mbKey);
+    sortedNames = normalNames;
 
     if(sortedNames.length === 0) {
         $('parliamentContainer').style.display = 'none';
@@ -986,6 +1221,15 @@ function renderResults(res){
         const item = res[d];
         const card = document.createElement('div');
         card.className = 'dist-card';
+        card.style.cursor = 'pointer';
+        card.title = 'Detayları görmek için tıklayın';
+        
+        card.onclick = (e) => {
+            if(e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('.seat-editor') || e.target.closest('.expand-btn')) return;
+            openDistrictOverlay(d);
+        };
+
+        if(item.isMilliBakiye) card.style.borderTopColor = 'var(--purple)';
         
         let tier1Html = '', tier2Html = '', tier3Html = '';
         let tier2Count = 0, tier3Count = 0;
@@ -1009,18 +1253,23 @@ function renderResults(res){
 
             const rowHtml = `
                 <div class="p-line ${isCoal?'is-coal':''}">
-                    <div class="p-name-area">
-                        <span class="p-name">
-                            <div style="width:10px;height:10px;border-radius:50%;background:${pColor};display:inline-block;box-shadow:0 1px 2px rgba(0,0,0,0.2);"></div>
-                            ${p} 
-                            ${isAlliance ? `<span class="alliance-tag">${isAlliance.name}</span>` : ''}
-                        </span>
-                        ${isCoal ? `<span class="p-coal-members">${isCoal.members.join(', ')}</span>` : ''}
+                    <div class="p-line-top">
+                        <div class="p-name-area">
+                            <span class="p-name">
+                                <div style="width:10px;height:10px;border-radius:50%;background:${pColor};display:inline-block;box-shadow:0 1px 2px rgba(0,0,0,0.2);"></div>
+                                ${p} 
+                                ${isAlliance ? `<span class="alliance-tag">${isAlliance.name}</span>` : ''}
+                            </span>
+                            ${isCoal ? `<span class="p-coal-members">${isCoal.members.join(', ')}</span>` : ''}
+                        </div>
+                        <div class="p-stats-area">
+                            <span class="p-pct" style="${!hasPassed ? 'text-decoration: line-through; color: #ef9a9a;' : ''}">%${pct}</span>
+                            ${!hasPassed ? `<span class="fail-tag">Baraj Altı</span>` : ''}
+                            ${totalMv > 0 ? `<span class="mv-tag" style="background:${pColor};">${totalMv} Mv</span>` : ''}
+                        </div>
                     </div>
-                    <div class="p-stats-area">
-                        <span class="p-pct" style="${!hasPassed ? 'text-decoration: line-through; color: #ef9a9a;' : ''}">%${pct}</span>
-                        ${!hasPassed ? `<span class="fail-tag">Baraj Altı</span>` : ''}
-                        ${totalMv > 0 ? `<span class="mv-tag" style="background:${pColor};">${totalMv} MV</span>` : ''}
+                    <div class="p-line-bar">
+                        <div class="p-line-bar-fill" style="width:${pctVal}%; background:${pColor};"></div>
                     </div>
                 </div>
             `;
@@ -1032,12 +1281,17 @@ function renderResults(res){
         
         let cardContent = `
             <h3>${d} 
-                <span class="seat-editor" title="Koltuk sayısını değiştir">
-                    <input type="number" value="${item.seats}" onchange="updateSeatOverride('${escapeStr(d)}', this.value)"> MV
-                </span>
+                ${item.isMilliBakiye 
+                    ? `<span class="seat-editor" style="background:var(--purple); color:white; border-color:var(--purple); cursor:default;">${item.seats} MB Koltuğu</span>`
+                    : `<span class="seat-editor" title="Koltuk sayısını değiştir"><input type="number" value="${item.seats}" onchange="updateSeatOverride('${escapeStr(d)}', this.value)"> Mv</span>`
+                }
             </h3>`;
             
-        cardContent += `<div class="tier tier-1">${tier1Html || '<div class="p-line" style="justify-content:center; color:#999; font-size:12px; padding:12px 0;">MV çıkaran parti yok</div>'}</div>`;
+        if (item.isMilliBakiye) {
+            cardContent += `<div style="font-size:11.5px; color:var(--purple); margin-top:-10px; margin-bottom:14px; font-weight:bold; padding-bottom:10px; border-bottom:1px dashed #e1bee7;">Biriken Artık Oylara Göre Havuz Dağılımı</div>`;
+        }
+            
+        cardContent += `<div class="tier tier-1">${tier1Html || '<div class="p-line" style="justify-content:center; color:#999; font-size:12px; padding:12px 0;">Mv çıkaran parti yok</div>'}</div>`;
         
         let btn1Html = '', btn2Html = '';
         if (tier2Count > 0) {
@@ -1068,34 +1322,15 @@ function renderResults(res){
     }
 }
 
-/* İndirme Fonksiyonları */
-function downloadResults(){
-    if(Object.keys(globalResults).length === 0) return alert("Önce hesaplama yapın!");
-    let txt = "";
-    const sortedDistricts = Object.keys(globalResults).sort((a,b) => a.localeCompare(b, 'tr'));
-
-    sortedDistricts.forEach(dName => {
-        const item = globalResults[dName];
-        txt += `${dName}-${item.seats}\n`;
-        Object.entries(item.pureVotes).sort((a,b)=>b[1]-a[1]).forEach(([party, count]) => {
-            const c = Math.round(count);
-            if (c > 0) txt += `${party} ${c}\n`;
-        });
-        txt += "-\n";
-    });
-    const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'simulasyon_sonucu_normal.txt';
-    a.click();
-}
-
 function downloadAdvancedResults(){
     if(Object.keys(globalResults).length === 0) return alert("Önce hesaplama yapın!");
     
     let txt = "[AYARLAR]\n";
     txt += `Baraj=${$('thresholdInp').value}\n`;
-    txt += `Sistem=${$('calcMethodInp').value}\n\n`;
+    txt += `Sistem=${$('calcMethodInp').value}\n`;
+    txt += `MilliBakiye=${$('mbEnabledInp').checked ? 'Aktif' : 'Pasif'}\n`;
+    txt += `MilliBakiyeSistem=${$('mbCalcMethodInp').value}\n`;
+    txt += `MilliBakiyeKoltuk=${$('mbSeatsInp').value}\n\n`;
     
     txt += "[ITTIFAKLAR]\n";
     electoralAlliances.forEach(a => {
@@ -1124,7 +1359,9 @@ function downloadAdvancedResults(){
     });
 
     txt += "\n[SONUCLAR]\n";
-    const sortedDistricts = Object.keys(globalResults).sort((a,b) => a.localeCompare(b, 'tr'));
+    
+    // Yalnızca Seçim Çevreleri eklenecek (Milli Bakiye sonuçları harici tutuluyor)
+    const sortedDistricts = Object.keys(globalResults).filter(k => !globalResults[k].isMilliBakiye).sort((a,b) => a.localeCompare(b, 'tr'));
 
     sortedDistricts.forEach(dName => {
         const item = globalResults[dName];
@@ -1141,6 +1378,149 @@ function downloadAdvancedResults(){
     a.href = URL.createObjectURL(blob);
     a.download = 'simulasyon_sonucu_gelismis.txt';
     a.click();
+}
+
+// --- GÜNCELLENEN OVERLAY MEKANİĞİ ---
+let currentOverlayData = null;
+let showingAllInOverlay = false;
+
+// Klavye ile yönlendirme
+document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if ($('districtOverlay').style.display === 'block') {
+        if (e.key === 'ArrowLeft') navigateDistrict(-1);
+        if (e.key === 'ArrowRight') navigateDistrict(1);
+        if (e.key === 'Escape') closeDistrictOverlay();
+    }
+});
+
+function getSortedDistrictNames() {
+    const sortParty = $('sortPartySel').value;
+    const sortOrder = $('sortOrderSel').value;
+    let names = Object.keys(globalResults);
+    const mbKey = '🌟 Milli Bakiye (Türkiye Geneli)';
+    let normalNames = names.filter(n => n !== mbKey);
+    
+    if(sortParty === 'default') {
+        if(sortOrder === 'desc') normalNames.sort((a,b) => a.localeCompare(b, 'tr')); 
+        else normalNames.sort((a,b) => b.localeCompare(a, 'tr'));
+    } else {
+        normalNames.sort((a,b) => {
+            let pA = (globalResults[a].pureVotes[sortParty] || 0) / globalResults[a].totalVotes;
+            let pB = (globalResults[b].pureVotes[sortParty] || 0) / globalResults[b].totalVotes;
+            return sortOrder === 'asc' ? (pA - pB) : (pB - pA);
+        });
+    }
+    if(globalResults[mbKey]) normalNames.unshift(mbKey);
+    return normalNames;
+}
+
+window.navigateDistrict = function(dir) {
+    if(!currentOverlayData) return;
+    const names = getSortedDistrictNames();
+    const currIdx = names.indexOf(currentOverlayData.name);
+    if(currIdx === -1) return;
+    
+    let nextIdx = currIdx + dir;
+    if(nextIdx < 0) nextIdx = names.length - 1; 
+    if(nextIdx >= names.length) nextIdx = 0; 
+    
+    openDistrictOverlay(names[nextIdx]);
+};
+
+window.openDistrictOverlay = function(dName) {
+    currentOverlayData = {
+        name: dName,
+        data: globalResults[dName]
+    };
+    showingAllInOverlay = false;
+    
+    // Sağ panelin kaydırmasını sıfırla ve ana ızgara/grafikleri gizle ki overlay çakışmasın
+    $('mainContentWrapper').style.display = 'none';
+    $('districtOverlay').style.display = 'block';
+    document.querySelector('.right-panel').scrollTop = 0;
+    
+    renderDistrictOverlay();
+};
+
+window.closeDistrictOverlay = function() {
+    $('districtOverlay').style.display = 'none';
+    $('mainContentWrapper').style.display = 'block'; // Ana içeriği geri getir
+    currentOverlayData = null;
+};
+
+window.showAllPartiesInOverlay = function() {
+    showingAllInOverlay = true;
+    renderDistrictOverlay();
+};
+
+function renderDistrictOverlay() {
+    if(!currentOverlayData) return;
+    const dName = currentOverlayData.name;
+    const item = currentOverlayData.data;
+    const showVotes = $('showVoteCountsInp').checked;
+    
+    const sortedParties = Object.keys(item.rawVotes).sort((a,b) => item.rawVotes[b] - item.rawVotes[a]);
+    
+    // Kazanan Parti Tespiti ve Etiket
+    let winnerParty = null;
+    if (sortedParties.length > 0 && item.rawVotes[sortedParties[0]] > 0) {
+        winnerParty = sortedParties[0];
+    }
+
+    let winnerTagHtml = '';
+    if (winnerParty) {
+        const wColor = getPartyColor(winnerParty);
+        // Emojisi kaldırılmış, içi partinin kendi rengiyle dolu kazanan etiketi
+        winnerTagHtml = `<span style="background:${wColor}; color:#ffffff; padding:4px 12px; border-radius:8px; font-size:1.1rem; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.15);">${winnerParty}</span>`;
+    }
+    
+    $('doTitleName').innerHTML = `🗳️ ${dName}`;
+    $('doTitleWinner').innerHTML = winnerTagHtml;
+    $('doTitleMv').innerHTML = `${item.seats} ${item.isMilliBakiye ? 'MB Koltuğu' : 'Mv'}`;
+    
+    let listHtml = '';
+    let hasHidden = false;
+    
+    sortedParties.forEach(p => {
+        const v = item.rawVotes[p];
+        const s = item.mvs[p] || 0;
+        const pctNum = item.totalVotes > 0 ? ((v / item.totalVotes) * 100) : 0;
+        const pctStr = pctNum.toFixed(2);
+        const color = getPartyColor(p);
+        const hasPassed = item.passed.has(p);
+        
+        // Kural: Vekil çıkaran VEYA oyu %1'e eşit/büyük olanlar varsayılan gösterilir
+        const isDefaultVisible = s > 0 || pctNum >= 1.00;
+        
+        if (!isDefaultVisible && !showingAllInOverlay) {
+            hasHidden = true;
+            return;
+        }
+        
+        // Tek Başlık Altında Birleştirilmiş Liste (Parti Adı + Yuvarlatılmış Bar/Yüzde + Oy Sayısı + Mv)
+        listHtml += `
+            <div class="data-row" style="display:flex; justify-content:space-between; align-items:center; border-left: 4px solid ${color}; padding: 12px 16px; border-radius: 6px; border-bottom: 1px solid var(--bg); background: var(--surface);">
+                <div style="width:130px; font-weight:bold; font-size:15px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeStr(p)}">${p}</div>
+                
+                <div style="flex:1; display:flex; align-items:center; margin: 0 15px;">
+                    <div style="width:${pctNum}%; max-width:calc(100% - 60px); background:${color}; height:24px; border-radius:6px; min-width:4px; transition:width 0.5s ease-out;"></div>
+                    <span style="margin-left:8px; font-weight:bold; font-size:15px; color:var(--text); ${!hasPassed ? 'text-decoration: line-through; color: #ef9a9a;' : ''}">%${pctStr}</span>
+                </div>
+
+                ${showVotes ? `<div style="width:100px; text-align:right; font-size:13px; color:var(--text-secondary); margin-right:15px;">${Math.round(v).toLocaleString('tr-TR')} Oy</div>` : ''}
+
+                <div style="width:110px; text-align:right;">
+                    ${s > 0 
+                        ? `<span class="mv-tag" style="font-size:14px; padding:6px 12px; background:${color}; box-shadow: var(--shadow);">${s} Mv</span>` 
+                        : ``}
+                </div>
+            </div>
+        `;
+    });
+    
+    $('doUnifiedList').innerHTML = listHtml;
+    $('doShowAllBtn').style.display = hasHidden ? 'block' : 'none';
 }
 </script>
 </body>
