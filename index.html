@@ -146,9 +146,10 @@
         .modal-box h3 { margin-top:0; color:var(--text); margin-bottom: 16px; font-size: 1.2rem; }
 
         /* Hover Tooltip Stilleri */
-        #chartTooltip { position: absolute; background: rgba(0, 0, 0, 0.85); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; pointer-events: none; z-index: 9999; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.3); white-space: nowrap; }
+        #chartTooltip { position: absolute; background: rgba(0, 0, 0, 0.85); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; pointer-events: none; z-index: 9999; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.3); white-space: nowrap; line-height: 1.4; }
         #chartTooltip span.tt-party { font-size: 14px; display: block; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; }
-        #chartTooltip span.tt-stats { font-size: 12px; color: #ddd; font-weight: normal; }
+        #chartTooltip span.tt-stats { font-size: 12px; color: #ddd; font-weight: normal; display: block; }
+        #chartTooltip span.tt-hint { display: block; margin-top: 6px; font-size: 10px; color: #aaa; font-style: italic; }
 
         /* Sıralama Paneli */
         .sort-panel { background: var(--surface); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; box-shadow: var(--shadow); }
@@ -182,6 +183,19 @@
 
 <div class="left-panel">
     <h1>🗳️ PGM Projeksiyon Arayüzü</h1>
+
+    <!-- YENİ EKLENEN ARŞİVDEN GETİRME MODÜLÜ -->
+    <div class="card" style="border-top: 4px solid var(--purple);">
+        <label>☁️ Arşivden Proje Getir</label>
+        <span style="font-size: 11px; margin-bottom: 8px; color: var(--text-secondary); display:block;">Sunucudaki (Github vb.) hazır JSON projelerini hızlıca içeri aktarın.</span>
+        <div style="display:flex; gap:8px; margin-bottom:0;">
+            <select id="archiveSelector" style="flex:2; font-weight: bold;">
+                <option value="">-- Arşivden Seç --</option>
+                <option value="nisan2026_2.json">Örnek: nisan2026_2.json</option>
+            </select>
+            <button onclick="loadFromArchive()" class="purple" style="flex:1;">Buluttan Getir ☁️</button>
+        </div>
+    </div>
 
     <div class="card">
         <label>1. Seçim Verisi Yükle (.txt)</label>
@@ -318,6 +332,11 @@
             <h3 style="margin:0 0 16px 0; color:var(--text); font-size:1.4rem;">Türkiye Geneli Koltuk Dağılımı</h3>
             <div id="parliamentChartArea" style="width:100%;"></div>
         </div>
+        
+        <div id="filterBanner" style="display:none; color: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; align-items: center; justify-content: space-between; font-weight: bold; box-shadow: var(--shadow);">
+            <span id="filterBannerText" style="font-size: 1.05rem;"></span>
+            <button onclick="togglePartyFilter(activePartyFilter)" style="background: rgba(255,255,255,0.25); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: bold;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.25)'">Filtreyi Temizle ✖</button>
+        </div>
 
         <div id="results">
             <div class="empty-state">
@@ -385,6 +404,9 @@ let customSeatOverrides = {};
 let globalResults = {}; 
 
 let dragCtx = { type: null, idx: null };
+
+// YENİ: Parti Filtreleme State'i
+let activePartyFilter = null;
 
 function escapeStr(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
 
@@ -742,41 +764,66 @@ async function loadProject(inp) {
     if(!file) return;
     try {
         const data = JSON.parse(await file.text());
-        datasets = data.datasets || [];
-        
-        extraParties = (data.extraParties || []).map(ep => ({
-            ...ep, 
-            isOpen: ep.isOpen!==false, 
-            isEnabled: ep.isEnabled!==false,
-            color: ep.color || '#000000' 
-        }));
-        
-        coalitions = (data.coalitions || []).map(c => ({
-            ...c, 
-            isOpen: c.isOpen!==false, 
-            isEnabled: c.isEnabled!==false,
-            color: c.color || '#000000'
-        }));
-        
-        electoralAlliances = (data.electoralAlliances || []).map(a => ({...a, isOpen: a.isOpen!==false, isEnabled: a.isEnabled!==false}));
-        customSeatOverrides = data.customSeatOverrides || {};
-        
-        if(data.settings) {
-            if(data.settings.threshold !== undefined) $('thresholdInp').value = data.settings.threshold;
-            if(data.settings.calcMethod) $('calcMethodInp').value = data.settings.calcMethod;
-            if(data.settings.mbEnabled !== undefined) {
-                $('mbEnabledInp').checked = data.settings.mbEnabled;
-                $('mbSettingsWrapper').style.display = data.settings.mbEnabled ? 'flex' : 'none';
-            }
-            if(data.settings.mbCalcMethod) $('mbCalcMethodInp').value = data.settings.mbCalcMethod;
-            if(data.settings.mbSeats !== undefined) $('mbSeatsInp').value = data.settings.mbSeats;
-            if(data.settings.showVoteCounts !== undefined) $('showVoteCountsInp').checked = data.settings.showVoteCounts;
-        }
-
-        updateGlobalParties(); renderDatasets(); renderExtraParties(); renderCoalitions(); renderAlliances();
-        updateTotalTracker();
+        applyProjectData(data);
         alert("Proje başarıyla yüklendi!"); $('fileInp').value = ''; inp.value = '';
     } catch(err) { alert("Hata: " + err.message); }
+}
+
+async function loadFromArchive() {
+    const fileName = $('archiveSelector').value;
+    if(!fileName) return alert("Lütfen arşivden bir dosya seçin!");
+    
+    try {
+        // Fetch ile Github Pages gibi aynı sunucu kök dizinindeki JSON'u getiriyoruz
+        const response = await fetch(fileName);
+        if(!response.ok) throw new Error("Sunucu Hatası: " + response.status + ". Dosyanın ('" + fileName + "') index.html ile aynı dizinde olduğuna emin olun.");
+        
+        const data = await response.json();
+        applyProjectData(data);
+        alert("Arşiv projesi başarıyla getirildi: " + fileName);
+        
+        // Eğer veriler getirildiyse otomatik hesapla/çizdir
+        if (datasets.length > 0) runProjection();
+        
+    } catch(err) {
+        alert("Arşiv yüklenemedi:\\n" + err.message);
+    }
+}
+
+function applyProjectData(data) {
+    datasets = data.datasets || [];
+    
+    extraParties = (data.extraParties || []).map(ep => ({
+        ...ep, 
+        isOpen: ep.isOpen!==false, 
+        isEnabled: ep.isEnabled!==false,
+        color: ep.color || '#000000' 
+    }));
+    
+    coalitions = (data.coalitions || []).map(c => ({
+        ...c, 
+        isOpen: c.isOpen!==false, 
+        isEnabled: c.isEnabled!==false,
+        color: c.color || '#000000'
+    }));
+    
+    electoralAlliances = (data.electoralAlliances || []).map(a => ({...a, isOpen: a.isOpen!==false, isEnabled: a.isEnabled!==false}));
+    customSeatOverrides = data.customSeatOverrides || {};
+    
+    if(data.settings) {
+        if(data.settings.threshold !== undefined) $('thresholdInp').value = data.settings.threshold;
+        if(data.settings.calcMethod) $('calcMethodInp').value = data.settings.calcMethod;
+        if(data.settings.mbEnabled !== undefined) {
+            $('mbEnabledInp').checked = data.settings.mbEnabled;
+            $('mbSettingsWrapper').style.display = data.settings.mbEnabled ? 'flex' : 'none';
+        }
+        if(data.settings.mbCalcMethod) $('mbCalcMethodInp').value = data.settings.mbCalcMethod;
+        if(data.settings.mbSeats !== undefined) $('mbSeatsInp').value = data.settings.mbSeats;
+        if(data.settings.showVoteCounts !== undefined) $('showVoteCountsInp').checked = data.settings.showVoteCounts;
+    }
+
+    updateGlobalParties(); renderDatasets(); renderExtraParties(); renderCoalitions(); renderAlliances();
+    updateTotalTracker();
 }
 
 window.updateSeatOverride = function(dName, val) {
@@ -806,6 +853,25 @@ function updateSortDropdown() {
 
 window.applySorting = function() {
     if(Object.keys(globalResults).length > 0) renderResults(globalResults);
+};
+
+// Parti Filtreleme Fonksiyonu
+window.togglePartyFilter = function(party) {
+    if (activePartyFilter === party) {
+        activePartyFilter = null;
+        $('sortPartySel').value = 'default'; // Filtre kalkınca varsayılan sıralamaya dön
+    } else {
+        activePartyFilter = party;
+        // Filtrelenen partiyi otomatik olarak sıralama kutusuna ata
+        const sel = $('sortPartySel');
+        for(let i=0; i<sel.options.length; i++) {
+            if(sel.options[i].value === party) {
+                sel.value = party;
+                break;
+            }
+        }
+    }
+    renderResults(globalResults);
 };
 
 function runDhondt(v, s){
@@ -1106,7 +1172,11 @@ function getPartyColor(pName) {
 window.showChartTooltip = function(e, party, seats, total) {
     const tt = $('chartTooltip');
     const pct = ((seats / total) * 100).toFixed(1);
-    tt.innerHTML = `<span class="tt-party">${party}</span><span class="tt-stats">${seats} Milletvekili (%${pct})</span>`;
+    tt.innerHTML = `
+        <span class="tt-party">${party}</span>
+        <span class="tt-stats">${seats} Milletvekili (%${pct})</span>
+        <span class="tt-hint">Bölgeleri filtrelemek için tıkla</span>
+    `;
     tt.style.display = 'block';
     tt.style.left = (e.pageX + 15) + 'px';
     tt.style.top = (e.pageY + 15) + 'px';
@@ -1131,11 +1201,11 @@ function getVisualSeats(seatsObj, total) {
 function createParliamentDonut(seatsObj, total) {
     if (total === 0) return '';
     let currentAngle = Math.PI; 
-    let radius = 40;
+    let radius = 35; // Taşmayı önlemek için grafiğin iç yarıçapı hafif daraltıldı
     let cx = 50, cy = 50;
     let svg = `<svg viewBox="0 0 100 55" style="width:100%; max-width:500px; margin: 0 auto; display:block; overflow:visible;">`;
     
-    svg += `<path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#f0f2f5" stroke-width="15" />`;
+    svg += `<path d="M 15 50 A 35 35 0 0 1 85 50" fill="none" stroke="#f0f2f5" stroke-width="20" />`; // 15->20 yapıldı
 
     const { visualObj, visualTotal } = getVisualSeats(seatsObj, total);
 
@@ -1160,18 +1230,24 @@ function createParliamentDonut(seatsObj, total) {
         let color = getPartyColor(p);
         let safePartyStr = escapeStr(p);
         
+        // Aktif Filtre Görselliği (Kalınlıklar artırıldı)
+        let isFocused = activePartyFilter === p;
+        let pathOpacity = (activePartyFilter && !isFocused) ? '0.25' : '1';
+        let strokeW = isFocused ? '24' : '20'; // Normal: 20, Seçiliyken: 24 (Önceki 15 ve 18'di)
+        
         svg += `<path d="M ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2}" 
-                fill="none" stroke="${color}" stroke-width="15" 
-                style="cursor:pointer; transition: 0.2s;" 
-                onmouseover="this.setAttribute('stroke-width', '17')" 
-                onmouseout="this.setAttribute('stroke-width', '15'); hideChartTooltip();"
+                fill="none" stroke="${color}" stroke-width="${strokeW}" 
+                style="cursor:pointer; transition: 0.2s; opacity: ${pathOpacity}; outline: none;" 
+                onmouseover="this.setAttribute('stroke-width', '24')" 
+                onmouseout="this.setAttribute('stroke-width', '${strokeW}'); hideChartTooltip();"
                 onmousemove="showChartTooltip(event, '${safePartyStr}', ${s}, ${total})"
+                onclick="togglePartyFilter('${safePartyStr}')"
                 ></path>`;
                 
         if (sliceAngle > 0.06) {
             let textX = cx + radius * Math.cos(midAngle);
             let textY = cy - radius * Math.sin(midAngle);
-            svg += `<text x="${textX}" y="${textY}" fill="#ffffff" font-size="4.5" font-weight="bold" text-anchor="middle" dominant-baseline="central" style="pointer-events:none; text-shadow: 0px 1px 3px rgba(0,0,0,0.8);">${s}</text>`;
+            svg += `<text x="${textX}" y="${textY}" fill="#ffffff" font-size="4.5" font-weight="bold" text-anchor="middle" dominant-baseline="central" style="pointer-events:none; opacity: ${pathOpacity}; text-shadow: 0px 1px 3px rgba(0,0,0,0.8);">${s}</text>`;
         }
         
         currentAngle = endAngle;
@@ -1186,10 +1262,51 @@ function renderResults(res){
     const area = $('results');
     area.innerHTML = '';
     
-    const sortParty = $('sortPartySel').value;
+    let sortParty = $('sortPartySel').value;
     const sortOrder = $('sortOrderSel').value;
-    
+
+    // --- GENEL (GLOBAL) KONTENJAN HESAPLAMASI (Filtreden Bağımsız) ---
+    let totalMvs = {};
+    let globalSeatCount = 0;
+    Object.keys(res).forEach(d => {
+        const item = res[d];
+        Object.keys(item.mvs).forEach(p => {
+            const mvCount = item.mvs[p] || 0;
+            if (mvCount > 0) {
+                totalMvs[p] = (totalMvs[p] || 0) + mvCount;
+                globalSeatCount += mvCount;
+            }
+        });
+    });
+
+    // PARLAMENTO DİYAGRAMINI ÇİZ
+    if (globalSeatCount > 0) {
+        $('parliamentContainer').style.display = 'block';
+        const sortedMvKeys = Object.keys(totalMvs).sort((a,b) => totalMvs[b] - totalMvs[a]);
+        const sortedMvsObj = {};
+        sortedMvKeys.forEach(k => sortedMvsObj[k] = totalMvs[k]);
+        $('parliamentChartArea').innerHTML = createParliamentDonut(sortedMvsObj, globalSeatCount);
+    } else {
+        $('parliamentContainer').style.display = 'none';
+    }
+
+    // --- FİLTRELEME & SIRALAMA ---
     let sortedNames = Object.keys(res);
+
+    if (activePartyFilter) {
+        // Banner'ı göster ve partinin rengine boya
+        $('filterBanner').style.display = 'flex';
+        $('filterBanner').style.background = getPartyColor(activePartyFilter);
+        $('filterBannerText').innerHTML = `🎯 Sadece <b>${activePartyFilter}</b> partisinin milletvekili çıkardığı çevreler gösteriliyor.`;
+        
+        sortParty = activePartyFilter; // Sıralamayı bu partiye zorla
+        
+        // Filtreleme: Sadece vekil çıkardığı yerleri (MB hariç/dahil) tut
+        sortedNames = sortedNames.filter(d => res[d].mvs && res[d].mvs[activePartyFilter] > 0);
+    } else {
+        $('filterBanner').style.display = 'none';
+    }
+
     const mbKey = '🌟 Milli Bakiye (Türkiye Geneli)';
     let normalNames = sortedNames.filter(n => n !== mbKey);
     
@@ -1204,19 +1321,19 @@ function renderResults(res){
         });
     }
 
-    if(res[mbKey]) normalNames.unshift(mbKey);
+    if(sortedNames.includes(mbKey)) normalNames.unshift(mbKey);
     sortedNames = normalNames;
 
     if(sortedNames.length === 0) {
-        $('parliamentContainer').style.display = 'none';
-        $('sortPanelContainer').style.display = 'none';
-        area.innerHTML = `<div class="empty-state"><h2>Geçersiz Veri</h2><p>Lütfen veri setlerini kontrol edin.</p></div>`;
+        if(!activePartyFilter) $('sortPanelContainer').style.display = 'none';
+        area.innerHTML = `<div class="empty-state">
+            <h2>${activePartyFilter ? 'Milletvekili Bulunamadı' : 'Geçersiz Veri'}</h2>
+            <p>${activePartyFilter ? 'Bu partinin vekil çıkardığı herhangi bir seçim çevresi bulunmuyor.' : 'Lütfen veri setlerini kontrol edin.'}</p>
+        </div>`;
         return;
     }
 
-    let totalMvs = {};
-    let globalSeatCount = 0;
-
+    // --- KARTLARI (ÇEVRELERİ) RENDER ET ---
     sortedNames.forEach(d => {
         const item = res[d];
         const card = document.createElement('div');
@@ -1241,11 +1358,6 @@ function renderResults(res){
             const pct = pctVal.toFixed(2);
             const totalMv = item.mvs[p] || 0;
             const hasPassed = item.passed.has(p);
-
-            if(totalMv > 0) {
-                totalMvs[p] = (totalMvs[p] || 0) + totalMv;
-                globalSeatCount += totalMv;
-            }
 
             const isCoal = coalitions.find(c => c.name === p && c.isEnabled !== false);
             const isAlliance = electoralAlliances.find(a => a.members.includes(p) && a.isEnabled !== false);
@@ -1309,17 +1421,6 @@ function renderResults(res){
         card.innerHTML = cardContent;
         area.appendChild(card);
     });
-
-    if (globalSeatCount > 0) {
-        $('parliamentContainer').style.display = 'block';
-        const sortedMvKeys = Object.keys(totalMvs).sort((a,b) => totalMvs[b] - totalMvs[a]);
-        const sortedMvsObj = {};
-        sortedMvKeys.forEach(k => sortedMvsObj[k] = totalMvs[k]);
-        
-        $('parliamentChartArea').innerHTML = createParliamentDonut(sortedMvsObj, globalSeatCount);
-    } else {
-        $('parliamentContainer').style.display = 'none';
-    }
 }
 
 function downloadAdvancedResults(){
@@ -1395,9 +1496,16 @@ document.addEventListener('keydown', function(e) {
 });
 
 function getSortedDistrictNames() {
-    const sortParty = $('sortPartySel').value;
+    let sortParty = $('sortPartySel').value;
     const sortOrder = $('sortOrderSel').value;
+    
+    // Aktif filtre varsa listeye sadece filtrelenmiş bölgeleri dahil et ki yön tuşları sadece bu bölgeler arasında gezsin
     let names = Object.keys(globalResults);
+    if(activePartyFilter) {
+        names = names.filter(d => globalResults[d].mvs && globalResults[d].mvs[activePartyFilter] > 0);
+        sortParty = activePartyFilter;
+    }
+
     const mbKey = '🌟 Milli Bakiye (Türkiye Geneli)';
     let normalNames = names.filter(n => n !== mbKey);
     
@@ -1411,7 +1519,7 @@ function getSortedDistrictNames() {
             return sortOrder === 'asc' ? (pA - pB) : (pB - pA);
         });
     }
-    if(globalResults[mbKey]) normalNames.unshift(mbKey);
+    if(names.includes(mbKey)) normalNames.unshift(mbKey);
     return normalNames;
 }
 
