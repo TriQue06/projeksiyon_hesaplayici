@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Seçim Simülatörü Pro v5.6 - Material UI</title>
+    <title>PGM Projeksiyon Arayüzü v7.0</title>
     <style>
         @font-face {
             font-family: 'Product Sans';
@@ -23,31 +23,29 @@
             --success: #31a24c;
             --purple: #673ab7;
             --orange: #f57c00;
+            --teal: #00897b;
             --shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Product Sans', sans-serif; }
         body { display: flex; height: 100vh; background-color: var(--bg); color: var(--text); overflow: hidden; }
 
-        /* Kaydırma çubuğu gizleme */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #aaa; }
 
-        /* Sol Panel - Düzenleme */
-        .left-panel { flex: 1; max-width: 480px; padding: 20px; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--border); box-shadow: 2px 0 5px rgba(0,0,0,0.05); z-index: 10; display: flex; flex-direction: column; }
-        
-        /* Sağ Panel - Projeksiyon */
+        /* Sol panel genişletildi */
+        .left-panel { flex: 1; min-width: 450px; max-width: 540px; padding: 20px; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--border); box-shadow: 2px 0 5px rgba(0,0,0,0.05); z-index: 10; display: flex; flex-direction: column; }
         .right-panel { flex: 2; padding: 30px; overflow-y: auto; background: #e9eaef; position: relative; }
 
         h1 { font-size: 1.5rem; margin-bottom: 20px; color: var(--primary); display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f0f2f5; padding-bottom: 12px; }
-        .proj-header { font-size: 1.8rem; margin-bottom: 24px; color: #1c1e21; border-bottom: 2px solid #dadde1; padding-bottom: 10px; }
+        .proj-header { font-size: 1.8rem; margin-bottom: 16px; color: #1c1e21; border-bottom: 2px solid #dadde1; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
         .card { background: var(--surface); border-radius: 8px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .card label { display: block; font-weight: bold; margin-bottom: 12px; color: var(--primary); font-size: 1.1rem; }
 
-        .flex-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+        .flex-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; flex-wrap: nowrap; }
         
         input, select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; flex: 1; background: #f5f6f7; transition: 0.2s; }
         input:focus, select:focus { border-color: var(--primary); background: #fff; }
@@ -62,31 +60,36 @@
         button.purple:hover { background-color: #512da8; }
         button.orange { background-color: var(--orange); }
         button.orange:hover { background-color: #e65100; }
+        button.teal { background-color: var(--teal); }
+        button.teal:hover { background-color: #00695c; }
         button.success { background-color: var(--success); font-size: 15px; padding: 14px; }
         button.success:hover { background-color: #27823b; }
 
-        button.toggle-btn { background: #f5f6f7; border: 1px solid var(--border); color: var(--text-secondary); width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+        /* Buton boyutlandırmaları */
+        button.toggle-btn { flex-shrink: 0; background: #f5f6f7; border: 1px solid var(--border); color: var(--text-secondary); width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 15px; }
         button.toggle-btn:hover { background: #e4e6eb; color: var(--text); transform: none; }
+        .data-row .danger { flex-shrink: 0; width: 32px !important; height: 32px !important; border-radius: 8px !important; font-size: 15px; }
 
-        /* Yeni: İttifak Durum Butonu */
-        button.status-btn { background: #f5f6f7; border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-right: 8px; }
+        /* Aktif Pasif Buton Stili */
+        button.status-btn { flex-shrink: 0; background: #f5f6f7; border: 1px solid var(--border); color: var(--text-secondary); padding: 0; width: 32px; height: 32px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; }
         button.status-btn.active { background: var(--success); color: white; border-color: var(--success); }
 
-        /* Listeleme Satırları */
-        .data-row { background: var(--surface); padding: 10px; border-radius: 6px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid var(--border); border-left: 4px solid var(--border); font-size: 13px; }
+        .data-row { background: var(--surface); padding: 10px; border-radius: 6px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid var(--border); border-left: 4px solid var(--border); font-size: 13px; transition: background-color 0.2s; }
+        .data-row.drag-over { background-color: #e8f0fe !important; border-style: dashed; }
         
-        /* Izgaralar */
-        .parties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
-        .party-box { background: #f8f9fa; border: 1px solid var(--border); padding: 8px; border-radius: 6px; text-align: center; }
-        .party-box span { display: block; font-size: 11px; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .party-box input { width: 100%; text-align: center; margin: 0; padding: 6px; font-weight: bold; color: var(--primary); }
+        .editable-name { background: transparent; border: 1px solid transparent; padding: 4px; font-weight: bold; color: var(--text); flex: 1; min-width: 50px; outline: none; border-radius: 4px; transition: 0.2s; margin: 0 4px; }
+        .editable-name:hover { background: #f5f6f7; }
+        .editable-name:focus { background: #fff; border: 1px solid var(--primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
+
+        .drag-handle { flex-shrink: 0; cursor: grab; padding: 4px 2px; color: #a0aabf; display: flex; align-items: center; justify-content: center; font-size: 16px; user-select: none; }
+        .drag-handle:active { cursor: grabbing; }
+        .drag-handle:hover { color: var(--primary); }
 
         .similarity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
         .sim-input-box { background: #f5f6f7; padding: 8px; border-radius: 6px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
         .sim-input-box span { font-size: 10px; color: var(--text-secondary); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .sim-input-box input { padding: 4px; margin: 0; font-size: 12px; }
 
-        /* Ortak Liste Şık Parti Butonları */
         .coal-sim-box { background: #f5f6f7; padding: 10px; border-radius: 6px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; text-align: center; }
         .coal-sim-box:hover { background: #e8f0fe; border-color: var(--primary); }
         .coal-sim-box.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 4px rgba(26,115,232,0.3); }
@@ -95,31 +98,33 @@
 
         .scroll-area { max-height: 250px; overflow-y: auto; padding-right: 5px; }
 
-        /* Aksiyon Çubuğu (Sabit) */
         .action-bar { position: sticky; bottom: -20px; background: var(--surface); z-index: 10; padding-top: 16px; padding-bottom: 20px; border-top: 2px solid #f0f2f5; margin-top: auto; }
 
-        /* --- SAĞ PANEL (PROJEKSİYON) STİLLERİ --- */
+        /* PROJEKSİYON STİLLERİ */
         #results { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start; }
         
         .dist-card { background: var(--surface); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); border-top: 5px solid var(--primary); transition: transform 0.2s; }
         .dist-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
         
         .dist-card h3 { margin: 0 0 16px 0; font-size: 1.3rem; color: var(--text); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f2f5; padding-bottom: 10px; }
-        .dist-card h3 span { background: #e8f0fe; color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: 1rem; }
+        .dist-card h3 span.seat-editor { background: #e8f0fe; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-size: 1rem; display:flex; align-items:center; border: 1px solid var(--primary); transition: 0.2s; }
+        .dist-card h3 span.seat-editor:focus-within { box-shadow: 0 0 0 2px rgba(26,115,232,0.3); }
+        .dist-card h3 span.seat-editor input { background:transparent; border:none; color:var(--primary); font-weight:bold; width:35px; text-align:right; font-size:1rem; padding:0 4px 0 0; outline:none; }
         
         .p-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f5f6f7; }
         .p-line:last-child { border-bottom: none; }
         .p-line.is-coal { background: #f8faff; border-left: 3px solid var(--primary); padding-left: 8px; margin-left: -12px; padding-right: 12px; border-radius: 0 6px 6px 0; }
         
         .p-name-area { display: flex; flex-direction: column; }
-        .p-name { font-weight: bold; font-size: 13px; color: var(--text); }
+        .p-name { font-weight: bold; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 4px; }
         .p-coal-members { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
         
         .p-stats-area { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
         .p-pct { color: var(--text-secondary); font-size: 12px; font-weight: bold; }
         .mv-tag { background: var(--primary); color: #fff; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .fail-tag { background: #ffebee; color: #d32f2f; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; border: 1px solid #ef9a9a; }
+        .alliance-tag { font-size: 9px; color: var(--teal); background: #e0f2f1; padding: 2px 4px; border-radius: 4px; font-weight: normal; }
 
-        /* Expand Butonları */
         .expand-btn { width: 100%; background: #f8f9fa; border: 1px solid var(--border); color: var(--text-secondary); padding: 8px; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 6px; margin-top: 8px; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 4px; }
         .expand-btn:hover { background: #e8f0fe; color: var(--primary); border-color: var(--primary); }
         .tier { display: flex; flex-direction: column; }
@@ -128,21 +133,27 @@
         .empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
         .empty-state h2 { font-size: 1.5rem; color: var(--text); margin-bottom: 8px; }
 
-        /* Cumhurbaşkanlığı Projeksiyonu Sabit Butonu */
-        .floating-cb-btn {
-            position: fixed; top: 20px; right: 30px;
-            background: var(--purple); color: #fff; padding: 10px 20px;
-            border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 13px;
-            box-shadow: 0 4px 6px rgba(103, 58, 183, 0.3); transition: transform 0.2s, background 0.2s;
-            z-index: 1000; display: flex; align-items: center; gap: 8px; border: none;
-        }
-        .floating-cb-btn:hover { transform: translateY(-2px); background: #512da8; }
+        /* Modal Stilleri */
+        #colorModalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; }
+        .modal-box { background:#fff; padding:24px; border-radius:12px; width:320px; box-shadow:0 10px 25px rgba(0,0,0,0.2); }
+        .modal-box h3 { margin-top:0; color:var(--text); margin-bottom: 16px; font-size: 1.2rem; }
+
+        /* Hover Tooltip Stilleri */
+        #chartTooltip { position: absolute; background: rgba(0, 0, 0, 0.85); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; pointer-events: none; z-index: 9999; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.3); white-space: nowrap; }
+        #chartTooltip span.tt-party { font-size: 14px; display: block; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; }
+        #chartTooltip span.tt-stats { font-size: 12px; color: #ddd; font-weight: normal; }
+
+        /* Sıralama Paneli */
+        .sort-panel { background: var(--surface); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; box-shadow: var(--shadow); }
+        .sort-panel select { max-width: 250px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
+<div id="chartTooltip"></div>
+
 <div class="left-panel">
-    <h1>🗳️ Seçim Simülatörü Pro</h1>
+    <h1>🗳️ PGM Projeksiyon Arayüzü</h1>
 
     <div class="card">
         <label>1. Veri Setleri (.txt)</label>
@@ -152,16 +163,13 @@
 
     <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <label style="margin-bottom: 0;">2. Hedef Ülke Oy Oranları (%)</label>
+            <label style="margin-bottom: 0;">2. Partileri Oluştur / Ekle</label>
             <div id="voteTotalTracker" style="font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 4px; background: #e8f0fe; color: var(--primary); border: 1px solid var(--primary); transition: 0.3s;">
                 Toplam: %0.00 | Kalan: %100.00
             </div>
         </div>
-        <div id="basePartiesArea" class="parties-grid"></div>
-    </div>
-
-    <div class="card">
-        <label>3. Yeni Parti Ekle</label>
+        <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Simülasyona girecek partileri tanımlayın. Sol kısımdan <b>sürükleyerek</b> sıralarını değiştirebilirsiniz. Partinin <b>isminin üstüne tıklayarak</b> adını düzenleyebilirsiniz.</span>
+        
         <div class="flex-row">
             <input id="newPName" placeholder="Parti Adı">
             <input id="newPNat" type="number" step="0.01" placeholder="Oy (%)" style="width:80px">
@@ -171,12 +179,40 @@
     </div>
 
     <div class="card">
-        <label>4. Ortak Listeler (İttifak)</label>
+        <label>3. Ortak Listeler (Tam Birleşme)</label>
+        <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Partiler seçime tek bir çatı altında girer. Sürükleyerek sırasını, üstüne tıklayarak adını ve renk kutusundan rengini değiştirebilirsiniz.</span>
         <div class="flex-row">
-            <input id="coalName" placeholder="Liste Adı (Örn: Cumhur İttifakı)">
-            <button onclick="addCoalition()" style="width:40px; font-size: 16px;">+</button>
+            <input id="coalName" placeholder="Liste Adı (Örn: CHP Listesi)">
+            <button onclick="addCoalition()" class="purple" style="width:40px; font-size: 16px;">+</button>
         </div>
         <div id="coalitionArea" class="scroll-area"></div>
+    </div>
+
+    <div class="card">
+        <label>4. Seçim İttifakları (Ayrı Listeler)</label>
+        <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Partiler ayrı girer, barajı beraber geçerler. Yukarıdakiler gibi sürüklenebilir ve adı değiştirilebilir.</span>
+        <div class="flex-row">
+            <input id="allianceName" placeholder="İttifak Adı (Örn: Cumhur İttifakı)">
+            <button onclick="addAlliance()" class="teal" style="width:40px; font-size: 16px;">+</button>
+        </div>
+        <div id="allianceArea" class="scroll-area"></div>
+    </div>
+
+    <div class="card" style="border-top: 4px solid var(--primary);">
+        <label style="margin-bottom: 8px;">⚙️ Seçim Ayarları</label>
+        <div class="flex-row" style="gap: 12px; margin-bottom:0;">
+            <div style="flex: 1;">
+                <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">Ülke Barajı (%)</span>
+                <input type="number" id="thresholdInp" value="7" step="0.1" style="width:100%; font-weight:bold; color:var(--primary);">
+            </div>
+            <div style="flex: 2;">
+                <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">D'Hondt Sistemi</span>
+                <select id="calcMethodInp" style="width:100%; font-weight:bold; padding: 7px;">
+                    <option value="classic">Klasik (Partiler Ayrı - 2022)</option>
+                    <option value="alliance">İttifak İçi Dağıtım (2018)</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     <div class="action-bar">
@@ -188,16 +224,35 @@
         </div>
         <input type="file" id="projectLoader" accept=".json" style="display:none" onchange="loadProject(this)">
         
-        <button onclick="downloadResults()" class="danger" style="width: 100%;">📥 Sonuçları İndir (.TXT)</button>
+        <button onclick="downloadResults()" class="danger" style="width: 100%; margin-bottom: 8px;">📥 Sonuçları İndir (Normal .TXT)</button>
+        <button onclick="downloadAdvancedResults()" class="danger" style="width: 100%; background-color:#8e24aa;">📥 Gelişmiş İndir (.TXT)</button>
     </div>
 </div>
 
 <div class="right-panel">
-    <a href="cb_index.html" target="_blank" class="floating-cb-btn">
-        🇹🇷 CB Projeksiyonu ➔
-    </a>
-    <div class="proj-header">Seçim Çevresi Sonuçları</div>
     
+    <div class="proj-header">
+        <div>Seçim Çevresi Sonuçları</div>
+    </div>
+    
+    <div class="sort-panel" id="sortPanelContainer" style="display:none;">
+        <div style="display:flex; align-items:center; gap:8px; flex:1;">
+            <span style="font-size:12px; color:var(--text-secondary);">Görüntüleme Sıralaması:</span>
+            <select id="sortPartySel" onchange="applySorting()"><option value="default">Alfabetik (İl Adına Göre)</option></select>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <select id="sortOrderSel" onchange="applySorting()">
+                <option value="desc">Azalan (Yüksekten Düşüğe)</option>
+                <option value="asc">Artan (Düşükten Yükseğe)</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="parliamentContainer" class="card" style="display:none; margin-bottom: 24px; text-align:center; padding-top: 24px;">
+        <h3 style="margin:0 0 16px 0; color:var(--text); font-size:1.4rem;">Türkiye Geneli Koltuk Dağılımı</h3>
+        <div id="parliamentChartArea" style="width:100%;"></div>
+    </div>
+
     <div id="results">
         <div class="empty-state">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -206,7 +261,19 @@
                 <line x1="9" y1="21" x2="9" y2="9"></line>
             </svg>
             <h2>Veri Bekleniyor</h2>
-            <p>Seçim sonuçlarını görmek için sol panelden veri setlerini yükleyin veya hazır proje dosyası (.json) açın.</p>
+            <p>Seçim sonuçlarını görmek için sol panelden veri setlerini yükleyin, partilerinizi tanımlayın ve hesaplamayı başlatın.</p>
+        </div>
+    </div>
+</div>
+
+<div id="colorModalOverlay">
+    <div class="modal-box">
+        <h3>Renk Seçimi</h3>
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:12px; margin-top:-8px;">Geçerli bir HEX kodu girin (Örn: #ff0000 veya ff0000)</p>
+        <input type="text" id="hexInput" placeholder="#000000" style="width:100%; margin-bottom:20px; font-size:16px; padding:10px; font-weight:bold; letter-spacing:1px; text-align:center;">
+        <div style="display:flex; gap:10px; justify-content:space-between;">
+            <button onclick="closeColorModal()" style="background:#f0f2f5; color:#333; flex:1;">İptal</button>
+            <button onclick="saveColorModal()" class="success" style="flex:1;">Kaydet</button>
         </div>
     </div>
 </div>
@@ -214,59 +281,37 @@
 <script>
 const $ = id => document.getElementById(id);
 let datasets = [];
-let extraParties = [];
-let coalitions = [];
-let globalParties = new Set();
+let extraParties = []; 
+let coalitions = []; 
+let electoralAlliances = []; 
+let globalParties = new Set(); 
+let customSeatOverrides = {}; 
 let globalResults = {}; 
 
-// JS string içine güvenle yazdırmak için tırnakları escape eden fonksiyon
-function escapeStr(str) {
-    return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-}
+/* Sürükle-Bırak Değişkenleri */
+let dragCtx = { type: null, idx: null };
 
-// Toplam Oy Oranını Hesaplayan Fonksiyon
+function escapeStr(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
 function updateTotalTracker() {
     let total = 0;
-    
-    // Ana partilerin oyları
-    $('basePartiesArea').querySelectorAll('input').forEach(i => {
-        total += parseFloat(i.value) || 0;
-    });
-    
-    // Eklenen ekstra partilerin oyları
     extraParties.forEach(ep => {
-        total += parseFloat(ep.nat) || 0;
+        if(ep.isEnabled !== false) total += parseFloat(ep.nat) || 0;
     });
-
-    // JavaScript'in ondalık hatalarını (ör: 99.999999) önlemek için
     total = Math.round(total * 100) / 100;
     let remaining = Math.round((100 - total) * 100) / 100;
 
     const tracker = $('voteTotalTracker');
     if(!tracker) return;
 
-    let bgColor = '#e8f0fe';
-    let textColor = 'var(--primary)';
-    let remColor = 'var(--orange)';
+    let bgColor = '#e8f0fe', textColor = 'var(--primary)', remColor = 'var(--orange)';
+    if (total === 100) { bgColor = '#e6f4ea'; textColor = 'var(--success)'; remColor = 'var(--success)'; } 
+    else if (total > 100) { bgColor = '#fce8e8'; textColor = 'var(--danger)'; remColor = 'var(--danger)'; }
 
-    if (total === 100) {
-        bgColor = '#e6f4ea';
-        textColor = 'var(--success)';
-        remColor = 'var(--success)';
-    } else if (total > 100) {
-        bgColor = '#fce8e8';
-        textColor = 'var(--danger)';
-        remColor = 'var(--danger)';
-    }
-
-    tracker.style.background = bgColor;
-    tracker.style.color = textColor;
-    tracker.style.borderColor = textColor;
-    
+    tracker.style.background = bgColor; tracker.style.color = textColor; tracker.style.borderColor = textColor;
     tracker.innerHTML = `Toplam: %${total.toFixed(2)} | Kalan: <span style="color:${remColor}; font-weight:900;">%${remaining.toFixed(2)}</span>`;
 }
 
-// Veri Okuma ve Ayrıştırma (.toUpperCase() KALDIRILDI)
 $('fileInp').onchange = async (e) => {
     for(let file of e.target.files){
         const text = await file.text();
@@ -283,17 +328,15 @@ function parseTxt(t){
     t.split(/\n-\s*\n|\n\n+/).forEach(block => {
         const lines = block.trim().split('\n');
         if(lines.length < 2) return;
-        
         let header = lines[0].trim();
         let parts = header.split('-');
         let seats = parseInt(parts.pop()) || 0;
-        let name = parts.join('-').trim(); // Orijinal hali korunuyor
-        
+        let name = parts.join('-').trim();
         const votes = {};
         lines.slice(1).forEach(l => {
             const p = l.trim().split(/\s+/);
             const v = parseInt(p.pop().replace(/\D/g,''));
-            const pName = p.join(' ').trim(); // Orijinal hali korunuyor
+            const pName = p.join(' ').trim();
             if(!isNaN(v) && pName) votes[pName] = v;
         });
         out[name] = { votes, seats };
@@ -315,19 +358,10 @@ function calcNat(data){
 
 function getMasterDistricts() {
     const allDNames = new Set();
-    datasets.forEach(ds => {
-        Object.keys(ds.data).forEach(n => {
-            if(ds.data[n].seats > 0) allDNames.add(n);
-        });
-    });
+    datasets.forEach(ds => Object.keys(ds.data).forEach(n => { if(ds.data[n].seats > 0) allDNames.add(n); }));
     const names = Array.from(allDNames);
     const parentsWithChildren = new Set();
-    names.forEach(n => {
-        if(n.includes('-')) {
-            const parentName = n.split('-')[0].trim();
-            parentsWithChildren.add(parentName);
-        }
-    });
+    names.forEach(n => { if(n.includes('-')) parentsWithChildren.add(n.split('-')[0].trim()); });
     return names.filter(n => !parentsWithChildren.has(n));
 }
 
@@ -341,73 +375,136 @@ function getDistrictDataWithPatch(dataset, targetName) {
 function updateGlobalParties(){
     globalParties = new Set(); 
     datasets.forEach(ds => Object.keys(ds.nat).forEach(p => globalParties.add(p)));
-    renderBaseInputs();
+    renderExtraParties(); 
+    renderCoalitions();
+    renderAlliances();
 }
 
 function renderDatasets(){
     $('datasetsList').innerHTML = datasets.map(ds => `
         <div class="data-row flex-row" style="border-left-color: var(--primary);">
-            <span style="flex:1; overflow:hidden; font-weight:bold; white-space:nowrap; text-overflow:ellipsis;" title="${escapeStr(ds.name)}">${ds.name}</span>
+            <span style="flex:1; overflow:hidden; font-weight:bold; white-space:nowrap; text-overflow:ellipsis;">${ds.name}</span>
             <div style="display:flex; align-items:center; gap:6px">
                 <span style="font-size:11px; color:var(--text-secondary); font-weight:bold;">Ağırlık:</span>
                 <input type="number" step="0.1" value="${ds.w}" class="ds-weight-input" data-id="${ds.id}" style="width:50px; margin:0; padding:4px;">
             </div>
-            <button class="danger" onclick="datasets=datasets.filter(x=>x.id!=${ds.id});renderDatasets();updateGlobalParties();" style="width:26px; height:26px; padding:0;">✖</button>
+            <button class="danger" onclick="datasets=datasets.filter(x=>x.id!=${ds.id});renderDatasets();updateGlobalParties();">✖</button>
         </div>
     `).join('');
 }
 
-function renderBaseInputs(){
-    const area = $('basePartiesArea');
-    const oldVals = {}; 
-    area.querySelectorAll('input').forEach(i => oldVals[i.dataset.p] = i.value);
+/* Sürükle Bırak Mantığı (Drag & Drop) */
+window.handleDragStart = function(e, type, idx) { dragCtx = { type, idx }; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', idx); };
+window.handleDragOver = function(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; e.currentTarget.classList.add('drag-over'); };
+window.handleDragLeave = function(e) { e.currentTarget.classList.remove('drag-over'); };
+window.handleDrop = function(e, targetType, targetIdx) {
+    e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+    if (dragCtx.type !== targetType || dragCtx.idx === targetIdx || dragCtx.idx === null) return;
     
-    // Partileri Türkçe karakter uyumlu alfabetik sırala
-    const sortedParties = [...globalParties].sort((a,b) => a.localeCompare(b, 'tr'));
+    let arr = targetType === 'party' ? extraParties : (targetType === 'coal' ? coalitions : electoralAlliances);
+    const item = arr.splice(dragCtx.idx, 1)[0];
+    arr.splice(targetIdx, 0, item);
+    dragCtx = { type: null, idx: null };
     
-    area.innerHTML = sortedParties.map(p => `
-        <div class="party-box">
-            <span title="${escapeStr(p)}">${p}</span>
-            <input data-p="${escapeStr(p)}" type="number" step="0.01" value="${oldVals[p]||0}" oninput="updateTotalTracker()">
-        </div>
-    `).join('');
-    updateTotalTracker();
-}
+    if (targetType === 'party') { renderExtraParties(); renderCoalitions(); renderAlliances(); }
+    if (targetType === 'coal') { renderCoalitions(); renderAlliances(); }
+    if (targetType === 'alliance') { renderAlliances(); }
+};
+
+/* İsim Değiştirme (Renaming) Mantığı */
+window.renameParty = function(idx, newName) {
+    newName = newName.trim();
+    if(!newName) { renderExtraParties(); return; }
+    const oldName = extraParties[idx].name;
+    if(oldName === newName) return;
+    
+    extraParties[idx].name = newName;
+    coalitions.forEach(c => { const mIdx = c.members.indexOf(oldName); if(mIdx > -1) c.members[mIdx] = newName; });
+    electoralAlliances.forEach(a => { const mIdx = a.members.indexOf(oldName); if(mIdx > -1) a.members[mIdx] = newName; });
+    
+    renderExtraParties(); renderCoalitions(); renderAlliances();
+};
+
+window.renameCoalition = function(idx, newName) {
+    newName = newName.trim();
+    if(!newName) { renderCoalitions(); return; }
+    const oldName = coalitions[idx].name;
+    if(oldName === newName) return;
+    coalitions[idx].name = newName;
+    electoralAlliances.forEach(a => { const mIdx = a.members.indexOf(oldName); if(mIdx > -1) a.members[mIdx] = newName; });
+    renderCoalitions(); renderAlliances();
+};
+
+window.renameAlliance = function(idx, newName) {
+    newName = newName.trim();
+    if(!newName) { renderAlliances(); return; }
+    electoralAlliances[idx].name = newName;
+    renderAlliances();
+};
 
 function addExtraParty(){
-    const name = $('newPName').value.trim(); // .toUpperCase() KALDIRILDI
+    const name = $('newPName').value.trim();
     const nat = parseFloat($('newPNat').value)||0;
     if(!name) return;
-    extraParties.push({ name, nat, similarity:{}, isOpen: true });
-    $('newPName').value = '';
-    $('newPNat').value = '';
-    renderExtraParties();
+    extraParties.push({ name, nat, similarity:{}, isOpen: true, isEnabled: true, color: '#000000' });
+    $('newPName').value = ''; $('newPNat').value = '';
+    renderExtraParties(); renderCoalitions(); renderAlliances();
 }
 
-function toggleExtraParty(idx) {
-    extraParties[idx].isOpen = !extraParties[idx].isOpen;
-    renderExtraParties();
-}
+/* Renk Modalı İşlemleri */
+let activeColorTarget = { type: null, idx: null };
+
+window.updateColorModal = function(type, idx) {
+    activeColorTarget = { type, idx };
+    let currColor = '#000000';
+    if(type === 'party') currColor = extraParties[idx].color || '#000000';
+    if(type === 'coal') currColor = coalitions[idx].color || '#000000';
+    $('hexInput').value = currColor;
+    $('colorModalOverlay').style.display = 'flex';
+    $('hexInput').focus();
+};
+window.closeColorModal = function() { $('colorModalOverlay').style.display = 'none'; };
+window.saveColorModal = function() {
+    let val = $('hexInput').value.trim();
+    if (!val) val = "000000";
+    if (!val.startsWith('#')) val = '#' + val;
+    
+    const isValid = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/i.test(val);
+    if (!isValid) return alert("Geçersiz HEX kodu! Örnek formatlar: #ff0000 veya ff0000");
+    
+    if(activeColorTarget.type === 'party') { extraParties[activeColorTarget.idx].color = val; renderExtraParties(); } 
+    else if(activeColorTarget.type === 'coal') { coalitions[activeColorTarget.idx].color = val; renderCoalitions(); }
+    
+    closeColorModal();
+    if (Object.keys(globalResults).length > 0) runProjection();
+};
+$('hexInput').addEventListener('keyup', function(e) { if (e.key === 'Enter') saveColorModal(); });
 
 function renderExtraParties(){
     const sortedGlobal = [...globalParties].sort((a,b) => a.localeCompare(b, 'tr'));
     
     $('extraPartiesArea').innerHTML = extraParties.map((ep, idx) => `
-        <div class="data-row" style="border-left-color: var(--orange);">
+        <div class="data-row" style="border-left-color: var(--orange);" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'party', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'party', ${idx})">
             <div class="flex-row" style="margin-bottom:0;">
-                <button class="toggle-btn" onclick="toggleExtraParty(${idx})">${ep.isOpen ? '▲' : '▼'}</button>
-                <b style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${ep.name}</b> 
-                <input type="number" step="0.01" value="${ep.nat}" style="width:70px; margin:0; font-weight:bold; color:var(--primary);" 
-                       oninput="extraParties[${idx}].nat = parseFloat(this.value)||0; updateTotalTracker();">
-                <span style="font-weight:bold; color:var(--text-secondary);">%</span>
-                <button class="danger" onclick="extraParties.splice(${idx},1);renderExtraParties();" style="width:26px; height:26px; padding:0; margin-left:4px;">✖</button>
+                <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
+                
+                <button class="toggle-btn" onclick="extraParties[${idx}].isOpen=!extraParties[${idx}].isOpen;renderExtraParties()">${ep.isOpen ? '▲' : '▼'}</button>
+                
+                <button class="status-btn ${ep.isEnabled !== false ? 'active' : ''}" style="background:${ep.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${ep.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${ep.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="extraParties[${idx}].isEnabled=!(extraParties[${idx}].isEnabled!==false); updateTotalTracker(); renderExtraParties();" title="${ep.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${ep.isEnabled !== false ? 'A' : 'P'}</button>
+                
+                <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius:6px; background:${ep.color || '#000000'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('party', ${idx})"></div>
+                
+                <input type="text" class="editable-name" value="${escapeStr(ep.name)}" onchange="renameParty(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
+                
+                <input type="number" step="0.01" value="${ep.nat}" style="width:65px; margin:0; font-weight:bold; color:var(--primary); flex-shrink:0;" oninput="extraParties[${idx}].nat=parseFloat(this.value)||0; updateTotalTracker();">
+                <span style="font-weight:bold; color:var(--text-secondary); flex-shrink:0;">%</span>
+                <button class="danger" onclick="extraParties.splice(${idx},1);renderExtraParties();renderCoalitions();renderAlliances();">✖</button>
             </div>
             <div class="similarity-grid" style="display: ${ep.isOpen ? 'grid' : 'none'}">
                 ${sortedGlobal.map(p => `
                     <div class="sim-input-box">
                         <span title="${escapeStr(p)}">${p}</span>
-                        <input type="number" placeholder="%" value="${(ep.similarity[p]||0)*100}" 
-                               onchange="extraParties[${idx}].similarity['${escapeStr(p)}']=parseFloat(this.value)/100">
+                        <input type="number" placeholder="%" value="${(ep.similarity[p]||0)*100}" onchange="extraParties[${idx}].similarity['${escapeStr(p)}']=parseFloat(this.value)/100">
                     </div>
                 `).join('')}
             </div>
@@ -417,42 +514,34 @@ function renderExtraParties(){
 }
 
 function addCoalition(){
-    const name = $('coalName').value.trim(); // .toUpperCase() KALDIRILDI
+    const name = $('coalName').value.trim();
     if(!name) return;
-    coalitions.push({ name, members:[], isOpen: true, isEnabled: true });
+    coalitions.push({ name, members:[], isOpen: true, isEnabled: true, color: '#000000' });
     $('coalName').value = ''; 
-    renderCoalitions();
-}
-
-function toggleCoalition(idx) {
-    coalitions[idx].isOpen = !coalitions[idx].isOpen;
-    renderCoalitions();
-}
-
-function toggleCoalitionActive(idx) {
-    if (coalitions[idx].isEnabled === undefined) coalitions[idx].isEnabled = true;
-    coalitions[idx].isEnabled = !coalitions[idx].isEnabled;
-    renderCoalitions();
+    renderCoalitions(); renderAlliances();
 }
 
 function renderCoalitions(){
-    const all = [...globalParties, ...extraParties.map(e=>e.name)].sort((a,b) => a.localeCompare(b, 'tr'));
-    
+    const all = extraParties.map(e=>e.name).sort((a,b) => a.localeCompare(b, 'tr'));
     $('coalitionArea').innerHTML = coalitions.map((c, idx) => `
-        <div class="data-row" style="border-left-color: var(--purple);">
+        <div class="data-row" style="border-left-color: var(--purple);" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'coal', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'coal', ${idx})">
             <div class="flex-row" style="margin-bottom:0;">
-                <button class="toggle-btn" onclick="toggleCoalition(${idx})">${c.isOpen ? '▲' : '▼'}</button>
-                <button class="status-btn ${c.isEnabled !== false ? 'active' : ''}" onclick="toggleCoalitionActive(${idx})">
-                    ${c.isEnabled !== false ? 'AKTİF' : 'PASİF'}
-                </button>
-                <b style="flex:1;">${c.name}</b> 
-                <button class="danger" onclick="coalitions.splice(${idx},1);renderCoalitions();" style="width:26px; height:26px; padding:0;">✖</button>
+                <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
+                
+                <button class="toggle-btn" onclick="coalitions[${idx}].isOpen=!coalitions[${idx}].isOpen;renderCoalitions()">${c.isOpen ? '▲' : '▼'}</button>
+                
+                <button class="status-btn ${c.isEnabled !== false ? 'active' : ''}" style="background:${c.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${c.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${c.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="coalitions[${idx}].isEnabled=!(coalitions[${idx}].isEnabled!==false);renderCoalitions()" title="${c.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${c.isEnabled !== false ? 'A' : 'P'}</button>
+                
+                <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius:6px; background:${c.color || '#000000'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('coal', ${idx})"></div>
+                
+                <input type="text" class="editable-name" value="${escapeStr(c.name)}" onchange="renameCoalition(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
+                
+                <button class="danger" onclick="coalitions.splice(${idx},1);renderCoalitions();renderAlliances();">✖</button>
             </div>
             <div style="margin-top:10px; display: ${c.isOpen ? 'grid' : 'none'}; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; border-top: 1px dashed var(--border); padding-top:10px;">
                 ${all.map(p => `
                     <label class="coal-sim-box ${c.members.includes(p)?'active':''}" title="${escapeStr(p)}">
-                        <input type="checkbox" style="display:none;" ${c.members.includes(p)?'checked':''} 
-                            onchange="const m=coalitions[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : coalitions[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderCoalitions();">
+                        <input type="checkbox" style="display:none;" ${c.members.includes(p)?'checked':''} onchange="const m=coalitions[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : coalitions[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderCoalitions();">
                         <span>${p}</span>
                     </label>
                 `).join('')}
@@ -461,24 +550,50 @@ function renderCoalitions(){
     `).join('');
 }
 
-// === PROJE KAYDETME VE YÜKLEME ===
+function addAlliance(){
+    const name = $('allianceName').value.trim();
+    if(!name) return;
+    electoralAlliances.push({ name, members:[], isOpen: true, isEnabled: true });
+    $('allianceName').value = ''; renderAlliances();
+}
+
+function renderAlliances(){
+    const all = [...extraParties.map(e=>e.name), ...coalitions.map(c=>c.name)].sort((a,b) => a.localeCompare(b, 'tr'));
+    $('allianceArea').innerHTML = electoralAlliances.map((a, idx) => `
+        <div class="data-row" style="border-left-color: var(--teal);" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'alliance', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'alliance', ${idx})">
+            <div class="flex-row" style="margin-bottom:0;">
+                <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
+                
+                <button class="toggle-btn" onclick="electoralAlliances[${idx}].isOpen=!electoralAlliances[${idx}].isOpen;renderAlliances()">${a.isOpen ? '▲' : '▼'}</button>
+                
+                <button class="status-btn ${a.isEnabled !== false ? 'active' : ''}" style="background:${a.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${a.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${a.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="electoralAlliances[${idx}].isEnabled=!(electoralAlliances[${idx}].isEnabled!==false);renderAlliances()" title="${a.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${a.isEnabled !== false ? 'A' : 'P'}</button>
+                
+                <input type="text" class="editable-name" value="${escapeStr(a.name)}" onchange="renameAlliance(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
+                
+                <button class="danger" onclick="electoralAlliances.splice(${idx},1);renderAlliances();">✖</button>
+            </div>
+            <div style="margin-top:10px; display: ${a.isOpen ? 'grid' : 'none'}; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; border-top: 1px dashed var(--border); padding-top:10px;">
+                ${all.map(p => `
+                    <label class="coal-sim-box ${a.members.includes(p)?'active':''}" style="${a.members.includes(p)?'background:var(--teal);border-color:var(--teal);':''}" title="${escapeStr(p)}">
+                        <input type="checkbox" style="display:none;" ${a.members.includes(p)?'checked':''} onchange="const m=electoralAlliances[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : electoralAlliances[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderAlliances();">
+                        <span>${p}</span>
+                    </label>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
 
 function saveProject() {
-    const currentTargets = {};
-    $('basePartiesArea').querySelectorAll('input').forEach(i => {
-        currentTargets[i.dataset.p] = parseFloat(i.value) || 0;
-    });
-
     const projectData = {
-        meta: { version: "5.6", date: new Date().toISOString() },
-        datasets: datasets,
-        extraParties: extraParties,
-        coalitions: coalitions,
-        targets: currentTargets
+        meta: { version: "7.0", date: new Date().toISOString() },
+        datasets, extraParties, coalitions, electoralAlliances, customSeatOverrides,
+        settings: {
+            threshold: parseFloat($('thresholdInp').value) || 7,
+            calcMethod: $('calcMethodInp').value || 'classic'
+        }
     };
-
-    const jsonStr = JSON.stringify(projectData, null, 2);
-    const blob = new Blob([jsonStr], {type:'application/json'});
+    const blob = new Blob([JSON.stringify(projectData, null, 2)], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'secim_projesi_' + new Date().toISOString().slice(0,10) + '.json';
@@ -488,77 +603,125 @@ function saveProject() {
 async function loadProject(inp) {
     const file = inp.files[0];
     if(!file) return;
-
     try {
-        const text = await file.text();
-        const data = JSON.parse(text);
-
-        if(!data.datasets) throw new Error("Geçersiz proje dosyası");
-
+        const data = JSON.parse(await file.text());
         datasets = data.datasets || [];
-        extraParties = (data.extraParties || []).map(ep => ({...ep, isOpen: (ep.isOpen !== undefined ? ep.isOpen : true)}));
+        
+        extraParties = (data.extraParties || []).map(ep => ({
+            ...ep, 
+            isOpen: ep.isOpen!==false, 
+            isEnabled: ep.isEnabled!==false,
+            color: ep.color || '#000000' 
+        }));
+        
         coalitions = (data.coalitions || []).map(c => ({
             ...c, 
-            isOpen: (c.isOpen !== undefined ? c.isOpen : true),
-            isEnabled: (c.isEnabled !== undefined ? c.isEnabled : true)
+            isOpen: c.isOpen!==false, 
+            isEnabled: c.isEnabled!==false,
+            color: c.color || '#000000'
         }));
-
-        updateGlobalParties(); 
-        renderDatasets();
-        renderExtraParties();
-        renderCoalitions();
-
-        if(data.targets) {
-            const inputs = $('basePartiesArea').querySelectorAll('input');
-            inputs.forEach(i => {
-                if(data.targets[i.dataset.p] !== undefined) {
-                    i.value = data.targets[i.dataset.p];
-                }
-            });
-        }
         
+        electoralAlliances = (data.electoralAlliances || []).map(a => ({...a, isOpen: a.isOpen!==false, isEnabled: a.isEnabled!==false}));
+        customSeatOverrides = data.customSeatOverrides || {};
+        
+        if(data.settings) {
+            if(data.settings.threshold !== undefined) $('thresholdInp').value = data.settings.threshold;
+            if(data.settings.calcMethod) $('calcMethodInp').value = data.settings.calcMethod;
+        }
+
+        updateGlobalParties(); renderDatasets(); renderExtraParties(); renderCoalitions(); renderAlliances();
         updateTotalTracker();
-
-        alert("Proje başarıyla yüklendi!");
-        $('fileInp').value = ''; 
-        inp.value = '';
-
-    } catch(err) {
-        alert("Proje yüklenirken hata oluştu: " + err.message);
-    }
+        alert("Proje başarıyla yüklendi!"); $('fileInp').value = ''; inp.value = '';
+    } catch(err) { alert("Hata: " + err.message); }
 }
 
-// === HESAPLAMA MOTORU ===
-$('runBtn').onclick = () => {
+window.updateSeatOverride = function(dName, val) {
+    customSeatOverrides[dName] = parseInt(val) || 0;
+    runProjection();
+};
+
+function updateSortDropdown() {
+    const sel = $('sortPartySel');
+    const currentVal = sel.value;
+    let options = `<option value="default">Alfabetik (İl Adına Göre)</option>`;
+    
+    const allValidParties = new Set();
+    for(let d in globalResults) {
+        Object.keys(globalResults[d].pureVotes).forEach(p => allValidParties.add(p));
+    }
+    
+    [...allValidParties].sort((a,b)=>a.localeCompare(b,'tr')).forEach(p => {
+        options += `<option value="${escapeStr(p)}">${p} (Oy Oranına Göre)</option>`;
+    });
+    
+    sel.innerHTML = options;
+    if([...allValidParties].includes(currentVal)) sel.value = currentVal;
+    else sel.value = 'default';
+}
+
+window.applySorting = function() {
+    if(Object.keys(globalResults).length > 0) renderResults(globalResults);
+};
+
+function runProjection() {
     if(!datasets.length) return alert("Önce veri yükleyin!");
+    if(extraParties.length === 0) return alert("Simülasyona girecek en az 1 parti oluşturmalısınız!");
 
     document.querySelectorAll('.ds-weight-input').forEach(inp => {
         const ds = datasets.find(x => x.id == inp.dataset.id);
         if(ds) ds.w = parseFloat(inp.value) || 0;
     });
 
-    const targetNat = {};
-    $('basePartiesArea').querySelectorAll('input').forEach(i => targetNat[i.dataset.p] = (parseFloat(i.value)||0)/100);
+    const threshold = parseFloat($('thresholdInp').value) || 0;
+    const calcMethod = $('calcMethodInp').value;
+
+    const baseTargetNat = {};
+    extraParties.forEach(ep => {
+        if(ep.isEnabled !== false) baseTargetNat[ep.name] = parseFloat(ep.nat)||0;
+    });
+
+    let resolvedNat = { ...baseTargetNat };
+    coalitions.forEach(c => {
+        if (c.isEnabled === false) return;
+        let cSum = 0;
+        c.members.forEach(m => {
+            if (resolvedNat[m] !== undefined) { cSum += resolvedNat[m]; delete resolvedNat[m]; }
+        });
+        if (cSum > 0) resolvedNat[c.name] = cSum;
+    });
+
+    let passedThreshold = new Set();
+    electoralAlliances.forEach(a => {
+        if (a.isEnabled === false) return;
+        let aSum = 0;
+        a.members.forEach(m => { if(resolvedNat[m] !== undefined) aSum += resolvedNat[m]; });
+        if (aSum >= threshold) {
+            a.members.forEach(m => { if(resolvedNat[m] !== undefined) passedThreshold.add(m); });
+        }
+    });
+
+    Object.keys(resolvedNat).forEach(p => {
+        if (!passedThreshold.has(p) && resolvedNat[p] >= threshold) passedThreshold.add(p);
+    });
 
     globalResults = {}; 
     const masterDistrictNames = getMasterDistricts();
 
     masterDistrictNames.forEach(dName => {
-        let seats = 0;
-        for(let ds of datasets) {
-            const match = getDistrictDataWithPatch(ds, dName);
-            if(match && match.seats > 0) { seats = match.seats; break; }
+        let seats = customSeatOverrides[dName];
+        if (seats === undefined) {
+            for(let ds of datasets) {
+                const match = getDistrictDataWithPatch(ds, dName);
+                if(match && match.seats !== undefined) { seats = match.seats; break; }
+            }
         }
+        seats = parseInt(seats) || 0;
 
-        if(seats === 0) return; 
-
-        let districtTotalVotes = 0;
-        let dWeightSum = 0;
+        let districtTotalVotes = 0, dWeightSum = 0;
         datasets.forEach(ds => {
             const dData = getDistrictDataWithPatch(ds, dName);
             if(dData){
-                const dTotal = Object.values(dData.votes).reduce((a,b)=>a+b,0);
-                districtTotalVotes += dTotal * ds.w;
+                districtTotalVotes += Object.values(dData.votes).reduce((a,b)=>a+b,0) * ds.w;
                 dWeightSum += ds.w;
             }
         });
@@ -566,28 +729,20 @@ $('runBtn').onclick = () => {
 
         const scoreMap = {};
         
-        globalParties.forEach(p => {
-            let pScore = 0, totalW = 0;
-            datasets.forEach(ds => {
-                const dData = getDistrictDataWithPatch(ds, dName);
-                if(dData && dData.votes[p] > 0){
-                    const dTotal = Object.values(dData.votes).reduce((a,b)=>a+b,0);
-                    const perf = (dData.votes[p]/dTotal) / ds.nat[p];
-                    pScore += perf * ds.w;
-                    totalW += ds.w;
-                }
-            });
-            scoreMap[p] = totalW > 0 ? (pScore/totalW) * targetNat[p] : 0;
-        });
-
         extraParties.forEach(ep => {
-            let epScore = 0;
-            let hasSimilarity = Object.keys(ep.similarity).length > 0;
+            if(ep.isEnabled === false) return;
             
-            if(!hasSimilarity) {
-                epScore = 1.0; 
-            } else {
+            let epScore = 0;
+            let hasSimilarity = false;
+            
+            for(let key in ep.similarity) {
+                if(ep.similarity[key] > 0) hasSimilarity = true;
+            }
+
+            if(!hasSimilarity) epScore = 1.0; 
+            else {
                 for(let donor in ep.similarity){
+                    if(ep.similarity[donor] <= 0) continue;
                     let dPerfSum = 0, dW = 0;
                     datasets.forEach(ds => {
                         const dData = getDistrictDataWithPatch(ds, dName);
@@ -607,46 +762,78 @@ $('runBtn').onclick = () => {
         const finalVotes = {};
         for(let p in scoreMap) finalVotes[p] = (scoreMap[p]/(totalScore||1)) * districtTotalVotes;
 
-        const dhondtInput = {...finalVotes};
-        
+        const dhondtInputRaw = {...finalVotes};
         coalitions.forEach(c => {
-            if (c.isEnabled === false) return; // İttifak devre dışıysa hesaplamayı atla
-            
+            if (c.isEnabled === false) return;
             let cSum = 0;
             c.members.forEach(m => { 
-                if(dhondtInput[m]) {
-                    cSum += dhondtInput[m]; 
-                    delete dhondtInput[m]; 
-                }
+                if(dhondtInputRaw[m] !== undefined) { cSum += dhondtInputRaw[m]; delete dhondtInputRaw[m]; }
             });
-            if(cSum > 0) dhondtInput[c.name] = cSum;
+            if(cSum > 0) dhondtInputRaw[c.name] = cSum;
         });
 
-        const coalitionSeats = runDhondt(dhondtInput, seats);
-        const finalSeats = {};
-        Object.keys(coalitionSeats).forEach(winner => {
-            const coal = coalitions.find(c => c.name === winner && c.isEnabled !== false); // Sadece aktif ittifakları tespit et
-            if(coal) {
-                const subVotes = {};
-                coal.members.forEach(m => subVotes[m] = finalVotes[m] || 0);
-                const subSeats = runDhondt(subVotes, coalitionSeats[winner]);
-                Object.assign(finalSeats, subSeats);
-            } else {
-                finalSeats[winner] = coalitionSeats[winner];
-            }
+        const eligibleVotes = {};
+        Object.keys(dhondtInputRaw).forEach(p => {
+            if (passedThreshold.has(p) || threshold === 0) eligibleVotes[p] = dhondtInputRaw[p];
         });
-        
+
+        const finalSeats = {};
+
+        if (calcMethod === 'classic') {
+            Object.assign(finalSeats, runDhondt(eligibleVotes, seats));
+        } else {
+            const allianceGroupedVotes = {};
+            const partyToAllianceMap = {};
+
+            electoralAlliances.forEach(a => {
+                if (a.isEnabled === false) return;
+                let aSum = 0;
+                a.members.forEach(m => {
+                    if (eligibleVotes[m] !== undefined) {
+                        aSum += eligibleVotes[m];
+                        partyToAllianceMap[m] = a.name;
+                    }
+                });
+                if (aSum > 0) allianceGroupedVotes[a.name] = aSum;
+            });
+
+            Object.keys(eligibleVotes).forEach(p => {
+                if (!partyToAllianceMap[p]) allianceGroupedVotes[p] = eligibleVotes[p];
+            });
+
+            const firstDhondtSeats = runDhondt(allianceGroupedVotes, seats);
+
+            Object.keys(firstDhondtSeats).forEach(winner => {
+                const allianceObj = electoralAlliances.find(a => a.name === winner && a.isEnabled !== false);
+                if (allianceObj && firstDhondtSeats[winner] > 0) {
+                    const internalVotes = {};
+                    allianceObj.members.forEach(m => {
+                        if (eligibleVotes[m] !== undefined) internalVotes[m] = eligibleVotes[m];
+                    });
+                    const internalSeats = runDhondt(internalVotes, firstDhondtSeats[winner]);
+                    Object.assign(finalSeats, internalSeats);
+                } else {
+                    finalSeats[winner] = firstDhondtSeats[winner] || 0;
+                }
+            });
+        }
+
         globalResults[dName] = { 
-            votes: finalVotes,
-            dhondt: dhondtInput,
+            pureVotes: finalVotes,
+            rawVotes: dhondtInputRaw,
             mvs: finalSeats,
             seats,
-            totalVotes: districtTotalVotes
+            totalVotes: districtTotalVotes,
+            passed: passedThreshold
         };
     });
 
+    updateSortDropdown();
+    $('sortPanelContainer').style.display = 'flex';
     renderResults(globalResults);
-};
+}
+
+$('runBtn').onclick = runProjection;
 
 function runDhondt(v, s){
     const res = {}; Object.keys(v).forEach(p=>res[p]=0);
@@ -661,7 +848,6 @@ function runDhondt(v, s){
     return res;
 }
 
-// Global Toggle Fonksiyonu (Kartlardaki Tiers İçin)
 window.toggleTier = function(btn, targetTier) {
     const card = btn.parentElement;
     if (targetTier === 2) {
@@ -677,86 +863,186 @@ window.toggleTier = function(btn, targetTier) {
     }
 };
 
+function getPartyColor(pName) {
+    const ep = extraParties.find(e => e.name === pName);
+    if (ep && ep.color) return ep.color;
+    const c = coalitions.find(coal => coal.name === pName);
+    if (c && c.color) return c.color;
+    return '#000000';
+}
+
+/* Tooltips */
+window.showChartTooltip = function(e, party, seats, total) {
+    const tt = $('chartTooltip');
+    const pct = ((seats / total) * 100).toFixed(1);
+    tt.innerHTML = `<span class="tt-party">${party}</span><span class="tt-stats">${seats} Milletvekili (%${pct})</span>`;
+    tt.style.display = 'block';
+    tt.style.left = (e.pageX + 15) + 'px';
+    tt.style.top = (e.pageY + 15) + 'px';
+};
+window.hideChartTooltip = function() { $('chartTooltip').style.display = 'none'; };
+
+/* GRAFİKLERDE AKILLI ORANLAMA (GÖRSEL BOOST) YAPAN FONKSİYON */
+function getVisualSeats(seatsObj, total) {
+    let visualObj = {};
+    let visualTotal = 0;
+    const minVisualWeight = Math.max(15, total * 0.025); 
+    
+    for (let p in seatsObj) {
+        if (seatsObj[p] > 0) {
+            let w = Math.max(seatsObj[p], minVisualWeight);
+            visualObj[p] = w;
+            visualTotal += w;
+        }
+    }
+    return { visualObj, visualTotal };
+}
+
+function createParliamentDonut(seatsObj, total) {
+    if (total === 0) return '';
+    let currentAngle = Math.PI; 
+    let radius = 40;
+    let cx = 50, cy = 50;
+    let svg = `<svg viewBox="0 0 100 55" style="width:100%; max-width:500px; margin: 0 auto; display:block; overflow:visible;">`;
+    
+    svg += `<path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#f0f2f5" stroke-width="15" />`;
+
+    const { visualObj, visualTotal } = getVisualSeats(seatsObj, total);
+
+    for (let p in seatsObj) {
+        let s = seatsObj[p];
+        if (s === 0) continue;
+        
+        let sliceAngle = (visualObj[p] / visualTotal) * Math.PI;
+        let endAngle = currentAngle - sliceAngle;
+        let midAngle = currentAngle - (sliceAngle / 2);
+
+        let x1 = cx + radius * Math.cos(currentAngle);
+        let y1 = cy - radius * Math.sin(currentAngle);
+        let x2 = cx + radius * Math.cos(endAngle);
+        let y2 = cy - radius * Math.sin(endAngle);
+
+        if (sliceAngle >= Math.PI - 0.001) {
+            x2 = cx + radius * Math.cos(0);
+            y2 = cy - radius * Math.sin(0);
+        }
+
+        let color = getPartyColor(p);
+        let safePartyStr = escapeStr(p);
+        
+        svg += `<path d="M ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2}" 
+                fill="none" stroke="${color}" stroke-width="15" 
+                style="cursor:pointer; transition: 0.2s;" 
+                onmouseover="this.setAttribute('stroke-width', '17')" 
+                onmouseout="this.setAttribute('stroke-width', '15'); hideChartTooltip();"
+                onmousemove="showChartTooltip(event, '${safePartyStr}', ${s}, ${total})"
+                ></path>`;
+                
+        if (sliceAngle > 0.06) {
+            let textX = cx + radius * Math.cos(midAngle);
+            let textY = cy - radius * Math.sin(midAngle);
+            svg += `<text x="${textX}" y="${textY}" fill="#ffffff" font-size="4.5" font-weight="bold" text-anchor="middle" dominant-baseline="central" style="pointer-events:none; text-shadow: 0px 1px 3px rgba(0,0,0,0.8);">${s}</text>`;
+        }
+        
+        currentAngle = endAngle;
+    }
+    
+    svg += `<text x="50" y="48" text-anchor="middle" font-size="10" font-weight="bold" fill="var(--text)">${total}</text>`;
+    svg += `</svg>`;
+    return svg;
+}
+
 function renderResults(res){
     const area = $('results');
     area.innerHTML = '';
-    const sortedNames = Object.keys(res).sort((a,b) => a.localeCompare(b, 'tr'));
+    
+    const sortParty = $('sortPartySel').value;
+    const sortOrder = $('sortOrderSel').value;
+    
+    let sortedNames = Object.keys(res);
+    
+    if(sortParty === 'default') {
+        if(sortOrder === 'desc') sortedNames.sort((a,b) => a.localeCompare(b, 'tr')); 
+        else sortedNames.sort((a,b) => b.localeCompare(a, 'tr'));
+    } else {
+        sortedNames.sort((a,b) => {
+            let pA = (res[a].pureVotes[sortParty] || 0) / res[a].totalVotes;
+            let pB = (res[b].pureVotes[sortParty] || 0) / res[b].totalVotes;
+            return sortOrder === 'asc' ? (pA - pB) : (pB - pA);
+        });
+    }
 
     if(sortedNames.length === 0) {
-        area.innerHTML = `
-        <div class="empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            <h2>Geçersiz Veri</h2>
-            <p>MV koltuğu tanımlanmış seçim çevresi bulunamadı. Lütfen veri setlerini kontrol edin.</p>
-        </div>`;
+        $('parliamentContainer').style.display = 'none';
+        $('sortPanelContainer').style.display = 'none';
+        area.innerHTML = `<div class="empty-state"><h2>Geçersiz Veri</h2><p>Lütfen veri setlerini kontrol edin.</p></div>`;
         return;
     }
+
+    let totalMvs = {};
+    let globalSeatCount = 0;
 
     sortedNames.forEach(d => {
         const item = res[d];
         const card = document.createElement('div');
         card.className = 'dist-card';
         
-        let tier1Html = '';
-        let tier2Html = '';
-        let tier3Html = '';
-        let tier2Count = 0;
-        let tier3Count = 0;
+        let tier1Html = '', tier2Html = '', tier3Html = '';
+        let tier2Count = 0, tier3Count = 0;
         
-        Object.entries(item.dhondt).sort((a,b)=>b[1]-a[1]).forEach(([p, v])=> {
+        Object.entries(item.rawVotes).sort((a,b)=>b[1]-a[1]).forEach(([p, v])=> {
             if(v < 10) return;
             
-            const isCoal = coalitions.find(c => c.name === p && c.isEnabled !== false); // Pasif olan ittifaklar hesaplanmaz
             const pctVal = (v / (item.totalVotes || 1)) * 100;
             const pct = pctVal.toFixed(2);
-            let totalMv = 0;
+            const totalMv = item.mvs[p] || 0;
+            const hasPassed = item.passed.has(p);
 
-            if(isCoal) {
-                isCoal.members.forEach(m => totalMv += (item.mvs[m]||0));
-            } else {
-                totalMv = item.mvs[p] || 0;
+            if(totalMv > 0) {
+                totalMvs[p] = (totalMvs[p] || 0) + totalMv;
+                globalSeatCount += totalMv;
             }
+
+            const isCoal = coalitions.find(c => c.name === p && c.isEnabled !== false);
+            const isAlliance = electoralAlliances.find(a => a.members.includes(p) && a.isEnabled !== false);
+            const pColor = getPartyColor(p);
 
             const rowHtml = `
                 <div class="p-line ${isCoal?'is-coal':''}">
                     <div class="p-name-area">
-                        <span class="p-name">${p}</span>
-                        ${isCoal ? `<span class="p-coal-members">${isCoal.members.map(m=> m + (item.mvs[m]>0 ? ` (${item.mvs[m]})` : '')).join(', ')}</span>` : ''}
+                        <span class="p-name">
+                            <div style="width:10px;height:10px;border-radius:50%;background:${pColor};display:inline-block;box-shadow:0 1px 2px rgba(0,0,0,0.2);"></div>
+                            ${p} 
+                            ${isAlliance ? `<span class="alliance-tag">${isAlliance.name}</span>` : ''}
+                        </span>
+                        ${isCoal ? `<span class="p-coal-members">${isCoal.members.join(', ')}</span>` : ''}
                     </div>
                     <div class="p-stats-area">
-                        <span class="p-pct">%${pct}</span>
-                        ${totalMv > 0 ? `<span class="mv-tag">${totalMv} MV</span>` : ''}
+                        <span class="p-pct" style="${!hasPassed ? 'text-decoration: line-through; color: #ef9a9a;' : ''}">%${pct}</span>
+                        ${!hasPassed ? `<span class="fail-tag">Baraj Altı</span>` : ''}
+                        ${totalMv > 0 ? `<span class="mv-tag" style="background:${pColor};">${totalMv} MV</span>` : ''}
                     </div>
                 </div>
             `;
             
-            // Kademeli Listeleme Mantığı
-            if (totalMv > 0) {
-                tier1Html += rowHtml;
-            } else if (pctVal >= 1) {
-                tier2Html += rowHtml;
-                tier2Count++;
-            } else {
-                tier3Html += rowHtml;
-                tier3Count++;
-            }
+            if (totalMv > 0) tier1Html += rowHtml;
+            else if (pctVal >= 1) { tier2Html += rowHtml; tier2Count++; } 
+            else { tier3Html += rowHtml; tier3Count++; }
         });
         
-        let cardContent = `<h3>${d} <span>${item.seats} MV</span></h3>`;
-        cardContent += `<div class="tier tier-1">${tier1Html || '<div class="p-line" style="justify-content:center; color:#999; font-size:12px; padding:12px 0;">MV çıkaran parti/ittifak yok</div>'}</div>`;
+        let cardContent = `
+            <h3>${d} 
+                <span class="seat-editor" title="Koltuk sayısını değiştir">
+                    <input type="number" value="${item.seats}" onchange="updateSeatOverride('${escapeStr(d)}', this.value)"> MV
+                </span>
+            </h3>`;
+            
+        cardContent += `<div class="tier tier-1">${tier1Html || '<div class="p-line" style="justify-content:center; color:#999; font-size:12px; padding:12px 0;">MV çıkaran parti yok</div>'}</div>`;
         
-        let btn1Html = '';
-        let btn2Html = '';
-
+        let btn1Html = '', btn2Html = '';
         if (tier2Count > 0) {
             btn1Html = `<button class="expand-btn t1-btn" onclick="toggleTier(this, 2)">▼ %1 Üzeri Partiler (${tier2Count})</button>`;
-            if (tier3Count > 0) {
-                btn2Html = `<button class="expand-btn t2-btn" style="display:none;" onclick="toggleTier(this, 3)">▼ Diğer Tüm Partiler (${tier3Count})</button>`;
-            }
+            if (tier3Count > 0) btn2Html = `<button class="expand-btn t2-btn" style="display:none;" onclick="toggleTier(this, 3)">▼ Diğer Tüm Partiler (${tier3Count})</button>`;
         } else if (tier3Count > 0) {
             btn1Html = `<button class="expand-btn t1-btn" onclick="toggleTier(this, 3)">▼ Diğer Tüm Partiler (${tier3Count})</button>`;
         }
@@ -769,22 +1055,83 @@ function renderResults(res){
         card.innerHTML = cardContent;
         area.appendChild(card);
     });
+
+    if (globalSeatCount > 0) {
+        $('parliamentContainer').style.display = 'block';
+        const sortedMvKeys = Object.keys(totalMvs).sort((a,b) => totalMvs[b] - totalMvs[a]);
+        const sortedMvsObj = {};
+        sortedMvKeys.forEach(k => sortedMvsObj[k] = totalMvs[k]);
+        
+        $('parliamentChartArea').innerHTML = createParliamentDonut(sortedMvsObj, globalSeatCount);
+    } else {
+        $('parliamentContainer').style.display = 'none';
+    }
 }
 
+/* İndirme Fonksiyonları */
 function downloadResults(){
     if(Object.keys(globalResults).length === 0) return alert("Önce hesaplama yapın!");
-
     let txt = "";
     const sortedDistricts = Object.keys(globalResults).sort((a,b) => a.localeCompare(b, 'tr'));
 
     sortedDistricts.forEach(dName => {
         const item = globalResults[dName];
         txt += `${dName}-${item.seats}\n`;
-        Object.entries(item.dhondt).forEach(([party, count]) => {
-            const c = Math.floor(count);
-            if (c > 0) {
-                txt += `${party} ${c}\n`;
-            }
+        Object.entries(item.pureVotes).sort((a,b)=>b[1]-a[1]).forEach(([party, count]) => {
+            const c = Math.round(count);
+            if (c > 0) txt += `${party} ${c}\n`;
+        });
+        txt += "-\n";
+    });
+    const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'simulasyon_sonucu_normal.txt';
+    a.click();
+}
+
+function downloadAdvancedResults(){
+    if(Object.keys(globalResults).length === 0) return alert("Önce hesaplama yapın!");
+    
+    let txt = "[AYARLAR]\n";
+    txt += `Baraj=${$('thresholdInp').value}\n`;
+    txt += `Sistem=${$('calcMethodInp').value}\n\n`;
+    
+    txt += "[ITTIFAKLAR]\n";
+    electoralAlliances.forEach(a => {
+        if(a.isEnabled !== false && a.members.length > 0) {
+            txt += `${a.name}=${a.members.join(',')}\n`;
+        }
+    });
+    
+    txt += "\n[ORTAK_LISTELER]\n";
+    coalitions.forEach(c => {
+        if(c.isEnabled !== false && c.members.length > 0) {
+            txt += `${c.name}=${c.members.join(',')}\n`;
+        }
+    });
+    
+    txt += "\n[RENKLER]\n";
+    extraParties.forEach(ep => {
+        if(ep.color) {
+            txt += `${ep.name}=${ep.color}\n`;
+        }
+    });
+    coalitions.forEach(c => {
+        if(c.color) {
+            txt += `${c.name}=${c.color}\n`;
+        }
+    });
+
+    txt += "\n[SONUCLAR]\n";
+    const sortedDistricts = Object.keys(globalResults).sort((a,b) => a.localeCompare(b, 'tr'));
+
+    sortedDistricts.forEach(dName => {
+        const item = globalResults[dName];
+        txt += `${dName}-${item.seats}\n`;
+        Object.entries(item.pureVotes).sort((a,b)=>b[1]-a[1]).forEach(([party, count]) => {
+            const c = Math.round(count);
+            if (c > 0) txt += `${party} ${c}\n`;
         });
         txt += "-\n";
     });
@@ -792,7 +1139,7 @@ function downloadResults(){
     const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'simulasyon_sonucu_ortak_liste.txt';
+    a.download = 'simulasyon_sonucu_gelismis.txt';
     a.click();
 }
 </script>
