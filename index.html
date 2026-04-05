@@ -1196,12 +1196,12 @@ window.showChartTooltip = function(e, party, seats, total) {
     tt.style.left = (e.pageX + 15) + 'px';
     tt.style.top = (e.pageY + 15) + 'px';
 };
-window.hideChartTooltip = function() { $('chartTooltip').style.display = 'none'; };
+function hideChartTooltip() { $('chartTooltip').style.display = 'none'; };
 
 function getVisualSeats(seatsObj, total) {
     let visualObj = {};
     let visualTotal = 0;
-    const minVisualWeight = Math.max(15, total * 0.025); 
+    const minVisualWeight = 25; 
     
     for (let p in seatsObj) {
         if (seatsObj[p] > 0) {
@@ -1262,13 +1262,13 @@ function createParliamentDonut(seatsObj, total) {
         if (sliceAngle > 0.06) {
             let textX = cx + radius * Math.cos(midAngle);
             let textY = cy - radius * Math.sin(midAngle);
-            svg += `<text x="${textX}" y="${textY}" fill="#ffffff" font-size="4.5" font-weight="bold" text-anchor="middle" dominant-baseline="central" style="pointer-events:none; opacity: ${pathOpacity}; text-shadow: 0px 1px 3px rgba(0,0,0,0.8);">${s}</text>`;
+            svg += `<text x="${textX}" y="${textY}" fill="#ffffff" font-size="3.5" font-weight="bold" text-anchor="middle" dominant-baseline="central" style="pointer-events:none; opacity: ${pathOpacity}; text-shadow: 0px 1px 3px rgba(0,0,0,0.8);">${s}</text>`;
         }
         
         currentAngle = endAngle;
     }
     
-    svg += `<text x="50" y="48" text-anchor="middle" font-size="10" font-weight="bold" fill="var(--text)">${total}</text>`;
+    svg += `<text x="50" y="48" text-anchor="middle" font-size="8" font-weight="bold" fill="var(--text)">${total}</text>`;
     svg += `</svg>`;
     return svg;
 }

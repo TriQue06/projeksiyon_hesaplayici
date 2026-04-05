@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "7.5",
-    "date": "2026-04-05T16:32:09.652Z"
+    "date": "2026-04-05T17:50:13.999Z"
   },
   "datasets": [
     {
@@ -6797,7 +6797,7 @@
   "extraParties": [
     {
       "name": "CHP",
-      "nat": 31.27,
+      "nat": 32.04,
       "similarity": {
         "CHP": 0.95,
         "AKP": 0.015,
@@ -6811,7 +6811,7 @@
     },
     {
       "name": "AK Parti",
-      "nat": 30.57,
+      "nat": 29.62,
       "similarity": {
         "AKP": 0.985,
         "MHP": 0.015
@@ -6822,7 +6822,7 @@
     },
     {
       "name": "DEM Parti",
-      "nat": 8.38,
+      "nat": 8.36,
       "similarity": {
         "DEM": 1
       },
@@ -6832,7 +6832,7 @@
     },
     {
       "name": "MHP",
-      "nat": 6.49,
+      "nat": 6.45,
       "similarity": {
         "MHP": 1
       },
@@ -6842,7 +6842,7 @@
     },
     {
       "name": "İYİ Parti",
-      "nat": 5.93,
+      "nat": 6.02,
       "similarity": {
         "İYİ": 0.94,
         "MHP": 0.02,
@@ -6856,7 +6856,7 @@
     },
     {
       "name": "Anahtar Parti",
-      "nat": 4.22,
+      "nat": 4.26,
       "similarity": {
         "AKP": 0.58,
         "BBP": 0.15,
@@ -6872,7 +6872,7 @@
     },
     {
       "name": "Zafer Partisi",
-      "nat": 3.56,
+      "nat": 3.57,
       "similarity": {
         "ZP": 0.92,
         "İYİ": 0.03,
@@ -6886,7 +6886,7 @@
     },
     {
       "name": "Yeniden Refah",
-      "nat": 3.48,
+      "nat": 3.54,
       "similarity": {
         "YRP": 0.95,
         "AKP": 0.05
@@ -6904,7 +6904,7 @@
         "MHP": 0.01
       },
       "isOpen": false,
-      "color": "#f2550c",
+      "color": "#b31b00",
       "isEnabled": true
     },
     {
@@ -6928,7 +6928,7 @@
         "AKP": 0.2
       },
       "isOpen": false,
-      "color": "#bf6a4d",
+      "color": "#bf6043",
       "isEnabled": true
     },
     {
@@ -6957,7 +6957,7 @@
       },
       "isOpen": false,
       "isEnabled": true,
-      "color": "#000000"
+      "color": "#bf000a"
     },
     {
       "name": "DEVA Partisi",
@@ -6973,11 +6973,11 @@
       },
       "isOpen": false,
       "isEnabled": true,
-      "color": "#000000"
+      "color": "#006ca6"
     },
     {
       "name": "TKP",
-      "nat": 0.19,
+      "nat": 0.22,
       "similarity": {
         "CHP": 0.02,
         "TİP": 0.02,
@@ -6989,7 +6989,7 @@
     },
     {
       "name": "SOL Parti",
-      "nat": 0.18,
+      "nat": 0.17,
       "similarity": {
         "CHP": 0.02,
         "TİP": 0.01,
@@ -7001,7 +7001,7 @@
     },
     {
       "name": "DP",
-      "nat": 0.17,
+      "nat": 0.16,
       "similarity": {
         "AP": 0.05,
         "DP": 0.6,
@@ -7016,7 +7016,7 @@
     },
     {
       "name": "AP",
-      "nat": 0.14,
+      "nat": 0.15,
       "similarity": {
         "AP": 1
       },
@@ -7050,7 +7050,7 @@
       },
       "isOpen": false,
       "isEnabled": true,
-      "color": "#000000"
+      "color": "#0d8053"
     },
     {
       "name": "ANAP",
@@ -7061,7 +7061,7 @@
       },
       "isOpen": false,
       "isEnabled": true,
-      "color": "#000000"
+      "color": "#f2c318"
     },
     {
       "name": "Genç Parti",
@@ -7075,7 +7075,7 @@
     },
     {
       "name": "Vatan Partisi",
-      "nat": 0.09,
+      "nat": 0.1,
       "similarity": {
         "VP": 1
       },
@@ -7085,7 +7085,7 @@
     },
     {
       "name": "Millet",
-      "nat": 0.08,
+      "nat": 0.09,
       "similarity": {
         "MİL": 1
       },
@@ -7455,7 +7455,6 @@
     "calcMethod": "classic",
     "mbEnabled": false,
     "mbCalcMethod": "classic",
-    "mbSeats": 50,
-    "showVoteCounts": false
+    "mbSeats": 50
   }
 }
