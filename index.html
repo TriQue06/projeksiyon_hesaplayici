@@ -103,7 +103,7 @@
         /* PROJEKSİYON STİLLERİ */
         #results { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start; }
         
-        .dist-card { background: var(--surface); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); border-top: 5px solid var(--primary); transition: transform 0.2s; }
+        .dist-card { background: var(--surface); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); border-top: 8px solid var(--border); transition: transform 0.2s; }
         .dist-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
         
         .dist-card h3 { margin: 0 0 16px 0; font-size: 1.3rem; color: var(--text); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f2f5; padding-bottom: 10px; }
@@ -175,6 +175,17 @@
             display: flex; align-items: center; justify-content: center;
         }
         .nav-btn:hover { background: #e4e6eb; transform: scale(1.05); }
+
+        /* Bulut/Arşiv Kartı Gradyan Stili */
+        .archive-card {
+            background: linear-gradient(to bottom, #0d47a1 0%, #00acc1 80%, #ffffff 100%);
+            border: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .archive-card label { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); margin-bottom: 8px !important; }
+        .archive-card span { color: #e0f7fa !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        .archive-card button.purple { background-color: rgba(255,255,255,0.95) !important; color: #0d47a1 !important; text-shadow: none; font-weight: 900; }
+        .archive-card button.purple:hover { background-color: #ffffff !important; transform: translateY(-1px) scale(1.02); }
     </style>
 </head>
 <body>
@@ -185,13 +196,13 @@
     <h1>🗳️ PGM Projeksiyon Arayüzü</h1>
 
     <!-- YENİ EKLENEN ARŞİVDEN GETİRME MODÜLÜ -->
-    <div class="card" style="border-top: 4px solid var(--purple);">
+    <div class="card archive-card">
         <label>☁️ Arşivden Proje Getir</label>
-        <span style="font-size: 11px; margin-bottom: 8px; color: var(--text-secondary); display:block;">Sunucudaki (Github vb.) hazır JSON projelerini hızlıca içeri aktarın.</span>
+        <span style="font-size: 11px; margin-bottom: 8px; display:block;">Arşivlenmiş seçim projeksiyon verilerini görüntüleyin.</span>
         <div style="display:flex; gap:8px; margin-bottom:0;">
-            <select id="archiveSelector" style="flex:2; font-weight: bold;">
+            <select id="archiveSelector" style="flex:2; font-weight: bold; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                 <option value="">-- Arşivden Seç --</option>
-                <option value="nisan2026_2.json">Örnek: nisan2026_2.json</option>
+                <option value="nisan2026_2.json">Nisan 2026 • #2</option>
             </select>
             <button onclick="loadFromArchive()" class="purple" style="flex:1;">Buluttan Getir ☁️</button>
         </div>
@@ -283,13 +294,6 @@
                     <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">MB Koltuk Sayısı</span>
                     <input type="number" id="mbSeatsInp" value="50" min="1" style="width:100%; font-weight:bold; color:var(--purple);">
                 </div>
-            </div>
-        </div>
-        
-        <div class="flex-row" style="gap: 12px; margin-bottom:0; margin-top:12px; border-top:1px dashed var(--border); padding-top:12px;">
-            <div style="flex: 1; display:flex; align-items:center; gap:8px;">
-                <input type="checkbox" id="showVoteCountsInp" style="flex:none; width:16px; height:16px;" onchange="if(currentOverlayData) renderDistrictOverlay();">
-                <span style="font-size:12px; font-weight:bold; color:var(--text-secondary);">Detayda (Tam Ekranda) Oy Sayılarını Göster</span>
             </div>
         </div>
     </div>
@@ -748,8 +752,7 @@ function saveProject() {
             calcMethod: $('calcMethodInp').value || 'classic',
             mbEnabled: $('mbEnabledInp').checked,
             mbCalcMethod: $('mbCalcMethodInp').value || 'classic',
-            mbSeats: parseInt($('mbSeatsInp').value) || 0,
-            showVoteCounts: $('showVoteCountsInp').checked
+            mbSeats: parseInt($('mbSeatsInp').value) || 0
         }
     };
     const blob = new Blob([JSON.stringify(projectData, null, 2)], {type:'application/json'});
@@ -819,7 +822,6 @@ function applyProjectData(data) {
         }
         if(data.settings.mbCalcMethod) $('mbCalcMethodInp').value = data.settings.mbCalcMethod;
         if(data.settings.mbSeats !== undefined) $('mbSeatsInp').value = data.settings.mbSeats;
-        if(data.settings.showVoteCounts !== undefined) $('showVoteCountsInp').checked = data.settings.showVoteCounts;
     }
 
     updateGlobalParties(); renderDatasets(); renderExtraParties(); renderCoalitions(); renderAlliances();
@@ -1341,12 +1343,24 @@ function renderResults(res){
         card.style.cursor = 'pointer';
         card.title = 'Detayları görmek için tıklayın';
         
+        // Birinci partiyi bulup vurgu rengini ayarlama
+        let borderCol = 'var(--border)';
+        if (item.isMilliBakiye) {
+            borderCol = 'var(--purple)';
+        } else {
+            let maxVotes = -1;
+            let winnerParty = null;
+            Object.entries(item.rawVotes).forEach(([p, v]) => {
+                if(v > maxVotes) { maxVotes = v; winnerParty = p; }
+            });
+            if (winnerParty) borderCol = getPartyColor(winnerParty);
+        }
+        card.style.borderTop = `8px solid ${borderCol}`;
+
         card.onclick = (e) => {
             if(e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('.seat-editor') || e.target.closest('.expand-btn')) return;
             openDistrictOverlay(d);
         };
-
-        if(item.isMilliBakiye) card.style.borderTopColor = 'var(--purple)';
         
         let tier1Html = '', tier2Html = '', tier3Html = '';
         let tier2Count = 0, tier3Count = 0;
@@ -1566,7 +1580,6 @@ function renderDistrictOverlay() {
     if(!currentOverlayData) return;
     const dName = currentOverlayData.name;
     const item = currentOverlayData.data;
-    const showVotes = $('showVoteCountsInp').checked;
     
     const sortedParties = Object.keys(item.rawVotes).sort((a,b) => item.rawVotes[b] - item.rawVotes[a]);
     
@@ -1606,7 +1619,7 @@ function renderDistrictOverlay() {
             return;
         }
         
-        // Tek Başlık Altında Birleştirilmiş Liste (Parti Adı + Yuvarlatılmış Bar/Yüzde + Oy Sayısı + Mv)
+        // Tek Başlık Altında Birleştirilmiş Liste (Parti Adı + Yuvarlatılmış Bar/Yüzde + Mv)
         listHtml += `
             <div class="data-row" style="display:flex; justify-content:space-between; align-items:center; border-left: 4px solid ${color}; padding: 12px 16px; border-radius: 6px; border-bottom: 1px solid var(--bg); background: var(--surface);">
                 <div style="width:130px; font-weight:bold; font-size:15px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeStr(p)}">${p}</div>
@@ -1615,8 +1628,6 @@ function renderDistrictOverlay() {
                     <div style="width:${pctNum}%; max-width:calc(100% - 60px); background:${color}; height:24px; border-radius:6px; min-width:4px; transition:width 0.5s ease-out;"></div>
                     <span style="margin-left:8px; font-weight:bold; font-size:15px; color:var(--text); ${!hasPassed ? 'text-decoration: line-through; color: #ef9a9a;' : ''}">%${pctStr}</span>
                 </div>
-
-                ${showVotes ? `<div style="width:100px; text-align:right; font-size:13px; color:var(--text-secondary); margin-right:15px;">${Math.round(v).toLocaleString('tr-TR')} Oy</div>` : ''}
 
                 <div style="width:110px; text-align:right;">
                     ${s > 0 
