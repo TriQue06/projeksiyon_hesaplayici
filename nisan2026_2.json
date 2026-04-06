@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "7.5",
-    "date": "2026-04-05T17:50:13.999Z"
+    "date": "2026-04-06T15:28:26.435Z"
   },
   "datasets": [
     {
@@ -6797,13 +6797,14 @@
   "extraParties": [
     {
       "name": "CHP",
-      "nat": 32.04,
+      "nat": 32.22,
       "similarity": {
-        "CHP": 0.95,
-        "AKP": 0.015,
-        "DEM": 0.015,
-        "MHP": 0.015,
-        "YRP": 0.005
+        "CHP": 0.96,
+        "AKP": 0.01,
+        "DEM": 0.01,
+        "MHP": 0.01,
+        "YRP": 0.005,
+        "ZP": 0.005
       },
       "isOpen": false,
       "color": "#e60017",
@@ -6811,7 +6812,7 @@
     },
     {
       "name": "AK Parti",
-      "nat": 29.62,
+      "nat": 29.77,
       "similarity": {
         "AKP": 0.985,
         "MHP": 0.015
@@ -6832,7 +6833,7 @@
     },
     {
       "name": "MHP",
-      "nat": 6.45,
+      "nat": 6.67,
       "similarity": {
         "MHP": 1
       },
@@ -6842,7 +6843,7 @@
     },
     {
       "name": "İYİ Parti",
-      "nat": 6.02,
+      "nat": 5.95,
       "similarity": {
         "İYİ": 0.94,
         "MHP": 0.02,
@@ -6856,7 +6857,7 @@
     },
     {
       "name": "Anahtar Parti",
-      "nat": 4.26,
+      "nat": 4.02,
       "similarity": {
         "AKP": 0.58,
         "BBP": 0.15,
@@ -6886,7 +6887,7 @@
     },
     {
       "name": "Yeniden Refah",
-      "nat": 3.54,
+      "nat": 3.34,
       "similarity": {
         "YRP": 0.95,
         "AKP": 0.05
@@ -6897,7 +6898,7 @@
     },
     {
       "name": "Büyük Birlik",
-      "nat": 1.08,
+      "nat": 1.07,
       "similarity": {
         "BBP": 0.98,
         "AKP": 0.01,
@@ -6909,7 +6910,7 @@
     },
     {
       "name": "TİP",
-      "nat": 1.04,
+      "nat": 1.03,
       "similarity": {
         "TİP": 1
       },
@@ -6919,7 +6920,7 @@
     },
     {
       "name": "Saadet",
-      "nat": 0.94,
+      "nat": 0.93,
       "similarity": {
         "YRP": 0.2,
         "SP": 0.4,
@@ -6977,7 +6978,7 @@
     },
     {
       "name": "TKP",
-      "nat": 0.22,
+      "nat": 0.21,
       "similarity": {
         "CHP": 0.02,
         "TİP": 0.02,
