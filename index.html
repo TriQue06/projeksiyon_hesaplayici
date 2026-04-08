@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>PGM Projeksiyon Arayüzü v7.6 - Akıllı SVG Asistanı</title>
+    <title>PGM Projeksiyon Arayüzü v7.8 - Tam Entegre Sistem</title>
     <style>
         @font-face {
             font-family: 'Product Sans';
@@ -111,7 +111,7 @@
         .dist-card h3 span.seat-editor:focus-within { box-shadow: 0 0 0 2px rgba(26,115,232,0.3); }
         .dist-card h3 span.seat-editor input { background:transparent; border:none; color:inherit; font-weight:bold; width:35px; text-align:right; font-size:1rem; padding:0 4px 0 0; outline:none; }
         
-        /* Satır Düzeni Güncellemesi (Inline Bar İçin) */
+        /* Satır Düzeni Güncellemesi */
         .p-line { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f5f6f7; }
         .p-line:last-child { border-bottom: none; }
         .p-line.is-coal { background: #f8faff; border-left: 3px solid var(--primary); padding-left: 8px; margin-left: -12px; padding-right: 12px; border-radius: 0 6px 6px 0; }
@@ -155,7 +155,7 @@
         .sort-panel { background: var(--surface); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; box-shadow: var(--shadow); }
         .sort-panel select { max-width: 250px; font-weight: bold; cursor: pointer; }
 
-        /* Yeni: İçerik Kapsayıcı (Overlay açılınca gizlenecek kısım) */
+        /* İçerik Kapsayıcı */
         #mainContentWrapper { display: block; animation: fadeIn 0.2s ease; }
 
         /* Seçim Çevresi Detay Overlay Stilleri */
@@ -177,7 +177,7 @@
         }
         .nav-btn:hover { background: #e4e6eb; transform: scale(1.05); }
 
-        /* Bulut/Arşiv Kartı Gradyan Stili */
+        /* Bulut/Arşiv Kartı */
         .archive-card {
             background: linear-gradient(to bottom, #0d47a1 0%, #00acc1 80%, #ffffff 100%);
             border: none;
@@ -213,7 +213,7 @@
 <div class="left-panel">
     <h1>🗳️ PGM Projeksiyon Arayüzü</h1>
 
-    <!-- YENİ EKLENEN ARŞİVDEN GETİRME MODÜLÜ -->
+    <!-- ARŞİVDEN GETİRME MODÜLÜ -->
     <div class="card archive-card">
         <label>☁️ Arşivden Proje Getir</label>
         <span style="font-size: 11px; margin-bottom: 8px; display:block;">Arşivlenmiş seçim projeksiyon verilerini görüntüleyin.</span>
@@ -280,6 +280,25 @@
         </div>
     </div>
 
+    <!-- YENİ: 6. ADIM HARİTA VERİSİ -->
+    <div class="card" style="border-left: 4px solid var(--primary); background: #f8faff;">
+        <label>6. Harita Verisi</label>
+        <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Sonuçları sağ paneldeki haritada boyamak için SVG haritanızı ve şehir eşleştirme sözlüğünüzü tanımlayın.</span>
+        
+        <button onclick="loadDefaultMapSystem()" class="blue" style="width: 100%; margin-bottom: 12px; padding: 10px; font-size: 14px;">☁️ Varsayılan Harita ve Sözlüğü Çek</button>
+        
+        <div class="flex-row" style="gap:12px; align-items: flex-end;">
+            <div style="flex:1;">
+                <span style="font-size: 11px; font-weight: bold; color: var(--text-secondary); display:block; margin-bottom:4px;">Manuel SVG Harita:</span>
+                <input type="file" accept=".svg" onchange="handleManualSvgLoad(this)" style="width:100%; padding: 6px;">
+            </div>
+            <div style="flex:1;">
+                <span style="font-size: 11px; font-weight: bold; color: var(--text-secondary); display:block; margin-bottom:4px;">Manuel Sözlük (.json):</span>
+                <input type="file" accept=".json" onchange="loadMappingJson(this)" style="width:100%; padding: 6px;">
+            </div>
+        </div>
+    </div>
+
     <div class="card" style="border-top: 4px solid var(--primary);">
         <label style="margin-bottom: 8px;">⚙️ Seçim Ayarları</label>
         <div class="flex-row" style="gap: 12px; margin-bottom:0;">
@@ -331,7 +350,7 @@
 
 <div class="right-panel">
     
-    <!-- Ana Grid ve Grafikler (Overlay açıkken gizlenir) -->
+    <!-- Ana Grid ve Grafikler -->
     <div id="mainContentWrapper">
         <div class="proj-header">
             <div>Seçim Çevresi Sonuçları</div>
@@ -355,19 +374,11 @@
             <div id="parliamentChartArea" style="width:100%;"></div>
         </div>
 
-        <!-- STATİK HARİTA ALANI -->
+        <!-- STATİK HARİTA ALANI (Artık yükleyici menüsü yok, sadece harita var) -->
         <div id="mapContainer" class="card" style="display:none; margin-bottom: 24px; text-align:center; padding-bottom: 24px;">
             <h3 style="margin-bottom:16px;">Türkiye Haritası</h3>
-            
-            <!-- SÖZLÜK YÜKLEYİCİ -->
-            <div id="mapMappingUploader" style="display:none; background:#e8f0fe; padding:12px; border-radius:8px; border:1px solid var(--primary); margin-bottom:20px; text-align:left;">
-                <span style="display:block; font-size:13px; color:var(--primary); font-weight:bold; margin-bottom:8px;">🗺️ Harita Eşleştirme Sözlüğünü Yükle (.json)</span>
-                <span style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:8px;">SVG haritasını aktif hale getirmek ve boyamak için sözlüğü yükleyin.</span>
-                <input type="file" accept=".json" onchange="loadMappingJson(this)" style="width:100%; font-size:12px; background:#fff; border:1px solid #ccc; padding:6px; border-radius:4px; cursor: pointer;">
-            </div>
-
             <div id="svgMapWrapper">
-                <p style="color:var(--text-secondary); font-size:13px; font-style:italic;">Harita Yükleniyor...</p>
+                <p style="color:var(--text-secondary); font-size:13px; font-style:italic;">Harita Bekleniyor...</p>
             </div>
         </div>
         
@@ -403,7 +414,6 @@
                 
                 <div id="doTitleMv" style="display:flex; align-items:center; margin-right: 20px;"></div>
 
-                <!-- Sabit Navigasyon Butonları (En Sağda) -->
                 <div style="display:flex; align-items:center; gap:8px;">
                     <button onclick="navigateDistrict(-1)" class="nav-btn" title="Önceki Seçim Çevresi (Sol Ok)">◀</button>
                     <button onclick="navigateDistrict(1)" class="nav-btn" title="Sonraki Seçim Çevresi (Sağ Ok)">▶</button>
@@ -443,55 +453,64 @@ let globalResults = {};
 
 let dragCtx = { type: null, idx: null };
 
-// Parti Filtreleme State'i
 let activePartyFilter = null;
-// Scroll Kaydetme State'i
 let savedScrollPosition = 0;
 
-// YENİ: Sözlük Verisi
 let mapDictionary = {};
 
-// --- HARİTAYI STATİK OLARAK YÜKLEME VEYA MANUEL SEÇTİRME ---
-async function loadMapSVG() {
+// --- 6. ADIM: OTOMATİK (BULUT) SİSTEMİ YÜKLEME ---
+window.loadDefaultMapSystem = async function() {
     try {
-        const res = await fetch('turkiye_harita.svg');
-        if (res.ok) {
-            const text = await res.text();
-            $('svgMapWrapper').innerHTML = text;
-            $('mapContainer').style.display = 'block'; 
-            $('mapMappingUploader').style.display = 'block'; 
+        // Haritayı çek
+        const svgRes = await fetch('turkiye_harita.svg');
+        if (!svgRes.ok) throw new Error("turkiye_harita.svg dosyasına ulaşılamadı.");
+        const svgText = await svgRes.text();
+        $('svgMapWrapper').innerHTML = svgText;
+        $('mapContainer').style.display = 'block'; // Sağ paneldeki haritayı görünür yap
+        
+        // Sözlüğü çek
+        const jsonRes = await fetch('eslestirme.json');
+        if (!jsonRes.ok) throw new Error("eslestirme.json sözlük dosyasına ulaşılamadı.");
+        const jsonData = await jsonRes.json();
+        mapDictionary = jsonData.cityMapping || jsonData;
+        
+        alert("🌍 Harita ve eşleştirme sözlüğü buluttan başarıyla getirildi!");
+        
+        if (Object.keys(globalResults).length > 0) {
+            updateMapColors();
         } else {
-            throw new Error("Dosya bulunamadı");
+            let dbg = document.getElementById('mapDebugInfo');
+            if(!dbg) {
+                dbg = document.createElement('div');
+                dbg.id = 'mapDebugInfo';
+                dbg.style.cssText = "font-size:13px; padding:12px; border-radius:6px; margin-top:16px; text-align:left; line-height:1.5;";
+                document.getElementById('mapContainer').appendChild(dbg);
+            }
+            dbg.style.backgroundColor = '#e8f0fe';
+            dbg.style.color = '#1a73e8';
+            dbg.style.border = '1px solid #1a73e8';
+            dbg.innerHTML = `<strong>✅ Sistem Hazır:</strong> Harita ve sözlük eşleştirildi. Sonuçları görmek için projeksiyonu hesaplayın.`;
         }
     } catch (err) {
-        $('mapContainer').style.display = 'block';
-        $('svgMapWrapper').innerHTML = `
-            <div style="padding: 20px; background: #fff3f3; border-radius: 8px; border: 1px dashed #ef9a9a; max-width: 600px; margin: 0 auto;">
-                <p style="color:#d32f2f; margin-bottom: 8px; font-weight:bold; font-size: 15px;">⚠️ Harita otomatik yüklenemedi</p>
-                <p style="color:var(--text-secondary); font-size:13px; margin-bottom: 16px; line-height: 1.5;">Dosyayı kendi bilgisayarınızda yerel (localhost olmadan) çalıştırdığınız için tarayıcı güvenliği haritanın otomatik yüklenmesini engelliyor. Lütfen SVG dosyasını manuel olarak seçin:</p>
-                <input type="file" accept=".svg" onchange="handleManualSvgLoad(this)" style="padding: 8px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); border-radius: 6px; background: white; width: 100%;">
-            </div>
-        `;
+        alert("Otomatik Yükleme Başarısız!\n" + err.message + "\n\nLütfen 'turkiye_harita.svg' ve 'eslestirme.json' dosyalarının bu sayfayla aynı klasörde/sunucuda olduğuna emin olun.");
     }
-}
+};
 
+// --- 6. ADIM: MANUEL HARİTA YÜKLEME ---
 window.handleManualSvgLoad = async function(input) {
     const file = input.files[0];
     if(!file) return;
     try {
         const text = await file.text();
         $('svgMapWrapper').innerHTML = text;
-        $('mapMappingUploader').style.display = 'block'; 
+        $('mapContainer').style.display = 'block'; // Sağ paneldeki haritayı görünür yap
         if (Object.keys(globalResults).length > 0) updateMapColors();
     } catch(e) {
         alert("Harita okunamadı: " + e.message);
     }
 };
 
-window.addEventListener('DOMContentLoaded', loadMapSVG);
-
-
-// --- SÖZLÜK (.JSON) YÜKLEME VE HARİTAYI BOYAMA ---
+// --- 6. ADIM: MANUEL SÖZLÜK YÜKLEME ---
 window.loadMappingJson = async function(inp) {
     const file = inp.files[0];
     if(!file) return;
@@ -503,7 +522,7 @@ window.loadMappingJson = async function(inp) {
         
         if(mapDictionary && Object.keys(mapDictionary).length > 0) {
             alert(`Eşleştirme sözlüğü başarıyla yüklendi! (${Object.keys(mapDictionary).length} çevre tanımlandı)`);
-            updateMapColors(); 
+            if (Object.keys(globalResults).length > 0) updateMapColors(); 
         } else {
             alert("Geçersiz format: Sözlük içinde geçerli bir eşleştirme bulunamadı.");
         }
@@ -512,7 +531,19 @@ window.loadMappingJson = async function(inp) {
     }
 };
 
-// GÜNCELLEME 2: Agresif Boyama (Zorlayıcı Modül)
+// Açılışta haritayı gizli sessizce denemek (başarısız olursa hata vermez, kullanıcı 6. adımı kullanır)
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await fetch('turkiye_harita.svg');
+        if (res.ok) {
+            const text = await res.text();
+            $('svgMapWrapper').innerHTML = text;
+            $('mapContainer').style.display = 'block';
+        }
+    } catch (err) { }
+});
+
+// Agresif Boyama (Zorlayıcı Modül)
 function setElementFillAggressive(el, color) {
     el.removeAttribute('class');
     el.style.setProperty('fill', color, 'important');
@@ -548,17 +579,15 @@ function updateMapColors() {
     let foundAnyId = false;
     let unmatchedIds = new Set();
     
-    // GÜNCELLEME: Sadece 'id' değil, Illustrator'ın sık kullandığı tüm isimlendirme türlerini arıyoruz.
     const mapElements = svg.querySelectorAll('path, g, polygon, polyline, rect');
     
     mapElements.forEach(el => {
-        // SVG elementi bir kimliğe sahip mi? 4 farklı özelliği kontrol et:
         let rawId = el.getAttribute('id') || el.getAttribute('name') || el.getAttribute('data-id') || el.getAttribute('data-name');
         
-        if(!rawId) return; // Çizimde hiç isim/id yoksa atla (arka plan, çerçeve vb. olabilir)
+        if(!rawId) return; 
         foundAnyId = true;
         
-        const originalRawId = rawId; // Hata ekranında kullanıcıya göstermek için asıl halini sakla
+        const originalRawId = rawId; 
         rawId = rawId.trim().toLowerCase();
         
         let cleanId = rawId.replace(/_[0-9]+_?/g, '').replace(/_x5f_.*/, '').replace(/-[0-9]+$/, '');
@@ -566,14 +595,12 @@ function updateMapColors() {
         let targetDistrictNameLower = normalizedDict[rawId] || normalizedDict[cleanId];
         
         if(!targetDistrictNameLower) {
-            // Eşleşmeyenleri hafızaya al
             unmatchedIds.add(originalRawId);
             return; 
         }
 
         const result = normalizedResults[targetDistrictNameLower]; 
         if(result) {
-            // Eşleşenleri listeden çıkar ki hata raporunda kalabalık yapmasın
             unmatchedIds.delete(originalRawId);
             
             let targetColor = '#e4e6eb'; 
@@ -596,7 +623,6 @@ function updateMapColors() {
         }
     });
 
-    // KULLANICIYA AKILLI HATA/BAŞARI BİLGİSİ VER (DEBUGGER)
     let dbg = document.getElementById('mapDebugInfo');
     if(!dbg) {
         dbg = document.createElement('div');
@@ -611,8 +637,7 @@ function updateMapColors() {
         dbg.style.border = '1px solid #137333';
         dbg.innerHTML = `<strong>✅ Harita Başarıyla Güncellendi! (${paintedCount} Çevre Boyandı)</strong>`;
         
-        // Eğer hala boyanmayan bazı kimlikler kaldıysa uyarı ver
-        if(unmatchedIds.size > 0 && unmatchedIds.size < 50) { // 50'den fazlaysa muhtemelen çer çöptür
+        if(unmatchedIds.size > 0 && unmatchedIds.size < 50) { 
              const sampleIds = Array.from(unmatchedIds).slice(0, 8).join(', ');
              dbg.innerHTML += `<br><span style="font-size:11px; margin-top:6px; display:block;">ℹ️ Boyanmayan bazı harita parçaları fark ettik: ${sampleIds}... Sözlüğünüzde eksik olabilir.</span>`;
         }
@@ -968,7 +993,7 @@ async function loadSeatData(inp) {
 
 function saveProject() {
     const projectData = {
-        meta: { version: "7.5", date: new Date().toISOString() },
+        meta: { version: "7.8", date: new Date().toISOString() },
         datasets, extraParties, coalitions, electoralAlliances, customSeatOverrides,
         settings: {
             threshold: parseFloat($('thresholdInp').value) || 7,
