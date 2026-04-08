@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>PGM Projeksiyon Arayüzü v7.8 - Tam Entegre Sistem</title>
+    <title>PGM Projeksiyon Arayüzü v8.4 - İnteraktif Düzenleme & Akıllı Tooltip</title>
     <style>
         @font-face {
             font-family: 'Product Sans';
@@ -111,7 +111,6 @@
         .dist-card h3 span.seat-editor:focus-within { box-shadow: 0 0 0 2px rgba(26,115,232,0.3); }
         .dist-card h3 span.seat-editor input { background:transparent; border:none; color:inherit; font-weight:bold; width:35px; text-align:right; font-size:1rem; padding:0 4px 0 0; outline:none; }
         
-        /* Satır Düzeni Güncellemesi */
         .p-line { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f5f6f7; }
         .p-line:last-child { border-bottom: none; }
         .p-line.is-coal { background: #f8faff; border-left: 3px solid var(--primary); padding-left: 8px; margin-left: -12px; padding-right: 12px; border-radius: 0 6px 6px 0; }
@@ -128,7 +127,6 @@
         .fail-tag { background: #ffebee; color: #d32f2f; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; border: 1px solid #ef9a9a; }
         .alliance-tag { font-size: 9px; color: var(--teal); background: #e0f2f1; padding: 2px 4px; border-radius: 4px; font-weight: normal; }
 
-        /* Kartlardaki Küçük Grafik */
         .p-line-bar { width: 100%; height: 4px; background: transparent; border-radius: 4px; margin-top: 6px; overflow: hidden; display: flex; }
         .p-line-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease-out; }
 
@@ -151,69 +149,59 @@
         #chartTooltip span.tt-stats { font-size: 12px; color: #ddd; font-weight: normal; display: block; }
         #chartTooltip span.tt-hint { display: block; margin-top: 6px; font-size: 10px; color: #aaa; font-style: italic; }
 
-        /* Sıralama Paneli */
-        .sort-panel { background: var(--surface); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; box-shadow: var(--shadow); }
-        .sort-panel select { max-width: 250px; font-weight: bold; cursor: pointer; }
+        /* Harita Üzeri Detay Tooltip Stilleri */
+        #mapTooltip { position: absolute; background: rgba(255, 255, 255, 0.98); color: var(--text); padding: 14px; border-radius: 10px; font-size: 13px; pointer-events: none; z-index: 9999; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.25); border: 1px solid var(--border); min-width: 190px; line-height: 1.4; transition: opacity 0.1s; }
+        #mapTooltip h4 { margin: 0 0 10px 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; color: var(--text); font-size: 14px; display:flex; justify-content:space-between; align-items:center; }
+        #mapTooltip h4 span.mt-seat { font-size:11px; background: var(--bg); padding:3px 8px; border-radius:6px; font-weight:bold; color:var(--text-secondary); border: 1px solid var(--border); }
+        .mt-row { display: flex; justify-content: space-between; align-items:center; gap: 20px; margin-bottom: 8px; }
+        .mt-row:last-child { margin-bottom: 0; }
+        .mt-party { font-weight: bold; display:flex; align-items:center; gap:6px; font-size: 13px; }
+        .mt-party-color { width:12px; height:12px; border-radius:50%; box-shadow:0 1px 2px rgba(0,0,0,0.2); display: inline-block; }
+        .mt-stats { text-align: right; font-size: 12.5px; display: flex; align-items: center; gap: 8px; }
+        .mt-mv { background: var(--primary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
 
-        /* İçerik Kapsayıcı */
         #mainContentWrapper { display: block; animation: fadeIn 0.2s ease; }
 
-        /* Seçim Çevresi Detay Overlay Stilleri */
-        #districtOverlay {
-            display: none; width: 100%; box-sizing: border-box; animation: fadeIn 0.2s ease;
-        }
+        #districtOverlay { display: none; width: 100%; box-sizing: border-box; animation: fadeIn 0.2s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .do-container {
-            background: var(--surface); border-radius: 12px; padding: 25px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--border); 
-            border-top: 10px solid var(--primary); margin: 0 auto; max-width: 950px;
-            transition: border-top-color 0.3s ease;
-        }
-        .nav-btn {
-            background: #f0f2f5; color: var(--text); border: 1px solid var(--border); 
-            padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 16px; 
-            display: flex; align-items: center; justify-content: center;
-        }
+        .do-container { background: var(--surface); border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--border); border-top: 10px solid var(--primary); margin: 0 auto; max-width: 950px; transition: border-top-color 0.3s ease; }
+        .nav-btn { background: #f0f2f5; color: var(--text); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 16px; display: flex; align-items: center; justify-content: center; }
         .nav-btn:hover { background: #e4e6eb; transform: scale(1.05); }
 
         /* Bulut/Arşiv Kartı */
-        .archive-card {
-            background: linear-gradient(to bottom, #0d47a1 0%, #00acc1 80%, #ffffff 100%);
-            border: none;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
+        .archive-card { background: linear-gradient(to bottom, #0d47a1 0%, #00acc1 80%, #ffffff 100%); border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .archive-card label { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); margin-bottom: 8px !important; }
         .archive-card span { color: #e0f7fa !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         .archive-card button.purple { background-color: rgba(255,255,255,0.95) !important; color: #0d47a1 !important; text-shadow: none; font-weight: 900; }
         .archive-card button.purple:hover { background-color: #ffffff !important; transform: translateY(-1px) scale(1.02); }
 
-        /* STATİK HARİTA STİLLERİ */
-        #svgMapWrapper svg {
-            width: 100%;
-            height: auto;
-            max-height: 500px;
-            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05));
-            display: block;
-            margin: 0 auto;
-        }
+        /* STATİK HARİTA STİLLERİ + İNTERAKTİF HOVER EFEKTLERİ */
+        #svgMapWrapper svg { width: 100%; height: auto; max-height: 500px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05)); display: block; margin: 0 auto; user-select: none; }
         #svgMapWrapper path, #svgMapWrapper g, #svgMapWrapper polygon, #svgMapWrapper polyline, #svgMapWrapper rect {
             stroke: #ffffff !important;
             stroke-width: 1px !important;
             stroke-linejoin: round;
             shape-rendering: geometricPrecision;
-            transition: fill 0.4s ease;
+            transition: fill 0.4s ease, filter 0.2s ease, stroke-width 0.2s ease;
+        }
+        
+        [data-district-name] { cursor: pointer; outline: none; }
+        [data-district-name]:hover {
+            filter: brightness(0.85) drop-shadow(0px 0px 4px rgba(0,0,0,0.3));
+            stroke: #1c1e21 !important;
+            stroke-width: 2px !important;
         }
     </style>
 </head>
 <body>
 
 <div id="chartTooltip"></div>
+<div id="mapTooltip"></div>
 
 <div class="left-panel">
     <h1>🗳️ PGM Projeksiyon Arayüzü</h1>
 
-    <!-- ARŞİVDEN GETİRME MODÜLÜ -->
     <div class="card archive-card">
         <label>☁️ Arşivden Proje Getir</label>
         <span style="font-size: 11px; margin-bottom: 8px; display:block;">Arşivlenmiş seçim projeksiyon verilerini görüntüleyin.</span>
@@ -280,7 +268,7 @@
         </div>
     </div>
 
-    <!-- YENİ: 6. ADIM HARİTA VERİSİ -->
+    <!-- 6. ADIM HARİTA VERİSİ -->
     <div class="card" style="border-left: 4px solid var(--primary); background: #f8faff;">
         <label>6. Harita Verisi</label>
         <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Sonuçları sağ paneldeki haritada boyamak için SVG haritanızı ve şehir eşleştirme sözlüğünüzü tanımlayın.</span>
@@ -295,6 +283,41 @@
             <div style="flex:1;">
                 <span style="font-size: 11px; font-weight: bold; color: var(--text-secondary); display:block; margin-bottom:4px;">Manuel Sözlük (.json):</span>
                 <input type="file" accept=".json" onchange="loadMappingJson(this)" style="width:100%; padding: 6px;">
+            </div>
+        </div>
+        
+        <!-- DİNAMİK RENK KARIŞIMI -->
+        <div style="margin-top: 12px; border-top: 1px dashed #b0c4de; padding-top: 12px;">
+            <label style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">🎨 Harita Renk Yoğunluğu (Beyaz Karışım Oranı)</label>
+            <div class="flex-row" style="gap: 12px; margin-bottom: 0;">
+                <div style="flex: 1; background: #e8f0fe; padding: 8px; border-radius: 6px; border: 1px solid #d2e3fc;">
+                    <span style="font-size:10px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">Baskın Durum (%50+)</span>
+                    <div style="display:flex; align-items:center;">
+                        <input type="number" id="dominantWhiteInp" value="20" min="0" max="100" style="width:100%; font-weight:bold; padding:4px;" onchange="if(Object.keys(globalResults).length > 0) renderResults(globalResults);">
+                        <span style="font-size:12px; margin-left:4px; font-weight:bold;">%</span>
+                    </div>
+                </div>
+                <div style="flex: 1; background: #f8f9fa; padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                    <span style="font-size:10px; font-weight:bold; color:var(--text-secondary); display:block; margin-bottom:4px;">Sadece 1. Parti</span>
+                    <div style="display:flex; align-items:center;">
+                        <input type="number" id="pluralityWhiteInp" value="40" min="0" max="100" style="width:100%; font-weight:bold; padding:4px;" onchange="if(Object.keys(globalResults).length > 0) renderResults(globalResults);">
+                        <span style="font-size:12px; margin-left:4px; font-weight:bold;">%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MİLLETVEKİLİ NOKTALARI AÇ/KAPAT VE KONUM ÖZELLEŞTİRME -->
+        <div style="margin-top: 12px; border-top: 1px dashed #b0c4de; padding-top: 12px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor: pointer; margin:0;">
+                <input type="checkbox" id="showMVDotsInp" onchange="updateMapColors()" style="width:18px; height:18px; flex:none;">
+                <span style="font-size: 13px; font-weight: bold; color: var(--purple);">🟣 Harita Üzerinde Milletvekillerini Göster</span>
+            </label>
+            <span style="font-size:10.5px; color:var(--text-secondary); display:block; margin-top:6px; margin-left:26px;">Vekil sayıları seçilen konuma geniş veya hafif dikey (20+ vekil için) olacak şekilde dizilir. Çarpışma önleyici fizik algoritması aktiftir.</span>
+            
+            <div style="margin-left:26px; margin-top: 12px; border-top: 1px dashed #cfd8dc; padding-top: 12px;">
+                <span style="font-size: 11px; font-weight: bold; color: var(--text-secondary); display:block; margin-bottom:4px;">📍 Vekil Konum Dosyası Yükle (.json):</span>
+                <input type="file" accept=".json" onchange="loadCustomDotPositions(this)" style="width:100%; padding: 6px;">
             </div>
         </div>
     </div>
@@ -349,24 +372,9 @@
 </div>
 
 <div class="right-panel">
-    
-    <!-- Ana Grid ve Grafikler -->
     <div id="mainContentWrapper">
         <div class="proj-header">
             <div>Seçim Çevresi Sonuçları</div>
-        </div>
-        
-        <div class="sort-panel" id="sortPanelContainer" style="display:none;">
-            <div style="display:flex; align-items:center; gap:8px; flex:1;">
-                <span style="font-size:12px; color:var(--text-secondary);">Görüntüleme Sıralaması:</span>
-                <select id="sortPartySel" onchange="applySorting()"><option value="default">Alfabetik (İl Adına Göre)</option></select>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <select id="sortOrderSel" onchange="applySorting()">
-                    <option value="desc">Azalan (Yüksekten Düşüğe)</option>
-                    <option value="asc">Artan (Düşükten Yükseğe)</option>
-                </select>
-            </div>
         </div>
 
         <div id="parliamentContainer" class="card" style="display:none; margin-bottom: 24px; text-align:center; padding-top: 24px;">
@@ -374,10 +382,16 @@
             <div id="parliamentChartArea" style="width:100%;"></div>
         </div>
 
-        <!-- STATİK HARİTA ALANI (Artık yükleyici menüsü yok, sadece harita var) -->
-        <div id="mapContainer" class="card" style="display:none; margin-bottom: 24px; text-align:center; padding-bottom: 24px;">
-            <h3 style="margin-bottom:16px;">Türkiye Haritası</h3>
-            <div id="svgMapWrapper">
+        <!-- STATİK HARİTA ALANI -->
+        <div id="mapContainer" class="card" style="display:none; margin-bottom: 24px; text-align:center; padding-bottom: 24px; position: relative;">
+            
+            <div id="editModeControls" style="position: absolute; top: 16px; right: 16px; z-index: 20; display: flex; gap: 8px;">
+                <button id="toggleEditModeBtn" onclick="toggleEditMode()" style="background: var(--text); color: white; border-radius: 8px; font-size: 12px; padding: 6px 12px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.1);">✏️ Düzenleme Modu: KAPALI</button>
+                <button id="downloadPositionsBtn" onclick="downloadDotPositions()" style="display: none; background: var(--purple); color: white; border-radius: 8px; font-size: 12px; padding: 6px 12px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.1);">💾 Konumları İndir</button>
+            </div>
+
+            <h3 style="margin-bottom:16px;">Türkiye Haritası <span style="font-size: 11px; font-weight: normal; color: var(--text-secondary); display:block; margin-top: 4px;">Detayları görmek için harita üzerindeki illerin üstüne gelin veya tıklayın.</span></h3>
+            <div id="svgMapWrapper" style="position: relative;">
                 <p style="color:var(--text-secondary); font-size:13px; font-style:italic;">Harita Bekleniyor...</p>
             </div>
         </div>
@@ -452,29 +466,50 @@ let customSeatOverrides = {};
 let globalResults = {}; 
 
 let dragCtx = { type: null, idx: null };
-
 let activePartyFilter = null;
 let savedScrollPosition = 0;
-
 let mapDictionary = {};
+let customDotPositions = {}; 
 
-// --- 6. ADIM: OTOMATİK (BULUT) SİSTEMİ YÜKLEME ---
+// Renk karıştırma fonksiyonu (Parti Rengi + Beyaz Oranı)
+function blendWithWhite(hexColor, whiteRatio) {
+    let hex = hexColor.replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
+    let r = parseInt(hex.substring(0,2), 16);
+    let g = parseInt(hex.substring(2,4), 16);
+    let b = parseInt(hex.substring(4,6), 16);
+    
+    r = Math.round(r * (1 - whiteRatio) + 255 * whiteRatio);
+    g = Math.round(g * (1 - whiteRatio) + 255 * whiteRatio);
+    b = Math.round(b * (1 - whiteRatio) + 255 * whiteRatio);
+    
+    return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+}
+
 window.loadDefaultMapSystem = async function() {
     try {
-        // Haritayı çek
         const svgRes = await fetch('turkiye_harita.svg');
         if (!svgRes.ok) throw new Error("turkiye_harita.svg dosyasına ulaşılamadı.");
         const svgText = await svgRes.text();
         $('svgMapWrapper').innerHTML = svgText;
-        $('mapContainer').style.display = 'block'; // Sağ paneldeki haritayı görünür yap
+        $('mapContainer').style.display = 'block'; 
         
-        // Sözlüğü çek
         const jsonRes = await fetch('eslestirme.json');
         if (!jsonRes.ok) throw new Error("eslestirme.json sözlük dosyasına ulaşılamadı.");
         const jsonData = await jsonRes.json();
         mapDictionary = jsonData.cityMapping || jsonData;
         
-        alert("🌍 Harita ve eşleştirme sözlüğü buluttan başarıyla getirildi!");
+        let extraMsg = "";
+        try {
+            const konumRes = await fetch('default_konum.json');
+            if (konumRes.ok) {
+                const konumData = await konumRes.json();
+                customDotPositions = konumData;
+                extraMsg = "\n📍 Varsayılan milletvekili konumları da başarıyla yüklendi.";
+            }
+        } catch(err) { }
+        
+        alert("🌍 Harita ve eşleştirme sözlüğü buluttan başarıyla getirildi!" + extraMsg);
         
         if (Object.keys(globalResults).length > 0) {
             updateMapColors();
@@ -496,21 +531,19 @@ window.loadDefaultMapSystem = async function() {
     }
 };
 
-// --- 6. ADIM: MANUEL HARİTA YÜKLEME ---
 window.handleManualSvgLoad = async function(input) {
     const file = input.files[0];
     if(!file) return;
     try {
         const text = await file.text();
         $('svgMapWrapper').innerHTML = text;
-        $('mapContainer').style.display = 'block'; // Sağ paneldeki haritayı görünür yap
+        $('mapContainer').style.display = 'block';
         if (Object.keys(globalResults).length > 0) updateMapColors();
     } catch(e) {
         alert("Harita okunamadı: " + e.message);
     }
 };
 
-// --- 6. ADIM: MANUEL SÖZLÜK YÜKLEME ---
 window.loadMappingJson = async function(inp) {
     const file = inp.files[0];
     if(!file) return;
@@ -531,7 +564,6 @@ window.loadMappingJson = async function(inp) {
     }
 };
 
-// Açılışta haritayı gizli sessizce denemek (başarısız olursa hata vermez, kullanıcı 6. adımı kullanır)
 window.addEventListener('DOMContentLoaded', async () => {
     try {
         const res = await fetch('turkiye_harita.svg');
@@ -543,7 +575,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     } catch (err) { }
 });
 
-// Agresif Boyama (Zorlayıcı Modül)
 function setElementFillAggressive(el, color) {
     el.removeAttribute('class');
     el.style.setProperty('fill', color, 'important');
@@ -559,11 +590,113 @@ function setElementFillAggressive(el, color) {
     });
 }
 
+function getDotLayout(n) {
+    if (n <= 0) return [];
+    if (n === 1) return [1];
+    if (n === 2) return [2];
+    if (n === 3) return [3];
+    if (n === 4) return [2, 2];
+    if (n === 5) return [3, 2];
+    if (n === 6) return [3, 3];
+    if (n === 7) return [2, 3, 2];
+    if (n === 8) return [3, 3, 2];
+    if (n === 9) return [3, 3, 3];
+    
+    let cols;
+    if (n > 20) {
+        cols = Math.ceil(Math.sqrt(n * 1.2));
+        if (cols > 7) cols = 7; 
+    } else {
+        cols = Math.ceil(Math.sqrt(n * 1.5));
+        if (cols > 8) cols = 8;
+    }
+    
+    let rows = Math.ceil(n / cols);
+    let layout = [];
+    let remaining = n;
+    for (let i = 0; i < rows; i++) {
+        let r = Math.ceil(remaining / (rows - i));
+        layout.push(r);
+        remaining -= r;
+    }
+    return layout;
+}
+
+function drawMVDots(svgGroup, layout, partyColors, cx, cy, totalMVs) {
+    let dotR = 7.5; 
+    const spacing = 3;
+    const dotSize = dotR * 2;
+    const cell = dotSize + spacing;
+
+    const totalRows = layout.length;
+    const totalHeight = totalRows * cell - spacing;
+    const startY = cy - totalHeight / 2 + dotR;
+
+    let dotIndex = 0;
+    layout.forEach((cols, rIdx) => {
+        const totalWidth = cols * cell - spacing;
+        const startX = cx - totalWidth / 2 + dotR;
+        const y = startY + rIdx * cell;
+
+        for (let cIdx = 0; cIdx < cols; cIdx++) {
+            const x = startX + cIdx * cell;
+            const color = partyColors[dotIndex] || '#000';
+
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("cx", x);
+            circle.setAttribute("cy", y);
+            circle.setAttribute("r", dotR);
+            circle.setAttribute("fill", color);
+            circle.setAttribute("stroke", "#1c1e21");
+            circle.setAttribute("stroke-width", "1.5");
+            // pointerEvents grubun (g) üzerinden yönetilecek, çemberler default kalsın ki altındakine tık geçmesin
+
+            svgGroup.appendChild(circle);
+            dotIndex++;
+        }
+    });
+}
+
 function updateMapColors() {
     if(Object.keys(globalResults).length === 0) return;
     
     const svg = document.querySelector('#svgMapWrapper svg');
     if(!svg) return;
+
+    let dotLayer = svg.querySelector('#mp-dots-layer');
+    if (dotLayer) {
+        dotLayer.innerHTML = '';
+    } else {
+        dotLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        dotLayer.setAttribute("id", "mp-dots-layer");
+        svg.appendChild(dotLayer); 
+    }
+    
+    const showDots = $('showMVDotsInp') && $('showMVDotsInp').checked;
+    
+    const domRatio = (parseFloat($('dominantWhiteInp').value) || 20) / 100;
+    const pluRatio = (parseFloat($('pluralityWhiteInp').value) || 40) / 100;
+
+    const partyRanks = {};
+    extraParties.forEach(ep => partyRanks[ep.name] = parseFloat(ep.nat) || 0);
+    coalitions.forEach(c => {
+        if (c.isEnabled === false) return;
+        let sum = 0;
+        c.members.forEach(m => sum += (partyRanks[m] || 0));
+        partyRanks[c.name] = sum;
+    });
+
+    const partyToAlliance = {};
+    const allianceMaxScores = {};
+    electoralAlliances.forEach(a => {
+        if (a.isEnabled === false) return;
+        let maxScore = -1;
+        a.members.forEach(m => {
+            partyToAlliance[m] = a.name;
+            if ((partyRanks[m] || 0) > maxScore) maxScore = (partyRanks[m] || 0);
+        });
+        allianceMaxScores[a.name] = maxScore;
+    });
 
     const normalizedResults = {};
     for(let key in globalResults) {
@@ -580,8 +713,12 @@ function updateMapColors() {
     let unmatchedIds = new Set();
     
     const mapElements = svg.querySelectorAll('path, g, polygon, polyline, rect');
+    const districtPaths = {}; 
     
     mapElements.forEach(el => {
+        if (el.tagName.toLowerCase() === 'circle' && el.parentElement && el.parentElement.id === 'mp-dots-layer') return;
+        if (el.id === 'mp-dots-layer') return;
+
         let rawId = el.getAttribute('id') || el.getAttribute('name') || el.getAttribute('data-id') || el.getAttribute('data-name');
         
         if(!rawId) return; 
@@ -591,7 +728,6 @@ function updateMapColors() {
         rawId = rawId.trim().toLowerCase();
         
         let cleanId = rawId.replace(/_[0-9]+_?/g, '').replace(/_x5f_.*/, '').replace(/-[0-9]+$/, '');
-        
         let targetDistrictNameLower = normalizedDict[rawId] || normalizedDict[cleanId];
         
         if(!targetDistrictNameLower) {
@@ -599,15 +735,29 @@ function updateMapColors() {
             return; 
         }
 
+        if(!districtPaths[targetDistrictNameLower]) districtPaths[targetDistrictNameLower] = [];
+        el.originalRawId = originalRawId;
+        districtPaths[targetDistrictNameLower].push(el);
+    });
+
+    let dotGroups = []; 
+
+    Object.keys(districtPaths).forEach(targetDistrictNameLower => {
+        const elements = districtPaths[targetDistrictNameLower];
         const result = normalizedResults[targetDistrictNameLower]; 
+        
         if(result) {
-            unmatchedIds.delete(originalRawId);
+            elements.forEach(el => unmatchedIds.delete(el.originalRawId));
             
+            let actualDistrictName = Object.keys(globalResults).find(k => k.trim().toLowerCase() === targetDistrictNameLower);
             let targetColor = '#e4e6eb'; 
             
             if (activePartyFilter) {
                 if (result.mvs && result.mvs[activePartyFilter] > 0) {
-                    targetColor = getPartyColor(activePartyFilter);
+                    let pColor = getPartyColor(activePartyFilter);
+                    let mvs = result.mvs[activePartyFilter];
+                    let isDominant = (mvs > result.seats / 2);
+                    targetColor = blendWithWhite(pColor, isDominant ? domRatio : pluRatio);
                 }
             } else {
                 let maxVotes = -1;
@@ -615,13 +765,150 @@ function updateMapColors() {
                 Object.entries(result.rawVotes).forEach(([p, v]) => {
                     if(v > maxVotes) { maxVotes = v; winnerParty = p; }
                 });
-                if(winnerParty) targetColor = getPartyColor(winnerParty);
+                if(winnerParty) {
+                    let pColor = getPartyColor(winnerParty);
+                    let mvs = result.mvs[winnerParty] || 0;
+                    let isDominant = (mvs > result.seats / 2);
+                    targetColor = blendWithWhite(pColor, isDominant ? domRatio : pluRatio);
+                }
             }
 
-            setElementFillAggressive(el, targetColor);
-            paintedCount++;
+            elements.forEach(el => {
+                if(actualDistrictName) el.setAttribute('data-district-name', actualDistrictName);
+                setElementFillAggressive(el, targetColor);
+                paintedCount++;
+            });
+
+            if (showDots && actualDistrictName) {
+                let maxArea = -1;
+                let bestBBox = null;
+
+                elements.forEach(el => {
+                    try {
+                        const bbox = el.getBBox();
+                        const area = bbox.width * bbox.height;
+                        if (area > maxArea && area > 0) { 
+                            maxArea = area;
+                            bestBBox = bbox;
+                        }
+                    } catch(e) {}
+                });
+
+                if (bestBBox) {
+                    let origCx = bestBBox.x + bestBBox.width / 2;
+                    let origCy = bestBBox.y + bestBBox.height / 2;
+                    let isFixed = false;
+
+                    if (customDotPositions[actualDistrictName]) {
+                        origCx = customDotPositions[actualDistrictName].x;
+                        origCy = customDotPositions[actualDistrictName].y;
+                        isFixed = true; 
+                    }
+
+                    let mpList = [];
+                Object.keys(result.mvs).forEach(p => {
+                    for(let i=0; i<result.mvs[p]; i++) mpList.push(p);
+                });
+
+                if (mpList.length > 0) {
+                    mpList.sort((a, b) => {
+                        let groupScoreA = partyToAlliance[a] ? allianceMaxScores[partyToAlliance[a]] : (partyRanks[a] || 0);
+                        let groupScoreB = partyToAlliance[b] ? allianceMaxScores[partyToAlliance[b]] : (partyRanks[b] || 0);
+
+                        if (groupScoreA !== groupScoreB) return groupScoreB - groupScoreA;
+
+                        let allianceA = partyToAlliance[a] || a;
+                        let allianceB = partyToAlliance[b] || b;
+                        
+                        if (allianceA !== allianceB) {
+                            return allianceA.localeCompare(allianceB);
+                        }
+
+                        let rankA = partyRanks[a] || 0;
+                        let rankB = partyRanks[b] || 0;
+                        return rankB - rankA;
+                    });
+                    
+                    let colors = mpList.map(p => getPartyColor(p));
+                    let layout = getDotLayout(mpList.length);
+                    
+                    let maxCols = Math.max(...layout);
+                        let rows = layout.length;
+                        let dotR = 10.5;
+                        let cell = dotR * 2 + 4; 
+                        let gridW = maxCols * cell;
+                        let gridH = rows * cell;
+                        let radius = Math.sqrt((gridW/2)**2 + (gridH/2)**2) * 0.95; 
+
+                        dotGroups.push({
+                            id: actualDistrictName,
+                            origCx: origCx, origCy: origCy, 
+                            cx: origCx, cy: origCy,
+                            isFixed: isFixed,
+                            radius: radius,
+                            layout: layout,
+                            colors: colors,
+                            mpCount: mpList.length
+                        });
+                    }
+                }
+            }
         }
     });
+
+    if (showDots) {
+        // Çarpışma Engelleyici Fizik Motoru (Sabitlenmiş pozisyonları etkilemez)
+        const iterations = 20; 
+        for (let i = 0; i < iterations; i++) {
+            for (let j = 0; j < dotGroups.length; j++) {
+                let g = dotGroups[j];
+                
+                if (!g.isFixed) {
+                    g.cx += (g.origCx - g.cx) * 0.04;
+                    g.cy += (g.origCy - g.cy) * 0.04;
+                }
+
+                for (let k = j + 1; k < dotGroups.length; k++) {
+                    let g1 = dotGroups[j];
+                    let g2 = dotGroups[k];
+                    let dx = g1.cx - g2.cx;
+                    let dy = g1.cy - g2.cy;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    let minDist = (g1.radius + g2.radius);
+
+                    if (dist < minDist && dist > 0.01) {
+                        let overlap = minDist - dist;
+                        let pushX = (dx / dist) * overlap * 0.2;
+                        let pushY = (dy / dist) * overlap * 0.2;
+
+                        if (!g1.isFixed) { g1.cx += pushX; g1.cy += pushY; }
+                        if (!g2.isFixed) { g2.cx -= pushX; g2.cy -= pushY; }
+                    }
+                }
+            }
+        }
+
+        dotGroups.forEach(g => {
+            const groupEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            groupEl.setAttribute("id", "dotGroup_" + g.id.replace(/\s+/g, '_'));
+            groupEl.setAttribute("data-district", g.id);
+            groupEl.setAttribute("data-orig-cx", g.cx);
+            groupEl.setAttribute("data-orig-cy", g.cy);
+            groupEl.setAttribute("data-cx", g.cx);
+            groupEl.setAttribute("data-cy", g.cy);
+            
+            if (isEditModeActive) {
+                groupEl.style.cursor = "move";
+                groupEl.style.pointerEvents = "all";
+            } else {
+                groupEl.style.pointerEvents = "none";
+            }
+            
+            drawMVDots(groupEl, g.layout, g.colors, g.cx, g.cy, g.mpCount);
+            dotLayer.appendChild(groupEl);
+        });
+    }
 
     let dbg = document.getElementById('mapDebugInfo');
     if(!dbg) {
@@ -641,7 +928,6 @@ function updateMapColors() {
              const sampleIds = Array.from(unmatchedIds).slice(0, 8).join(', ');
              dbg.innerHTML += `<br><span style="font-size:11px; margin-top:6px; display:block;">ℹ️ Boyanmayan bazı harita parçaları fark ettik: ${sampleIds}... Sözlüğünüzde eksik olabilir.</span>`;
         }
-        
     } else if (!foundAnyId) {
         dbg.style.backgroundColor = '#fce8e8';
         dbg.style.color = '#c5221f';
@@ -659,6 +945,208 @@ function updateMapColors() {
     }
 }
 
+// --- İNTERAKTİF DÜZENLEME MODU (DRAG & DROP) ---
+let isEditModeActive = false;
+let selectedDragGroup = null;
+let dragOffset = {x: 0, y: 0};
+
+function toggleEditMode() {
+    isEditModeActive = !isEditModeActive;
+    const btn = $('toggleEditModeBtn');
+    const dBtn = $('downloadPositionsBtn');
+    if (isEditModeActive) {
+        btn.innerHTML = "✏️ Düzenleme Modu: AÇIK";
+        btn.style.background = "var(--success)";
+        btn.style.borderColor = "var(--success)";
+        dBtn.style.display = "block";
+    } else {
+        btn.innerHTML = "✏️ Düzenleme Modu: KAPALI";
+        btn.style.background = "var(--text)";
+        btn.style.borderColor = "rgba(0,0,0,0.1)";
+        dBtn.style.display = "none";
+    }
+    updateMapColors(); 
+}
+
+function getSvgMousePosition(evt) {
+    var svg = document.querySelector('#svgMapWrapper svg');
+    if (!svg) return { x: evt.clientX, y: evt.clientY };
+    var CTM = svg.getScreenCTM();
+    if (!CTM) return { x: evt.clientX, y: evt.clientY };
+    return {
+        x: (evt.clientX - CTM.e) / CTM.a,
+        y: (evt.clientY - CTM.f) / CTM.d
+    };
+}
+
+const svgWrapper = $('svgMapWrapper');
+
+svgWrapper.addEventListener('mousedown', function(evt) {
+    if (!isEditModeActive) return;
+    let target = evt.target;
+    while (target && target.tagName !== 'g' && target !== svgWrapper) {
+        target = target.parentNode;
+    }
+    if (target && target.tagName === 'g' && target.id && target.id.startsWith('dotGroup_')) {
+        selectedDragGroup = target;
+        let mousePos = getSvgMousePosition(evt);
+        let cx = parseFloat(selectedDragGroup.getAttribute('data-cx'));
+        let cy = parseFloat(selectedDragGroup.getAttribute('data-cy'));
+        dragOffset.x = mousePos.x - cx;
+        dragOffset.y = mousePos.y - cy;
+        $('mapTooltip').style.display = 'none';
+        evt.preventDefault();
+    }
+});
+
+svgWrapper.addEventListener('mousemove', function(evt) {
+    if (selectedDragGroup && isEditModeActive) {
+        evt.preventDefault();
+        let mousePos = getSvgMousePosition(evt);
+        let newCx = mousePos.x - dragOffset.x;
+        let newCy = mousePos.y - dragOffset.y;
+        
+        selectedDragGroup.setAttribute('data-cx', newCx);
+        selectedDragGroup.setAttribute('data-cy', newCy);
+        
+        let origCx = parseFloat(selectedDragGroup.getAttribute('data-orig-cx'));
+        let origCy = parseFloat(selectedDragGroup.getAttribute('data-orig-cy'));
+        let dx = newCx - origCx;
+        let dy = newCy - origCy;
+        
+        selectedDragGroup.setAttribute('transform', `translate(${dx}, ${dy})`);
+    }
+});
+
+window.addEventListener('mouseup', function(evt) {
+    if (selectedDragGroup && isEditModeActive) {
+        let dName = selectedDragGroup.getAttribute('data-district');
+        let newCx = parseFloat(selectedDragGroup.getAttribute('data-cx'));
+        let newCy = parseFloat(selectedDragGroup.getAttribute('data-cy'));
+        customDotPositions[dName] = { x: newCx, y: newCy };
+        selectedDragGroup = null;
+    }
+});
+
+window.downloadDotPositions = function() {
+    if (Object.keys(customDotPositions).length === 0) {
+        alert("Henüz hiçbir konumu değiştirmediniz.");
+        return;
+    }
+    const blob = new Blob([JSON.stringify(customDotPositions, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'vekil_konumlari_' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+};
+
+window.loadCustomDotPositions = async function(inp) {
+    const file = inp.files[0];
+    if(!file) return;
+    try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        customDotPositions = data;
+        alert("Özel konumlar başarıyla yüklendi!");
+        if (Object.keys(globalResults).length > 0) updateMapColors();
+    } catch(e) {
+        alert("Hata: " + e.message);
+    }
+    inp.value = ''; 
+};
+
+// --- HARİTA İNTERAKTİFLİĞİ (HOVER BİLGİ MENÜSÜ) ---
+function getMapDistrictName(el) {
+    while(el && el !== svgWrapper && el !== document.body) {
+        if(el.getAttribute && el.getAttribute('data-district-name')) {
+            return el.getAttribute('data-district-name');
+        }
+        if(el.getAttribute && el.getAttribute('data-district')) {
+            return el.getAttribute('data-district');
+        }
+        el = el.parentElement;
+    }
+    return null;
+}
+
+svgWrapper.addEventListener('mousemove', (e) => {
+    if (selectedDragGroup) {
+        $('mapTooltip').style.display = 'none';
+        return;
+    }
+
+    const dName = getMapDistrictName(e.target);
+    const mapTooltip = $('mapTooltip');
+    
+    if (dName && globalResults[dName]) {
+        const res = globalResults[dName];
+        
+        let html = `<h4><span>📍 ${dName}</span> <span class="mt-seat">${res.seats} Mv</span></h4>`;
+        
+        let sortedParties = Object.keys(res.rawVotes).sort((a,b) => res.rawVotes[b] - res.rawVotes[a]);
+        let displayParties = sortedParties.slice(0, 5); 
+        
+        displayParties.forEach(p => {
+            let v = res.rawVotes[p];
+            if (v < 10) return; 
+            
+            let pct = res.totalVotes > 0 ? ((v / res.totalVotes) * 100).toFixed(1) : 0;
+            let s = res.mvs[p] || 0;
+            let color = getPartyColor(p);
+            let isWinner = (p === sortedParties[0]);
+            let hasPassed = res.passed.has(p);
+            
+            let pctStyle = !hasPassed ? 'text-decoration: line-through; color: #ef9a9a;' : 'color:var(--text-secondary); font-weight:bold;';
+            
+            html += `
+            <div class="mt-row">
+                <span class="mt-party">
+                    <span class="mt-party-color" style="background:${color}; ${isWinner ? 'box-shadow: 0 0 0 2px '+color+'40;' : ''}"></span>
+                    ${p}
+                </span>
+                <span class="mt-stats">
+                    <span style="${pctStyle}">%${pct}</span>
+                    ${s > 0 ? `<span class="mt-mv" style="background:${color}">${s} Mv</span>` : ''}
+                </span>
+            </div>`;
+        });
+        
+        mapTooltip.innerHTML = html;
+        mapTooltip.style.display = 'block'; 
+        
+        let ttWidth = mapTooltip.offsetWidth;
+        let ttHeight = mapTooltip.offsetHeight;
+        
+        let leftPos = e.pageX + 15;
+        let topPos = e.pageY + 15;
+        
+        // Akıllı Taşkınlık Engelleme (Bounds Check)
+        if (leftPos + ttWidth > window.innerWidth - 15) {
+            leftPos = e.pageX - ttWidth - 15;
+        }
+        if (topPos + ttHeight > window.innerHeight - 15) {
+            topPos = e.pageY - ttHeight - 15;
+        }
+        
+        mapTooltip.style.left = leftPos + 'px';
+        mapTooltip.style.top = topPos + 'px';
+    } else {
+        mapTooltip.style.display = 'none';
+    }
+});
+
+svgWrapper.addEventListener('mouseout', (e) => {
+    $('mapTooltip').style.display = 'none';
+});
+
+svgWrapper.addEventListener('click', (e) => {
+    if (isEditModeActive) return; 
+    const dName = getMapDistrictName(e.target);
+    if (dName && globalResults[dName]) {
+        openDistrictOverlay(dName);
+        $('mapTooltip').style.display = 'none'; 
+    }
+});
 
 function escapeStr(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
 
@@ -993,14 +1481,16 @@ async function loadSeatData(inp) {
 
 function saveProject() {
     const projectData = {
-        meta: { version: "7.8", date: new Date().toISOString() },
-        datasets, extraParties, coalitions, electoralAlliances, customSeatOverrides,
+        meta: { version: "8.4", date: new Date().toISOString() },
+        datasets, extraParties, coalitions, electoralAlliances, customSeatOverrides, customDotPositions,
         settings: {
             threshold: parseFloat($('thresholdInp').value) || 7,
             calcMethod: $('calcMethodInp').value || 'classic',
             mbEnabled: $('mbEnabledInp').checked,
             mbCalcMethod: $('mbCalcMethodInp').value || 'classic',
-            mbSeats: parseInt($('mbSeatsInp').value) || 0
+            mbSeats: parseInt($('mbSeatsInp').value) || 0,
+            dominantWhite: parseFloat($('dominantWhiteInp').value) || 20,
+            pluralityWhite: parseFloat($('pluralityWhiteInp').value) || 40
         }
     };
     const blob = new Blob([JSON.stringify(projectData, null, 2)], {type:'application/json'});
@@ -1058,6 +1548,7 @@ function applyProjectData(data) {
     
     electoralAlliances = (data.electoralAlliances || []).map(a => ({...a, isOpen: a.isOpen!==false, isEnabled: a.isEnabled!==false}));
     customSeatOverrides = data.customSeatOverrides || {};
+    customDotPositions = data.customDotPositions || {};
     
     if(data.settings) {
         if(data.settings.threshold !== undefined) $('thresholdInp').value = data.settings.threshold;
@@ -1068,6 +1559,9 @@ function applyProjectData(data) {
         }
         if(data.settings.mbCalcMethod) $('mbCalcMethodInp').value = data.settings.mbCalcMethod;
         if(data.settings.mbSeats !== undefined) $('mbSeatsInp').value = data.settings.mbSeats;
+        
+        if(data.settings.dominantWhite !== undefined) $('dominantWhiteInp').value = data.settings.dominantWhite;
+        if(data.settings.pluralityWhite !== undefined) $('pluralityWhiteInp').value = data.settings.pluralityWhite;
     }
 
     updateGlobalParties(); renderDatasets(); renderExtraParties(); renderCoalitions(); renderAlliances();
@@ -1079,26 +1573,6 @@ window.updateSeatOverride = function(dName, val) {
     runProjection();
 };
 
-function updateSortDropdown() {
-    const sel = $('sortPartySel');
-    const currentVal = sel.value;
-    let options = `<option value="default">Alfabetik (İl Adına Göre)</option>`;
-    
-    const allValidParties = new Set();
-    for(let d in globalResults) {
-        if (globalResults[d].isMilliBakiye) continue;
-        Object.keys(globalResults[d].pureVotes).forEach(p => allValidParties.add(p));
-    }
-    
-    [...allValidParties].sort((a,b)=>a.localeCompare(b,'tr')).forEach(p => {
-        options += `<option value="${escapeStr(p)}">${p} (Oy Oranına Göre)</option>`;
-    });
-    
-    sel.innerHTML = options;
-    if([...allValidParties].includes(currentVal)) sel.value = currentVal;
-    else sel.value = 'default';
-}
-
 window.applySorting = function() {
     if(Object.keys(globalResults).length > 0) renderResults(globalResults);
 };
@@ -1106,16 +1580,8 @@ window.applySorting = function() {
 window.togglePartyFilter = function(party) {
     if (activePartyFilter === party) {
         activePartyFilter = null;
-        $('sortPartySel').value = 'default';
     } else {
         activePartyFilter = party;
-        const sel = $('sortPartySel');
-        for(let i=0; i<sel.options.length; i++) {
-            if(sel.options[i].value === party) {
-                sel.value = party;
-                break;
-            }
-        }
     }
     renderResults(globalResults);
 };
@@ -1385,8 +1851,6 @@ function runProjection() {
         };
     }
 
-    updateSortDropdown();
-    $('sortPanelContainer').style.display = 'flex';
     renderResults(globalResults);
 
     if (currentOverlayData && $('districtOverlay').style.display === 'block') {
@@ -1515,9 +1979,6 @@ function createParliamentDonut(seatsObj, total) {
 function renderResults(res){
     const area = $('results');
     area.innerHTML = '';
-    
-    let sortParty = $('sortPartySel').value;
-    const sortOrder = $('sortOrderSel').value;
 
     let totalMvs = {};
     let globalSeatCount = 0;
@@ -1549,8 +2010,6 @@ function renderResults(res){
         $('filterBanner').style.background = getPartyColor(activePartyFilter);
         $('filterBannerText').innerHTML = `🎯 Sadece <b>${activePartyFilter}</b> partisinin milletvekili çıkardığı çevreler gösteriliyor.`;
         
-        sortParty = activePartyFilter; 
-        
         sortedNames = sortedNames.filter(d => res[d].mvs && res[d].mvs[activePartyFilter] > 0);
     } else {
         $('filterBanner').style.display = 'none';
@@ -1559,28 +2018,22 @@ function renderResults(res){
     const mbKey = '🌟 Milli Bakiye (Türkiye Geneli)';
     let normalNames = sortedNames.filter(n => n !== mbKey);
     
-    if(sortParty === 'default') {
-        if(sortOrder === 'desc') normalNames.sort((a,b) => a.localeCompare(b, 'tr')); 
-        else normalNames.sort((a,b) => b.localeCompare(a, 'tr'));
-    } else {
-        normalNames.sort((a,b) => {
-            let pA = (res[a].pureVotes[sortParty] || 0) / res[a].totalVotes;
-            let pB = (res[b].pureVotes[sortParty] || 0) / res[b].totalVotes;
-            return sortOrder === 'asc' ? (pA - pB) : (pB - pA);
-        });
-    }
+    // Varsayılan Alfabetik Sıralama
+    normalNames.sort((a,b) => a.localeCompare(b, 'tr')); 
 
     if(sortedNames.includes(mbKey)) normalNames.unshift(mbKey);
     sortedNames = normalNames;
 
     if(sortedNames.length === 0) {
-        if(!activePartyFilter) $('sortPanelContainer').style.display = 'none';
         area.innerHTML = `<div class="empty-state">
             <h2>${activePartyFilter ? 'Milletvekili Bulunamadı' : 'Geçersiz Veri'}</h2>
             <p>${activePartyFilter ? 'Bu partinin vekil çıkardığı herhangi bir seçim çevresi bulunmuyor.' : 'Lütfen veri setlerini kontrol edin.'}</p>
         </div>`;
         return;
     }
+
+    const domRatio = (parseFloat($('dominantWhiteInp').value) || 20) / 100;
+    const pluRatio = (parseFloat($('pluralityWhiteInp').value) || 40) / 100;
 
     sortedNames.forEach(d => {
         const item = res[d];
@@ -1598,7 +2051,12 @@ function renderResults(res){
             Object.entries(item.rawVotes).forEach(([p, v]) => {
                 if(v > maxVotes) { maxVotes = v; winnerParty = p; }
             });
-            if (winnerParty) borderCol = getPartyColor(winnerParty);
+            if (winnerParty) {
+                const wColor = getPartyColor(winnerParty);
+                const mvs = item.mvs[winnerParty] || 0;
+                const isDominant = (mvs > item.seats / 2);
+                borderCol = blendWithWhite(wColor, isDominant ? domRatio : pluRatio);
+            }
         }
         card.style.borderTop = `8px solid ${borderCol}`;
 
@@ -1754,28 +2212,16 @@ document.addEventListener('keydown', function(e) {
 });
 
 function getSortedDistrictNames() {
-    let sortParty = $('sortPartySel').value;
-    const sortOrder = $('sortOrderSel').value;
-    
     let names = Object.keys(globalResults);
     if(activePartyFilter) {
         names = names.filter(d => globalResults[d].mvs && globalResults[d].mvs[activePartyFilter] > 0);
-        sortParty = activePartyFilter;
     }
 
     const mbKey = '🌟 Milli Bakiye (Türkiye Geneli)';
     let normalNames = names.filter(n => n !== mbKey);
     
-    if(sortParty === 'default') {
-        if(sortOrder === 'desc') normalNames.sort((a,b) => a.localeCompare(b, 'tr')); 
-        else normalNames.sort((a,b) => b.localeCompare(a, 'tr'));
-    } else {
-        normalNames.sort((a,b) => {
-            let pA = (globalResults[a].pureVotes[sortParty] || 0) / globalResults[a].totalVotes;
-            let pB = (globalResults[b].pureVotes[sortParty] || 0) / globalResults[b].totalVotes;
-            return sortOrder === 'asc' ? (pA - pB) : (pB - pA);
-        });
-    }
+    normalNames.sort((a,b) => a.localeCompare(b, 'tr')); 
+    
     if(names.includes(mbKey)) normalNames.unshift(mbKey);
     return normalNames;
 }
@@ -1838,11 +2284,17 @@ function renderDistrictOverlay() {
     let winnerTagHtml = '';
     let borderCol = 'var(--border)'; 
     
+    const domRatio = (parseFloat($('dominantWhiteInp').value) || 20) / 100;
+    const pluRatio = (parseFloat($('pluralityWhiteInp').value) || 40) / 100;
+
     if (item.isMilliBakiye) {
         borderCol = 'var(--purple)';
     } else if (winnerParty) {
         const wColor = getPartyColor(winnerParty);
-        borderCol = wColor; 
+        const mvs = item.mvs[winnerParty] || 0;
+        const isDominant = (mvs > item.seats / 2);
+        
+        borderCol = blendWithWhite(wColor, isDominant ? domRatio : pluRatio);
         
         winnerTagHtml = `<span style="background:${wColor}; color:#ffffff; padding:4px 12px; border-radius:8px; font-size:1.1rem; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.15);">${winnerParty}</span>`;
     }
