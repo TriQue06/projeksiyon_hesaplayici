@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>PGM Projeksiyon Arayüzü v8.4 - İnteraktif Düzenleme & Akıllı Tooltip</title>
+    <title>PGM Projeksiyon Arayüzü v8.5 - İttifak Haritaları & Dinamik İkonlar</title>
     <style>
         @font-face {
             font-family: 'Product Sans';
@@ -192,6 +192,13 @@
             stroke: #1c1e21 !important;
             stroke-width: 2px !important;
         }
+        
+        /* Map Toggle Btn */
+        #mapModeToggleBtn {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        #mapModeToggleBtn:hover { transform: translateY(-1px); }
     </style>
 </head>
 <body>
@@ -204,7 +211,7 @@
 
     <div class="card archive-card">
         <label>☁️ Arşivden Proje Getir</label>
-        <span style="font-size: 11px; margin-bottom: 8px; display:block;">Arşivlenmiş seçim projeksiyon verilerini görüntüleyin.</span>
+        <span style="font-size: 11px; margin-bottom: 8px; display:block;">Arşivlenmiş seçim projeksiyon verilerini görüntüleyin. Seçildiğinde harita dosyaları otomatik yüklenir.</span>
         <div style="display:flex; gap:8px; margin-bottom:0;">
             <select id="archiveSelector" style="flex:2; font-weight: bold; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                 <option value="">-- Arşivden Seç --</option>
@@ -250,7 +257,7 @@
 
     <div class="card">
         <label>4. Seçim İttifakları (Ayrı Listeler)</label>
-        <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Partiler ayrı girer, barajı beraber geçerler. Yukarıdakiler gibi sürüklenebilir ve adı değiştirilebilir.</span>
+        <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Partiler ayrı girer, barajı beraber geçerler. Yukarıdakiler gibi sürüklenebilir ve rengi değiştirilebilir.</span>
         <div class="flex-row">
             <input id="allianceName" placeholder="İttifak Adı (Örn: Cumhur İttifakı)">
             <button onclick="addAlliance()" class="teal" style="width:40px; font-size: 16px;">+</button>
@@ -272,8 +279,6 @@
     <div class="card" style="border-left: 4px solid var(--primary); background: #f8faff;">
         <label>6. Harita Verisi</label>
         <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Sonuçları sağ paneldeki haritada boyamak için SVG haritanızı ve şehir eşleştirme sözlüğünüzü tanımlayın.</span>
-        
-        <button onclick="loadDefaultMapSystem()" class="blue" style="width: 100%; margin-bottom: 12px; padding: 10px; font-size: 14px;">☁️ Varsayılan Harita ve Sözlüğü Çek</button>
         
         <div class="flex-row" style="gap:12px; align-items: flex-end;">
             <div style="flex:1;">
@@ -310,7 +315,7 @@
         <!-- MİLLETVEKİLİ NOKTALARI AÇ/KAPAT VE KONUM ÖZELLEŞTİRME -->
         <div style="margin-top: 12px; border-top: 1px dashed #b0c4de; padding-top: 12px;">
             <label style="display:flex; align-items:center; gap:8px; cursor: pointer; margin:0;">
-                <input type="checkbox" id="showMVDotsInp" onchange="updateMapColors()" style="width:18px; height:18px; flex:none;">
+                <input type="checkbox" id="showMVDotsInp" onchange="updateMapColors()" style="width:18px; height:18px; flex:none;" checked>
                 <span style="font-size: 13px; font-weight: bold; color: var(--purple);">🟣 Harita Üzerinde Milletvekillerini Göster</span>
             </label>
             <span style="font-size:10.5px; color:var(--text-secondary); display:block; margin-top:6px; margin-left:26px;">Vekil sayıları seçilen konuma geniş veya hafif dikey (20+ vekil için) olacak şekilde dizilir. Çarpışma önleyici fizik algoritması aktiftir.</span>
@@ -394,6 +399,10 @@
             <div id="svgMapWrapper" style="position: relative;">
                 <p style="color:var(--text-secondary); font-size:13px; font-style:italic;">Harita Bekleniyor...</p>
             </div>
+
+            <div style="position: absolute; bottom: 16px; right: 16px; z-index: 20;">
+                <button id="mapModeToggleBtn" onclick="toggleMapMode()" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 12px; padding: 6px 12px; box-shadow: var(--shadow); border: 1px solid var(--border);">🗺️ Mod: Partiler</button>
+            </div>
         </div>
         
         <div id="filterBanner" style="display:none; color: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; align-items: center; justify-content: space-between; font-weight: bold; box-shadow: var(--shadow);">
@@ -420,9 +429,9 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px; border-bottom: 2px solid #f0f2f5; padding-bottom: 15px;">
                 
                 <div style="display:flex; align-items:center; gap:12px; flex:1;">
-                    <h2 style="color:var(--text); margin:0; font-size: 1.8rem; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <h2 style="color:var(--text); margin:0; font-size: 1.8rem; display:flex; align-items:center; gap:0px; flex-wrap:wrap;">
                         <span id="doTitleName"></span>
-                        <span id="doTitleWinner"></span>
+                        <span id="doTitleWinner" style="margin-left: 12px;"></span>
                     </h2>
                 </div>
                 
@@ -470,8 +479,8 @@ let activePartyFilter = null;
 let savedScrollPosition = 0;
 let mapDictionary = {};
 let customDotPositions = {}; 
+let mapMode = 'party'; // 'party' veya 'alliance'
 
-// Renk karıştırma fonksiyonu (Parti Rengi + Beyaz Oranı)
 function blendWithWhite(hexColor, whiteRatio) {
     let hex = hexColor.replace('#', '');
     if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
@@ -486,50 +495,13 @@ function blendWithWhite(hexColor, whiteRatio) {
     return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
 }
 
-window.loadDefaultMapSystem = async function() {
-    try {
-        const svgRes = await fetch('turkiye_harita.svg');
-        if (!svgRes.ok) throw new Error("turkiye_harita.svg dosyasına ulaşılamadı.");
-        const svgText = await svgRes.text();
-        $('svgMapWrapper').innerHTML = svgText;
-        $('mapContainer').style.display = 'block'; 
-        
-        const jsonRes = await fetch('eslestirme.json');
-        if (!jsonRes.ok) throw new Error("eslestirme.json sözlük dosyasına ulaşılamadı.");
-        const jsonData = await jsonRes.json();
-        mapDictionary = jsonData.cityMapping || jsonData;
-        
-        let extraMsg = "";
-        try {
-            const konumRes = await fetch('default_konum.json');
-            if (konumRes.ok) {
-                const konumData = await konumRes.json();
-                customDotPositions = konumData;
-                extraMsg = "\n📍 Varsayılan milletvekili konumları da başarıyla yüklendi.";
-            }
-        } catch(err) { }
-        
-        alert("🌍 Harita ve eşleştirme sözlüğü buluttan başarıyla getirildi!" + extraMsg);
-        
-        if (Object.keys(globalResults).length > 0) {
-            updateMapColors();
-        } else {
-            let dbg = document.getElementById('mapDebugInfo');
-            if(!dbg) {
-                dbg = document.createElement('div');
-                dbg.id = 'mapDebugInfo';
-                dbg.style.cssText = "font-size:13px; padding:12px; border-radius:6px; margin-top:16px; text-align:left; line-height:1.5;";
-                document.getElementById('mapContainer').appendChild(dbg);
-            }
-            dbg.style.backgroundColor = '#e8f0fe';
-            dbg.style.color = '#1a73e8';
-            dbg.style.border = '1px solid #1a73e8';
-            dbg.innerHTML = `<strong>✅ Sistem Hazır:</strong> Harita ve sözlük eşleştirildi. Sonuçları görmek için projeksiyonu hesaplayın.`;
-        }
-    } catch (err) {
-        alert("Otomatik Yükleme Başarısız!\n" + err.message + "\n\nLütfen 'turkiye_harita.svg' ve 'eslestirme.json' dosyalarının bu sayfayla aynı klasörde/sunucuda olduğuna emin olun.");
-    }
-};
+function toggleMapMode() {
+    mapMode = mapMode === 'party' ? 'alliance' : 'party';
+    $('mapModeToggleBtn').innerHTML = mapMode === 'party' ? '🗺️ Mod: Partiler' : '🗺️ Mod: İttifaklar';
+    $('mapModeToggleBtn').style.background = mapMode === 'party' ? 'var(--surface)' : 'var(--teal)';
+    $('mapModeToggleBtn').style.color = mapMode === 'party' ? 'var(--text)' : 'white';
+    updateMapColors();
+}
 
 window.handleManualSvgLoad = async function(input) {
     const file = input.files[0];
@@ -554,7 +526,6 @@ window.loadMappingJson = async function(inp) {
         mapDictionary = data.cityMapping || data;
         
         if(mapDictionary && Object.keys(mapDictionary).length > 0) {
-            alert(`Eşleştirme sözlüğü başarıyla yüklendi! (${Object.keys(mapDictionary).length} çevre tanımlandı)`);
             if (Object.keys(globalResults).length > 0) updateMapColors(); 
         } else {
             alert("Geçersiz format: Sözlük içinde geçerli bir eşleştirme bulunamadı.");
@@ -623,7 +594,7 @@ function getDotLayout(n) {
 }
 
 function drawMVDots(svgGroup, layout, partyColors, cx, cy, totalMVs) {
-    let dotR = 7.5; 
+    let dotR = 8.0; 
     const spacing = 3;
     const dotSize = dotR * 2;
     const cell = dotSize + spacing;
@@ -649,7 +620,6 @@ function drawMVDots(svgGroup, layout, partyColors, cx, cy, totalMVs) {
             circle.setAttribute("fill", color);
             circle.setAttribute("stroke", "#1c1e21");
             circle.setAttribute("stroke-width", "1.5");
-            // pointerEvents grubun (g) üzerinden yönetilecek, çemberler default kalsın ki altındakine tık geçmesin
 
             svgGroup.appendChild(circle);
             dotIndex++;
@@ -692,7 +662,7 @@ function updateMapColors() {
         if (a.isEnabled === false) return;
         let maxScore = -1;
         a.members.forEach(m => {
-            partyToAlliance[m] = a.name;
+            partyToAlliance[m] = a;
             if ((partyRanks[m] || 0) > maxScore) maxScore = (partyRanks[m] || 0);
         });
         allianceMaxScores[a.name] = maxScore;
@@ -760,16 +730,45 @@ function updateMapColors() {
                     targetColor = blendWithWhite(pColor, isDominant ? domRatio : pluRatio);
                 }
             } else {
-                let maxVotes = -1;
-                let winnerParty = null;
-                Object.entries(result.rawVotes).forEach(([p, v]) => {
-                    if(v > maxVotes) { maxVotes = v; winnerParty = p; }
-                });
-                if(winnerParty) {
-                    let pColor = getPartyColor(winnerParty);
-                    let mvs = result.mvs[winnerParty] || 0;
-                    let isDominant = (mvs > result.seats / 2);
-                    targetColor = blendWithWhite(pColor, isDominant ? domRatio : pluRatio);
+                if (mapMode === 'alliance') {
+                    let groupedVotes = {};
+                    let groupedMVs = {};
+                    Object.entries(result.rawVotes).forEach(([p, v]) => {
+                        let aObj = partyToAlliance[p];
+                        let groupKey = aObj ? aObj.name : p;
+                        groupedVotes[groupKey] = (groupedVotes[groupKey] || 0) + v;
+                    });
+                    Object.entries(result.mvs).forEach(([p, s]) => {
+                        let aObj = partyToAlliance[p];
+                        let groupKey = aObj ? aObj.name : p;
+                        groupedMVs[groupKey] = (groupedMVs[groupKey] || 0) + s;
+                    });
+
+                    let maxVotes = -1;
+                    let winnerGroup = null;
+                    Object.entries(groupedVotes).forEach(([gKey, v]) => {
+                        if(v > maxVotes) { maxVotes = v; winnerGroup = gKey; }
+                    });
+
+                    if (winnerGroup) {
+                        let aObj = electoralAlliances.find(a => a.name === winnerGroup);
+                        let gColor = aObj ? (aObj.color || '#000000') : getPartyColor(winnerGroup);
+                        let mvs = groupedMVs[winnerGroup] || 0;
+                        let isDominant = (mvs > result.seats / 2);
+                        targetColor = blendWithWhite(gColor, isDominant ? domRatio : pluRatio);
+                    }
+                } else {
+                    let maxVotes = -1;
+                    let winnerParty = null;
+                    Object.entries(result.rawVotes).forEach(([p, v]) => {
+                        if(v > maxVotes) { maxVotes = v; winnerParty = p; }
+                    });
+                    if(winnerParty) {
+                        let pColor = getPartyColor(winnerParty);
+                        let mvs = result.mvs[winnerParty] || 0;
+                        let isDominant = (mvs > result.seats / 2);
+                        targetColor = blendWithWhite(pColor, isDominant ? domRatio : pluRatio);
+                    }
                 }
             }
 
@@ -806,33 +805,42 @@ function updateMapColors() {
                     }
 
                     let mpList = [];
-                Object.keys(result.mvs).forEach(p => {
-                    for(let i=0; i<result.mvs[p]; i++) mpList.push(p);
-                });
-
-                if (mpList.length > 0) {
-                    mpList.sort((a, b) => {
-                        let groupScoreA = partyToAlliance[a] ? allianceMaxScores[partyToAlliance[a]] : (partyRanks[a] || 0);
-                        let groupScoreB = partyToAlliance[b] ? allianceMaxScores[partyToAlliance[b]] : (partyRanks[b] || 0);
-
-                        if (groupScoreA !== groupScoreB) return groupScoreB - groupScoreA;
-
-                        let allianceA = partyToAlliance[a] || a;
-                        let allianceB = partyToAlliance[b] || b;
-                        
-                        if (allianceA !== allianceB) {
-                            return allianceA.localeCompare(allianceB);
-                        }
-
-                        let rankA = partyRanks[a] || 0;
-                        let rankB = partyRanks[b] || 0;
-                        return rankB - rankA;
+                    Object.keys(result.mvs).forEach(p => {
+                        for(let i=0; i<result.mvs[p]; i++) mpList.push(p);
                     });
-                    
-                    let colors = mpList.map(p => getPartyColor(p));
-                    let layout = getDotLayout(mpList.length);
-                    
-                    let maxCols = Math.max(...layout);
+
+                    if (mpList.length > 0) {
+                        mpList.sort((a, b) => {
+                            let aObjA = partyToAlliance[a];
+                            let aObjB = partyToAlliance[b];
+                            let groupScoreA = aObjA ? allianceMaxScores[aObjA.name] : (partyRanks[a] || 0);
+                            let groupScoreB = aObjB ? allianceMaxScores[aObjB.name] : (partyRanks[b] || 0);
+
+                            if (groupScoreA !== groupScoreB) return groupScoreB - groupScoreA;
+
+                            let allianceA = aObjA ? aObjA.name : a;
+                            let allianceB = aObjB ? aObjB.name : b;
+                            
+                            if (allianceA !== allianceB) {
+                                return allianceA.localeCompare(allianceB);
+                            }
+
+                            let rankA = partyRanks[a] || 0;
+                            let rankB = partyRanks[b] || 0;
+                            return rankB - rankA;
+                        });
+                        
+                        let colors = mpList.map(p => {
+                            if (mapMode === 'alliance') {
+                                let aObj = partyToAlliance[p];
+                                if (aObj && aObj.color) return aObj.color;
+                            }
+                            return getPartyColor(p);
+                        });
+
+                        let layout = getDotLayout(mpList.length);
+                        
+                        let maxCols = Math.max(...layout);
                         let rows = layout.length;
                         let dotR = 10.5;
                         let cell = dotR * 2 + 4; 
@@ -919,22 +927,16 @@ function updateMapColors() {
     }
     
     if (paintedCount > 0) {
-        dbg.style.backgroundColor = '#e6f4ea';
-        dbg.style.color = '#137333';
-        dbg.style.border = '1px solid #137333';
-        dbg.innerHTML = `<strong>✅ Harita Başarıyla Güncellendi! (${paintedCount} Çevre Boyandı)</strong>`;
-        
-        if(unmatchedIds.size > 0 && unmatchedIds.size < 50) { 
-             const sampleIds = Array.from(unmatchedIds).slice(0, 8).join(', ');
-             dbg.innerHTML += `<br><span style="font-size:11px; margin-top:6px; display:block;">ℹ️ Boyanmayan bazı harita parçaları fark ettik: ${sampleIds}... Sözlüğünüzde eksik olabilir.</span>`;
-        }
+        dbg.style.display = 'none'; // Başarı durumunda gizle
     } else if (!foundAnyId) {
+        dbg.style.display = 'block';
         dbg.style.backgroundColor = '#fce8e8';
         dbg.style.color = '#c5221f';
         dbg.style.border = '1px solid #c5221f';
         dbg.innerHTML = `<strong>⚠️ DİKKAT: Yüklediğiniz SVG'nin içinde hiçbir ID veya isim etiketi yok!</strong><br>
         Haritanız tamamen 'isimsiz' vektörlerden oluşuyor. Programınızdan haritayı dışa aktarırken katman isimlerini kaydettiğinden emin olun.`;
     } else {
+        dbg.style.display = 'block';
         const sampleIds = Array.from(unmatchedIds).slice(0, 15).join('</b>, <b>');
         dbg.style.backgroundColor = '#fff3cd';
         dbg.style.color = '#856404';
@@ -1045,9 +1047,7 @@ window.loadCustomDotPositions = async function(inp) {
     if(!file) return;
     try {
         const text = await file.text();
-        const data = JSON.parse(text);
-        customDotPositions = data;
-        alert("Özel konumlar başarıyla yüklendi!");
+        customDotPositions = JSON.parse(text);
         if (Object.keys(globalResults).length > 0) updateMapColors();
     } catch(e) {
         alert("Hata: " + e.message);
@@ -1313,6 +1313,7 @@ window.updateColorModal = function(type, idx) {
     let currColor = '#000000';
     if(type === 'party') currColor = extraParties[idx].color || '#000000';
     if(type === 'coal') currColor = coalitions[idx].color || '#000000';
+    if(type === 'alliance') currColor = electoralAlliances[idx].color || '#000000';
     $('hexInput').value = currColor;
     $('colorModalOverlay').style.display = 'flex';
     $('hexInput').focus();
@@ -1328,6 +1329,7 @@ window.saveColorModal = function() {
     
     if(activeColorTarget.type === 'party') { extraParties[activeColorTarget.idx].color = val; renderExtraParties(); } 
     else if(activeColorTarget.type === 'coal') { coalitions[activeColorTarget.idx].color = val; renderCoalitions(); }
+    else if(activeColorTarget.type === 'alliance') { electoralAlliances[activeColorTarget.idx].color = val; renderAlliances(); }
     
     closeColorModal();
     if (Object.keys(globalResults).length > 0) runProjection();
@@ -1407,7 +1409,7 @@ function renderCoalitions(){
 function addAlliance(){
     const name = $('allianceName').value.trim();
     if(!name) return;
-    electoralAlliances.push({ name, members:[], isOpen: true, isEnabled: true });
+    electoralAlliances.push({ name, members:[], isOpen: true, isEnabled: true, color: '#000000' });
     $('allianceName').value = ''; renderAlliances();
 }
 
@@ -1421,6 +1423,8 @@ function renderAlliances(){
                 <button class="toggle-btn" onclick="electoralAlliances[${idx}].isOpen=!electoralAlliances[${idx}].isOpen;renderAlliances()">${a.isOpen ? '▲' : '▼'}</button>
                 
                 <button class="status-btn ${a.isEnabled !== false ? 'active' : ''}" style="background:${a.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${a.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${a.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="electoralAlliances[${idx}].isEnabled=!(electoralAlliances[${idx}].isEnabled!==false);renderAlliances()" title="${a.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${a.isEnabled !== false ? 'A' : 'P'}</button>
+                
+                <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius:6px; background:${a.color || '#000000'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('alliance', ${idx})"></div>
                 
                 <input type="text" class="editable-name" value="${escapeStr(a.name)}" onchange="renameAlliance(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
                 
@@ -1466,12 +1470,9 @@ async function loadSeatData(inp) {
     if(!file) return;
     try {
         const data = JSON.parse(await file.text());
-        let updatedCount = 0;
         for (let dName in data) {
             customSeatOverrides[dName] = parseInt(data[dName]) || 0;
-            updatedCount++;
         }
-        alert(`Koltuk verisi başarıyla içe aktarıldı! (${updatedCount} çevre güncellendi)`);
         inp.value = '';
         if (Object.keys(globalResults).length > 0) runProjection();
     } catch (err) {
@@ -1481,7 +1482,7 @@ async function loadSeatData(inp) {
 
 function saveProject() {
     const projectData = {
-        meta: { version: "8.4", date: new Date().toISOString() },
+        meta: { version: "8.5", date: new Date().toISOString() },
         datasets, extraParties, coalitions, electoralAlliances, customSeatOverrides, customDotPositions,
         settings: {
             threshold: parseFloat($('thresholdInp').value) || 7,
@@ -1506,26 +1507,43 @@ async function loadProject(inp) {
     try {
         const data = JSON.parse(await file.text());
         applyProjectData(data);
-        alert("Proje başarıyla yüklendi!"); $('fileInp').value = ''; inp.value = '';
+        $('fileInp').value = ''; inp.value = '';
+        if (datasets.length > 0) runProjection();
     } catch(err) { alert("Hata: " + err.message); }
 }
 
 async function loadFromArchive() {
     const fileName = $('archiveSelector').value;
-    if(!fileName) return alert("Lütfen arşivden bir dosya seçin!");
+    if(!fileName) return;
     
     try {
         const response = await fetch(fileName);
-        if(!response.ok) throw new Error("Sunucu Hatası: " + response.status + ". Dosyanın ('" + fileName + "') index.html ile aynı dizinde olduğuna emin olun.");
+        if(!response.ok) throw new Error("Sunucu Hatası: " + response.status + ". Dosyanın ('" + fileName + "') aynı dizinde olduğuna emin olun.");
         
         const data = await response.json();
         applyProjectData(data);
-        alert("Arşiv projesi başarıyla getirildi: " + fileName);
+        
+        try {
+            const svgRes = await fetch('turkiye_harita.svg');
+            if (svgRes.ok) {
+                $('svgMapWrapper').innerHTML = await svgRes.text();
+                $('mapContainer').style.display = 'block';
+            }
+            const jsonRes = await fetch('eslestirme.json');
+            if (jsonRes.ok) {
+                const dictData = await jsonRes.json();
+                mapDictionary = dictData.cityMapping || dictData;
+            }
+            const konumRes = await fetch('default_konum.json');
+            if (konumRes.ok) {
+                customDotPositions = await konumRes.json();
+            }
+        } catch(e) {}
         
         if (datasets.length > 0) runProjection();
         
     } catch(err) {
-        alert("Arşiv yüklenemedi:\\n" + err.message);
+        alert("Arşiv yüklenemedi:\n" + err.message);
     }
 }
 
@@ -1546,7 +1564,13 @@ function applyProjectData(data) {
         color: c.color || '#000000'
     }));
     
-    electoralAlliances = (data.electoralAlliances || []).map(a => ({...a, isOpen: a.isOpen!==false, isEnabled: a.isEnabled!==false}));
+    electoralAlliances = (data.electoralAlliances || []).map(a => ({
+        ...a, 
+        isOpen: a.isOpen!==false, 
+        isEnabled: a.isEnabled!==false,
+        color: a.color || '#000000'
+    }));
+    
     customSeatOverrides = data.customSeatOverrides || {};
     customDotPositions = data.customDotPositions || {};
     
@@ -2087,7 +2111,7 @@ function renderResults(res){
                             <span class="p-name">
                                 <div style="width:10px;height:10px;border-radius:50%;background:${pColor};display:inline-block;box-shadow:0 1px 2px rgba(0,0,0,0.2);"></div>
                                 ${p} 
-                                ${isAlliance ? `<span class="alliance-tag">${isAlliance.name}</span>` : ''}
+                                ${isAlliance ? `<span class="alliance-tag" style="background:${isAlliance.color||'var(--teal)'}30; color:${isAlliance.color||'var(--teal)'}; font-weight:bold;">${isAlliance.name}</span>` : ''}
                             </span>
                             ${isCoal ? `<span class="p-coal-members">${isCoal.members.join(', ')}</span>` : ''}
                         </div>
@@ -2177,6 +2201,11 @@ function downloadAdvancedResults(){
             txt += `${c.name}=${c.color}\n`;
         }
     });
+    electoralAlliances.forEach(a => {
+        if(a.color) {
+            txt += `${a.name}=${a.color}\n`;
+        }
+    });
 
     txt += "\n[SONUCLAR]\n";
     
@@ -2239,10 +2268,51 @@ window.navigateDistrict = function(dir) {
     openDistrictOverlay(names[nextIdx]);
 };
 
+function getMiniMapSvg(dName) {
+    const svg = document.querySelector('#svgMapWrapper svg');
+    if(!svg || dName.includes('Milli Bakiye')) return ''; // MB için ikon yok
+    const elements = Array.from(svg.querySelectorAll('path, g, polygon, polyline, rect')).filter(el => el.getAttribute('data-district-name') === dName);
+    if (elements.length === 0) return '';
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let clonedNodes = [];
+    elements.forEach(el => {
+        try {
+            let bbox = el.getBBox();
+            if(bbox.width > 0 && bbox.height > 0) {
+                minX = Math.min(minX, bbox.x);
+                minY = Math.min(minY, bbox.y);
+                maxX = Math.max(maxX, bbox.x + bbox.width);
+                maxY = Math.max(maxY, bbox.y + bbox.height);
+                let clone = el.cloneNode(true);
+                clone.removeAttribute('class');
+                clone.removeAttribute('data-district-name');
+                clone.removeAttribute('id');
+                clone.style.cssText = '';
+                clone.setAttribute('fill', 'var(--border)');
+                clone.setAttribute('stroke', 'var(--text-secondary)');
+                clone.setAttribute('stroke-width', '0.5');
+                clonedNodes.push(clone.outerHTML);
+            }
+        } catch(e) {}
+    });
+
+    if (clonedNodes.length === 0 || minX === Infinity) return '';
+
+    let padding = Math.max(maxX - minX, maxY - minY) * 0.1;
+    let vbX = minX - padding;
+    let vbY = minY - padding;
+    let vbW = (maxX - minX) + padding * 2;
+    let vbH = (maxY - minY) + padding * 2;
+
+    return `<svg viewBox="${vbX} ${vbY} ${vbW} ${vbH}" style="width: 32px; height: 32px; display: inline-block; vertical-align: middle; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.15));">${clonedNodes.join('')}</svg>`;
+}
+
 window.openDistrictOverlay = function(dName) {
     currentOverlayData = {
         name: dName,
-        data: globalResults[dName]
+        data: globalResults[dName],
+        miniMap: getMiniMapSvg(dName) // Harita ekrandayken SVG parçalarını al
     };
     showingAllInOverlay = false;
     
@@ -2304,7 +2374,8 @@ function renderDistrictOverlay() {
         overlayContainer.style.borderTop = `10px solid ${borderCol}`;
     }
     
-    $('doTitleName').innerHTML = `🗳️ ${dName}`;
+    let titleIcon = currentOverlayData.miniMap ? `<span style="margin-right:8px; display:inline-flex; align-items:center;">${currentOverlayData.miniMap}</span>` : '🗳️ ';
+    $('doTitleName').innerHTML = `${titleIcon}${dName}`;
     $('doTitleWinner').innerHTML = winnerTagHtml;
     
     let seatHtml = '';
