@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>PGM Projeksiyon Arayüzü v7.7 - Bulut Entegreli</title>
+    <title>PGM Projeksiyon Arayüzü v7.5 - Tam Sürüm</title>
     <style>
         @font-face {
             font-family: 'Product Sans';
@@ -155,7 +155,7 @@
         .sort-panel { background: var(--surface); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; box-shadow: var(--shadow); }
         .sort-panel select { max-width: 250px; font-weight: bold; cursor: pointer; }
 
-        /* İçerik Kapsayıcı */
+        /* Yeni: İçerik Kapsayıcı (Overlay açılınca gizlenecek kısım) */
         #mainContentWrapper { display: block; animation: fadeIn 0.2s ease; }
 
         /* Seçim Çevresi Detay Overlay Stilleri */
@@ -177,7 +177,7 @@
         }
         .nav-btn:hover { background: #e4e6eb; transform: scale(1.05); }
 
-        /* Bulut/Arşiv Kartı */
+        /* Bulut/Arşiv Kartı Gradyan Stili */
         .archive-card {
             background: linear-gradient(to bottom, #0d47a1 0%, #00acc1 80%, #ffffff 100%);
             border: none;
@@ -187,23 +187,6 @@
         .archive-card span { color: #e0f7fa !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         .archive-card button.purple { background-color: rgba(255,255,255,0.95) !important; color: #0d47a1 !important; text-shadow: none; font-weight: 900; }
         .archive-card button.purple:hover { background-color: #ffffff !important; transform: translateY(-1px) scale(1.02); }
-
-        /* STATİK HARİTA STİLLERİ */
-        #svgMapWrapper svg {
-            width: 100%;
-            height: auto;
-            max-height: 500px;
-            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05));
-            display: block;
-            margin: 0 auto;
-        }
-        #svgMapWrapper path, #svgMapWrapper g, #svgMapWrapper polygon, #svgMapWrapper polyline, #svgMapWrapper rect {
-            stroke: #ffffff !important;
-            stroke-width: 1px !important;
-            stroke-linejoin: round;
-            shape-rendering: geometricPrecision;
-            transition: fill 0.4s ease;
-        }
     </style>
 </head>
 <body>
@@ -213,7 +196,7 @@
 <div class="left-panel">
     <h1>🗳️ PGM Projeksiyon Arayüzü</h1>
 
-    <!-- ARŞİVDEN GETİRME MODÜLÜ -->
+    <!-- YENİ EKLENEN ARŞİVDEN GETİRME MODÜLÜ -->
     <div class="card archive-card">
         <label>☁️ Arşivden Proje Getir</label>
         <span style="font-size: 11px; margin-bottom: 8px; display:block;">Arşivlenmiş seçim projeksiyon verilerini görüntüleyin.</span>
@@ -331,7 +314,7 @@
 
 <div class="right-panel">
     
-    <!-- Ana Grid ve Grafikler -->
+    <!-- Ana Grid ve Grafikler (Overlay açıkken gizlenir) -->
     <div id="mainContentWrapper">
         <div class="proj-header">
             <div>Seçim Çevresi Sonuçları</div>
@@ -354,27 +337,6 @@
             <h3 style="margin:0 0 16px 0; color:var(--text); font-size:1.4rem;">Türkiye Geneli Koltuk Dağılımı</h3>
             <div id="parliamentChartArea" style="width:100%;"></div>
         </div>
-
-        <!-- STATİK HARİTA ALANI -->
-        <div id="mapContainer" class="card" style="display:none; margin-bottom: 24px; text-align:center; padding-bottom: 24px;">
-            <h3 style="margin-bottom:16px;">Türkiye Haritası</h3>
-            
-            <!-- SÖZLÜK VE HARİTA YÜKLEYİCİ -->
-            <div id="mapMappingUploader" style="background:#e8f0fe; padding:12px; border-radius:8px; border:1px solid var(--primary); margin-bottom:20px; text-align:left;">
-                <span style="display:block; font-size:13px; color:var(--primary); font-weight:bold; margin-bottom:8px;">🗺️ Harita ve Eşleştirme Sistemi</span>
-                
-                <button onclick="loadDefaultMapSystem()" class="blue" style="width: 100%; margin-bottom: 12px; padding: 10px; font-size: 14px;">☁️ Varsayılan Haritayı ve Sözlüğü Otomatik Getir</button>
-                
-                <div style="border-top: 1px dashed #aecbfa; padding-top: 10px; margin-top: 5px;">
-                    <span style="display:block; font-size:11px; color:var(--text-secondary); margin-bottom:6px;">Veya kendi sözlüğünüzü (.json) manuel yükleyin:</span>
-                    <input type="file" accept=".json" onchange="loadMappingJson(this)" style="width:100%; font-size:12px; background:#fff; border:1px solid #ccc; padding:6px; border-radius:4px; cursor: pointer;">
-                </div>
-            </div>
-
-            <div id="svgMapWrapper">
-                <p style="color:var(--text-secondary); font-size:13px; font-style:italic;">Harita Bekleniyor...</p>
-            </div>
-        </div>
         
         <div id="filterBanner" style="display:none; color: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; align-items: center; justify-content: space-between; font-weight: bold; box-shadow: var(--shadow);">
             <span id="filterBannerText" style="font-size: 1.05rem;"></span>
@@ -394,7 +356,7 @@
         </div>
     </div>
 
-    <!-- SEÇİM ÇEVRESİ DETAY OVERLAY -->
+    <!-- SEÇİM ÇEVRESİ DETAY OVERLAY (GÜNCELLENDİ) -->
     <div id="districtOverlay">
         <div class="do-container">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px; border-bottom: 2px solid #f0f2f5; padding-bottom: 15px;">
@@ -408,7 +370,7 @@
                 
                 <div id="doTitleMv" style="display:flex; align-items:center; margin-right: 20px;"></div>
 
-                <!-- Sabit Navigasyon Butonları -->
+                <!-- Sabit Navigasyon Butonları (En Sağda) -->
                 <div style="display:flex; align-items:center; gap:8px;">
                     <button onclick="navigateDistrict(-1)" class="nav-btn" title="Önceki Seçim Çevresi (Sol Ok)">◀</button>
                     <button onclick="navigateDistrict(1)" class="nav-btn" title="Sonraki Seçim Çevresi (Sağ Ok)">▶</button>
@@ -448,215 +410,10 @@ let globalResults = {};
 
 let dragCtx = { type: null, idx: null };
 
+// YENİ: Parti Filtreleme State'i
 let activePartyFilter = null;
+// YENİ: Scroll Kaydetme State'i
 let savedScrollPosition = 0;
-
-let mapDictionary = {};
-
-// --- OTOMATİK (BULUT) SİSTEMİ YÜKLEME ---
-window.loadDefaultMapSystem = async function() {
-    try {
-        // 1. Haritayı çek
-        const svgRes = await fetch('turkiye_harita.svg');
-        if (!svgRes.ok) throw new Error("turkiye_harita.svg dosyasına ulaşılamadı.");
-        const svgText = await svgRes.text();
-        $('svgMapWrapper').innerHTML = svgText;
-        
-        // 2. Sözlüğü çek
-        const jsonRes = await fetch('eslestirme.json');
-        if (!jsonRes.ok) throw new Error("eslestirme.json sözlük dosyasına ulaşılamadı.");
-        const jsonData = await jsonRes.json();
-        mapDictionary = jsonData.cityMapping || jsonData;
-        
-        alert("🌍 Harita ve eşleştirme sözlüğü buluttan başarıyla getirildi!");
-        
-        // Eğer zaten hesaplama yapılmışsa anında boya, yapılmadıysa hazır mesajı ver
-        if (Object.keys(globalResults).length > 0) {
-            updateMapColors();
-        } else {
-            let dbg = document.getElementById('mapDebugInfo');
-            if(!dbg) {
-                dbg = document.createElement('div');
-                dbg.id = 'mapDebugInfo';
-                dbg.style.cssText = "font-size:13px; padding:12px; border-radius:6px; margin-top:16px; text-align:left; line-height:1.5;";
-                document.getElementById('mapContainer').appendChild(dbg);
-            }
-            dbg.style.backgroundColor = '#e8f0fe';
-            dbg.style.color = '#1a73e8';
-            dbg.style.border = '1px solid #1a73e8';
-            dbg.innerHTML = `<strong>✅ Sistem Hazır:</strong> Harita ve sözlük eşleştirildi. Sonuçları görmek için projeksiyonu hesaplayın.`;
-        }
-    } catch (err) {
-        alert("Otomatik Yükleme Başarısız!\n" + err.message + "\n\nLütfen 'turkiye_harita.svg' ve 'eslestirme.json' dosyalarının bu sayfayla aynı klasörde/sunucuda olduğuna emin olun.");
-    }
-};
-
-// --- HARİTAYI İLK AÇILIŞTA (EĞER VARSA) ÇEKMEYİ DENEME ---
-async function loadMapSVG() {
-    try {
-        const res = await fetch('turkiye_harita.svg');
-        if (res.ok) {
-            const text = await res.text();
-            $('svgMapWrapper').innerHTML = text;
-        } else {
-            throw new Error("Dosya bulunamadı");
-        }
-    } catch (err) {
-        // Otomatik çekilemezse varsayılan yükleyici modül zaten ekranda olacak
-    }
-}
-
-window.handleManualSvgLoad = async function(input) {
-    const file = input.files[0];
-    if(!file) return;
-    try {
-        const text = await file.text();
-        $('svgMapWrapper').innerHTML = text;
-        if (Object.keys(globalResults).length > 0) updateMapColors();
-    } catch(e) {
-        alert("Harita okunamadı: " + e.message);
-    }
-};
-
-window.addEventListener('DOMContentLoaded', loadMapSVG);
-
-// --- SÖZLÜK MANUEL YÜKLEME ---
-window.loadMappingJson = async function(inp) {
-    const file = inp.files[0];
-    if(!file) return;
-    try {
-        const text = await file.text();
-        const data = JSON.parse(text);
-        
-        mapDictionary = data.cityMapping || data;
-        
-        if(mapDictionary && Object.keys(mapDictionary).length > 0) {
-            alert(`Eşleştirme sözlüğü başarıyla yüklendi! (${Object.keys(mapDictionary).length} çevre tanımlandı)`);
-            updateMapColors(); 
-        } else {
-            alert("Geçersiz format: Sözlük içinde geçerli bir eşleştirme bulunamadı.");
-        }
-    } catch(e) {
-        alert("Hata: Sözlük dosyası okunamadı. " + e.message);
-    }
-};
-
-// Agresif Boyama (Zorlayıcı Modül)
-function setElementFillAggressive(el, color) {
-    el.removeAttribute('class');
-    el.style.setProperty('fill', color, 'important');
-    el.setAttribute('fill', color);
-    
-    el.querySelectorAll('*').forEach(c => {
-        const tag = c.tagName.toLowerCase();
-        if(['path', 'polygon', 'polyline', 'rect', 'circle', 'g'].includes(tag)) {
-            c.removeAttribute('class');
-            c.style.setProperty('fill', color, 'important');
-            c.setAttribute('fill', color);
-        }
-    });
-}
-
-function updateMapColors() {
-    if(Object.keys(globalResults).length === 0) return;
-    
-    const svg = document.querySelector('#svgMapWrapper svg');
-    if(!svg) return;
-
-    const normalizedResults = {};
-    for(let key in globalResults) {
-        normalizedResults[key.trim().toLowerCase()] = globalResults[key];
-    }
-
-    const normalizedDict = {};
-    for(let key in mapDictionary) {
-        normalizedDict[key.trim().toLowerCase()] = mapDictionary[key].trim().toLowerCase();
-    }
-
-    let paintedCount = 0; 
-    let foundAnyId = false;
-    let unmatchedIds = new Set();
-    
-    const mapElements = svg.querySelectorAll('path, g, polygon, polyline, rect');
-    
-    mapElements.forEach(el => {
-        let rawId = el.getAttribute('id') || el.getAttribute('name') || el.getAttribute('data-id') || el.getAttribute('data-name');
-        
-        if(!rawId) return; 
-        foundAnyId = true;
-        
-        const originalRawId = rawId; 
-        rawId = rawId.trim().toLowerCase();
-        
-        let cleanId = rawId.replace(/_[0-9]+_?/g, '').replace(/_x5f_.*/, '').replace(/-[0-9]+$/, '');
-        
-        let targetDistrictNameLower = normalizedDict[rawId] || normalizedDict[cleanId];
-        
-        if(!targetDistrictNameLower) {
-            unmatchedIds.add(originalRawId);
-            return; 
-        }
-
-        const result = normalizedResults[targetDistrictNameLower]; 
-        if(result) {
-            unmatchedIds.delete(originalRawId);
-            
-            let targetColor = '#e4e6eb'; 
-            
-            if (activePartyFilter) {
-                if (result.mvs && result.mvs[activePartyFilter] > 0) {
-                    targetColor = getPartyColor(activePartyFilter);
-                }
-            } else {
-                let maxVotes = -1;
-                let winnerParty = null;
-                Object.entries(result.rawVotes).forEach(([p, v]) => {
-                    if(v > maxVotes) { maxVotes = v; winnerParty = p; }
-                });
-                if(winnerParty) targetColor = getPartyColor(winnerParty);
-            }
-
-            setElementFillAggressive(el, targetColor);
-            paintedCount++;
-        }
-    });
-
-    let dbg = document.getElementById('mapDebugInfo');
-    if(!dbg) {
-        dbg = document.createElement('div');
-        dbg.id = 'mapDebugInfo';
-        dbg.style.cssText = "font-size:13px; padding:12px; border-radius:6px; margin-top:16px; text-align:left; line-height:1.5;";
-        document.getElementById('mapContainer').appendChild(dbg);
-    }
-    
-    if (paintedCount > 0) {
-        dbg.style.backgroundColor = '#e6f4ea';
-        dbg.style.color = '#137333';
-        dbg.style.border = '1px solid #137333';
-        dbg.innerHTML = `<strong>✅ Harita Başarıyla Güncellendi! (${paintedCount} Çevre Boyandı)</strong>`;
-        
-        if(unmatchedIds.size > 0 && unmatchedIds.size < 50) { 
-             const sampleIds = Array.from(unmatchedIds).slice(0, 8).join(', ');
-             dbg.innerHTML += `<br><span style="font-size:11px; margin-top:6px; display:block;">ℹ️ Boyanmayan bazı harita parçaları fark ettik: ${sampleIds}... Sözlüğünüzde eksik olabilir.</span>`;
-        }
-        
-    } else if (!foundAnyId) {
-        dbg.style.backgroundColor = '#fce8e8';
-        dbg.style.color = '#c5221f';
-        dbg.style.border = '1px solid #c5221f';
-        dbg.innerHTML = `<strong>⚠️ DİKKAT: Yüklediğiniz SVG'nin içinde hiçbir ID veya isim etiketi yok!</strong><br>
-        Haritanız tamamen 'isimsiz' vektörlerden oluşuyor. Programınızdan haritayı dışa aktarırken katman isimlerini kaydettiğinden emin olun.`;
-    } else {
-        const sampleIds = Array.from(unmatchedIds).slice(0, 15).join('</b>, <b>');
-        dbg.style.backgroundColor = '#fff3cd';
-        dbg.style.color = '#856404';
-        dbg.style.border = '1px solid #ffeeba';
-        dbg.innerHTML = `<strong>⚠️ Haritanız analiz edildi, ancak eşleştirme sözlüğünüz haritayla uyuşmuyor!</strong><br>
-        Harita içerisinden şu isimleri bulduk: <b>${sampleIds}...</b><br>
-        Lütfen <code>.json</code> sözlüğünüzün sol tarafını haritanızdan çıkan bu isimlere göre düzenleyin.`;
-    }
-}
-
 
 function escapeStr(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
 
@@ -1023,6 +780,7 @@ async function loadFromArchive() {
     if(!fileName) return alert("Lütfen arşivden bir dosya seçin!");
     
     try {
+        // Fetch ile Github Pages gibi aynı sunucu kök dizinindeki JSON'u getiriyoruz
         const response = await fetch(fileName);
         if(!response.ok) throw new Error("Sunucu Hatası: " + response.status + ". Dosyanın ('" + fileName + "') index.html ile aynı dizinde olduğuna emin olun.");
         
@@ -1030,6 +788,7 @@ async function loadFromArchive() {
         applyProjectData(data);
         alert("Arşiv projesi başarıyla getirildi: " + fileName);
         
+        // Eğer veriler getirildiyse otomatik hesapla/çizdir
         if (datasets.length > 0) runProjection();
         
     } catch(err) {
@@ -1101,12 +860,14 @@ window.applySorting = function() {
     if(Object.keys(globalResults).length > 0) renderResults(globalResults);
 };
 
+// Parti Filtreleme Fonksiyonu
 window.togglePartyFilter = function(party) {
     if (activePartyFilter === party) {
         activePartyFilter = null;
-        $('sortPartySel').value = 'default';
+        $('sortPartySel').value = 'default'; // Filtre kalkınca varsayılan sıralamaya dön
     } else {
         activePartyFilter = party;
+        // Filtrelenen partiyi otomatik olarak sıralama kutusuna ata
         const sel = $('sortPartySel');
         for(let i=0; i<sel.options.length; i++) {
             if(sel.options[i].value === party) {
@@ -1387,12 +1148,13 @@ function runProjection() {
     $('sortPanelContainer').style.display = 'flex';
     renderResults(globalResults);
 
+    // Eğer detaylı inceleme modu (overlay) o anda açıksa, onu da yeni verilere göre render et
     if (currentOverlayData && $('districtOverlay').style.display === 'block') {
         if (globalResults[currentOverlayData.name]) {
             currentOverlayData.data = globalResults[currentOverlayData.name];
             renderDistrictOverlay();
         } else {
-            closeDistrictOverlay(); 
+            closeDistrictOverlay(); // Seçim çevresi hesaplamada kaybolursa (örn: veri silindi) kapat
         }
     }
 }
@@ -1454,11 +1216,11 @@ function getVisualSeats(seatsObj, total) {
 function createParliamentDonut(seatsObj, total) {
     if (total === 0) return '';
     let currentAngle = Math.PI; 
-    let radius = 35; 
+    let radius = 35; // Taşmayı önlemek için grafiğin iç yarıçapı hafif daraltıldı
     let cx = 50, cy = 50;
     let svg = `<svg viewBox="0 0 100 55" style="width:100%; max-width:500px; margin: 0 auto; display:block; overflow:visible;">`;
     
-    svg += `<path d="M 15 50 A 35 35 0 0 1 85 50" fill="none" stroke="#f0f2f5" stroke-width="20" />`; 
+    svg += `<path d="M 15 50 A 35 35 0 0 1 85 50" fill="none" stroke="#f0f2f5" stroke-width="20" />`; // 15->20 yapıldı
 
     const { visualObj, visualTotal } = getVisualSeats(seatsObj, total);
 
@@ -1483,9 +1245,10 @@ function createParliamentDonut(seatsObj, total) {
         let color = getPartyColor(p);
         let safePartyStr = escapeStr(p);
         
+        // Aktif Filtre Görselliği (Kalınlıklar artırıldı)
         let isFocused = activePartyFilter === p;
         let pathOpacity = (activePartyFilter && !isFocused) ? '0.25' : '1';
-        let strokeW = isFocused ? '24' : '20'; 
+        let strokeW = isFocused ? '24' : '20'; // Normal: 20, Seçiliyken: 24 (Önceki 15 ve 18'di)
         
         svg += `<path d="M ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2}" 
                 fill="none" stroke="${color}" stroke-width="${strokeW}" 
@@ -1517,6 +1280,7 @@ function renderResults(res){
     let sortParty = $('sortPartySel').value;
     const sortOrder = $('sortOrderSel').value;
 
+    // --- GENEL (GLOBAL) KONTENJAN HESAPLAMASI (Filtreden Bağımsız) ---
     let totalMvs = {};
     let globalSeatCount = 0;
     Object.keys(res).forEach(d => {
@@ -1530,6 +1294,7 @@ function renderResults(res){
         });
     });
 
+    // PARLAMENTO DİYAGRAMINI ÇİZ
     if (globalSeatCount > 0) {
         $('parliamentContainer').style.display = 'block';
         const sortedMvKeys = Object.keys(totalMvs).sort((a,b) => totalMvs[b] - totalMvs[a]);
@@ -1540,15 +1305,18 @@ function renderResults(res){
         $('parliamentContainer').style.display = 'none';
     }
 
+    // --- FİLTRELEME & SIRALAMA ---
     let sortedNames = Object.keys(res);
 
     if (activePartyFilter) {
+        // Banner'ı göster ve partinin rengine boya
         $('filterBanner').style.display = 'flex';
         $('filterBanner').style.background = getPartyColor(activePartyFilter);
         $('filterBannerText').innerHTML = `🎯 Sadece <b>${activePartyFilter}</b> partisinin milletvekili çıkardığı çevreler gösteriliyor.`;
         
-        sortParty = activePartyFilter; 
+        sortParty = activePartyFilter; // Sıralamayı bu partiye zorla
         
+        // Filtreleme: Sadece vekil çıkardığı yerleri (MB hariç/dahil) tut
         sortedNames = sortedNames.filter(d => res[d].mvs && res[d].mvs[activePartyFilter] > 0);
     } else {
         $('filterBanner').style.display = 'none';
@@ -1580,6 +1348,7 @@ function renderResults(res){
         return;
     }
 
+    // --- KARTLARI (ÇEVRELERİ) RENDER ET ---
     sortedNames.forEach(d => {
         const item = res[d];
         const card = document.createElement('div');
@@ -1587,6 +1356,7 @@ function renderResults(res){
         card.style.cursor = 'pointer';
         card.title = 'Detayları görmek için tıklayın';
         
+        // Birinci partiyi bulup vurgu rengini ayarlama
         let borderCol = 'var(--border)';
         if (item.isMilliBakiye) {
             borderCol = 'var(--purple)';
@@ -1678,8 +1448,6 @@ function renderResults(res){
         card.innerHTML = cardContent;
         area.appendChild(card);
     });
-
-    updateMapColors();
 }
 
 function downloadAdvancedResults(){
@@ -1720,6 +1488,7 @@ function downloadAdvancedResults(){
 
     txt += "\n[SONUCLAR]\n";
     
+    // Yalnızca Seçim Çevreleri eklenecek (Milli Bakiye sonuçları harici tutuluyor)
     const sortedDistricts = Object.keys(globalResults).filter(k => !globalResults[k].isMilliBakiye).sort((a,b) => a.localeCompare(b, 'tr'));
 
     sortedDistricts.forEach(dName => {
@@ -1739,9 +1508,11 @@ function downloadAdvancedResults(){
     a.click();
 }
 
+// --- GÜNCELLENEN OVERLAY MEKANİĞİ ---
 let currentOverlayData = null;
 let showingAllInOverlay = false;
 
+// Klavye ile yönlendirme
 document.addEventListener('keydown', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if ($('districtOverlay').style.display === 'block') {
@@ -1755,6 +1526,7 @@ function getSortedDistrictNames() {
     let sortParty = $('sortPartySel').value;
     const sortOrder = $('sortOrderSel').value;
     
+    // Aktif filtre varsa listeye sadece filtrelenmiş bölgeleri dahil et ki yön tuşları sadece bu bölgeler arasında gezsin
     let names = Object.keys(globalResults);
     if(activePartyFilter) {
         names = names.filter(d => globalResults[d].mvs && globalResults[d].mvs[activePartyFilter] > 0);
@@ -1798,11 +1570,13 @@ window.openDistrictOverlay = function(dName) {
     };
     showingAllInOverlay = false;
     
+    // Scroll pozisyonunu hafızaya al ve menüyü gizle
     savedScrollPosition = document.querySelector('.right-panel').scrollTop;
     
     $('mainContentWrapper').style.display = 'none';
     $('districtOverlay').style.display = 'block';
     
+    // Inceleme ekranı en üstten başlasın
     document.querySelector('.right-panel').scrollTop = 0;
     
     renderDistrictOverlay();
@@ -1810,9 +1584,10 @@ window.openDistrictOverlay = function(dName) {
 
 window.closeDistrictOverlay = function() {
     $('districtOverlay').style.display = 'none';
-    $('mainContentWrapper').style.display = 'block'; 
+    $('mainContentWrapper').style.display = 'block'; // Ana içeriği geri getir
     currentOverlayData = null;
     
+    // Izgaraya geri dönüldüğünde eski scroll pozisyonunu (kaldığın yeri) geri yükle
     document.querySelector('.right-panel').scrollTop = savedScrollPosition;
 };
 
@@ -1828,23 +1603,26 @@ function renderDistrictOverlay() {
     
     const sortedParties = Object.keys(item.rawVotes).sort((a,b) => item.rawVotes[b] - item.rawVotes[a]);
     
+    // Kazanan Parti Tespiti ve Etiket
     let winnerParty = null;
     if (sortedParties.length > 0 && item.rawVotes[sortedParties[0]] > 0) {
         winnerParty = sortedParties[0];
     }
 
     let winnerTagHtml = '';
-    let borderCol = 'var(--border)'; 
+    let borderCol = 'var(--border)'; // Varsayılan panel vurgu rengi
     
     if (item.isMilliBakiye) {
         borderCol = 'var(--purple)';
     } else if (winnerParty) {
         const wColor = getPartyColor(winnerParty);
-        borderCol = wColor; 
+        borderCol = wColor; // Kazanan partinin rengini vurguya veriyoruz
         
+        // Kazanan rozeti (içi parti renginde, emoji yok)
         winnerTagHtml = `<span style="background:${wColor}; color:#ffffff; padding:4px 12px; border-radius:8px; font-size:1.1rem; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.15);">${winnerParty}</span>`;
     }
 
+    // Tam Ekran Inceleme modundaki kutunun sınır çizgisini (Vurguyu) dinamik yapıp kalınlaştırdık (10px)
     const overlayContainer = document.querySelector('.do-container');
     if (overlayContainer) {
         overlayContainer.style.borderTop = `10px solid ${borderCol}`;
@@ -1853,6 +1631,7 @@ function renderDistrictOverlay() {
     $('doTitleName').innerHTML = `🗳️ ${dName}`;
     $('doTitleWinner').innerHTML = winnerTagHtml;
     
+    // Tam ekranda da Milletvekili sayısını değiştirme imkanı (YENİ)
     let seatHtml = '';
     if (item.isMilliBakiye) {
         seatHtml = `<div style="background:var(--purple); color:white; padding:6px 12px; border-radius:6px; font-size:1.1rem; font-weight:bold; border:1px solid var(--purple); white-space:nowrap;">${item.seats} MB Koltuğu</div>`;
@@ -1875,6 +1654,7 @@ function renderDistrictOverlay() {
         const color = getPartyColor(p);
         const hasPassed = item.passed.has(p);
         
+        // Kural: Vekil çıkaran VEYA oyu %1'e eşit/büyük olanlar varsayılan gösterilir
         const isDefaultVisible = s > 0 || pctNum >= 1.00;
         
         if (!isDefaultVisible && !showingAllInOverlay) {
@@ -1882,6 +1662,7 @@ function renderDistrictOverlay() {
             return;
         }
         
+        // Tek Başlık Altında Birleştirilmiş Liste (Parti Adı + Yuvarlatılmış Bar/Yüzde + Mv)
         listHtml += `
             <div class="data-row" style="display:flex; justify-content:space-between; align-items:center; border-left: 4px solid ${color}; padding: 12px 16px; border-radius: 6px; border-bottom: 1px solid var(--bg); background: var(--surface);">
                 <div style="width:130px; font-weight:bold; font-size:15px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeStr(p)}">${p}</div>
