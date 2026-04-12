@@ -229,6 +229,12 @@
             height: auto !important;
         }
         .fullscreen-map h3 { display: none !important; }
+        
+        /* Özel İnceleme Modu Geçişleri */
+        .dist-card { transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s; }
+        #svgMapWrapper path, #svgMapWrapper g, #svgMapWrapper polygon, #svgMapWrapper polyline, #svgMapWrapper rect {
+            transition: fill 0.4s ease, filter 0.2s ease, stroke-width 0.2s ease, opacity 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -408,8 +414,11 @@
 
 <div class="right-panel">
     <!-- GLOBAL TOGGLE BUTONU -->
-    <div id="globalModeToggle">
-        <button id="mapModeToggleBtn" onclick="toggleMapMode()" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 14px; font-weight:bold; padding: 10px 16px; border: 2px solid var(--border); display: flex; align-items: center; gap: 8px;">
+    <div id="globalModeToggle" style="display:flex; gap:8px;">
+        <button id="selectionModeToggleBtn" onclick="toggleSelectionMode()" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 14px; font-weight:bold; padding: 10px 16px; border: 2px solid var(--border); display: flex; align-items: center; gap: 8px; transition: 0.2s; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+            <span style="font-size:18px;">🖱️</span> Özel İnceleme
+        </button>
+        <button id="mapModeToggleBtn" onclick="toggleMapMode()" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 14px; font-weight:bold; padding: 10px 16px; border: 2px solid var(--border); display: flex; align-items: center; gap: 8px; transition: 0.2s; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
             <span style="font-size:18px;">🔄</span> Görünüm: Partiler
         </button>
     </div>
@@ -487,6 +496,19 @@
             <button id="doShowAllBtn" onclick="showAllPartiesInOverlay()" style="background: var(--text-secondary); display:none; padding: 12px; font-size: 14px; width: 100%;">Gizlenen Tüm Partileri Göster ▼</button>
         </div>
     </div>
+    
+    <!-- YENİ: ÖZEL İNCELEME (ARA SEÇİM) PANELİ -->
+    <div id="selectionPanel" style="display:none; position: fixed; bottom: 24px; right: 24px; width: 340px; background: var(--surface); border-radius: 12px; border: 2px solid var(--purple); box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 10000; flex-direction: column; max-height: 65vh; animation: fadeIn 0.3s ease;">
+        <div style="background: var(--purple); color: white; padding: 12px 16px; border-radius: 10px 10px 0 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleSelectionPanelBody()">
+            <h4 style="margin:0; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                <span>📍</span> Seçili Çevreler (<span id="selCount" style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px;">0</span>)
+            </h4>
+            <span id="selPanelIcon" style="font-size: 12px; transition: transform 0.2s;">▼</span>
+        </div>
+        <div id="selectionPanelBody" style="padding: 16px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border-radius: 0 0 10px 10px;">
+            <!-- İçerik Dinamik Yüklenecek -->
+        </div>
+    </div>
 </div>
 
 <div id="colorModalOverlay">
@@ -510,6 +532,7 @@ let electoralAlliances = [];
 let globalParties = new Set(); 
 let customSeatOverrides = {}; 
 let globalResults = {}; 
+let localDisabledParties = {}; // YENİ: İl bazlı parti iptallerini tutar
 
 let dragCtx = { type: null, idx: null };
 let activePartyFilter = null;
@@ -518,6 +541,11 @@ let mapDictionary = {};
 let customDotPositions = {}; 
 let mapMode = 'party'; // 'party' veya 'alliance'
 let isFullscreen = false; // Harita tam ekran modu bayrağı
+
+// Yeni Ara Seçim İnceleme Değişkenleri
+let isSelectionModeActive = false;
+let selectedDistricts = new Set();
+let isSelectionPanelCollapsed = false;
 
 function blendWithWhite(hexColor, whiteRatio) {
     let hex = hexColor.replace('#', '');
@@ -1056,6 +1084,8 @@ function updateMapColors() {
         Harita içerisinden şu isimleri bulduk: <b>${sampleIds}...</b><br>
         Lütfen <code>.json</code> sözlüğünüzün sol tarafını haritanızdan çıkan bu isimlere göre düzenleyin.`;
     }
+
+    if (isSelectionModeActive) updateSelectionUI();
 }
 
 // --- İNTERAKTİF DÜZENLEME MODU (DRAG & DROP) ---
@@ -1251,8 +1281,12 @@ svgWrapper.addEventListener('click', (e) => {
     
     const dName = getMapDistrictName(e.target);
     if (dName && globalResults[dName]) {
-        openDistrictOverlay(dName);
-        $('mapTooltip').style.display = 'none'; 
+        if (isSelectionModeActive) {
+            toggleDistrictSelection(dName);
+        } else {
+            openDistrictOverlay(dName);
+            $('mapTooltip').style.display = 'none'; 
+        }
     }
 });
 
@@ -1385,6 +1419,13 @@ window.renameParty = function(idx, newName) {
     coalitions.forEach(c => { const mIdx = c.members.indexOf(oldName); if(mIdx > -1) c.members[mIdx] = newName; });
     electoralAlliances.forEach(a => { const mIdx = a.members.indexOf(oldName); if(mIdx > -1) a.members[mIdx] = newName; });
     
+    for(let d in localDisabledParties) {
+        if(localDisabledParties[d].has(oldName)) {
+            localDisabledParties[d].delete(oldName);
+            localDisabledParties[d].add(newName);
+        }
+    }
+    
     renderExtraParties(); renderCoalitions(); renderAlliances();
 };
 
@@ -1395,13 +1436,30 @@ window.renameCoalition = function(idx, newName) {
     if(oldName === newName) return;
     coalitions[idx].name = newName;
     electoralAlliances.forEach(a => { const mIdx = a.members.indexOf(oldName); if(mIdx > -1) a.members[mIdx] = newName; });
+    
+    for(let d in localDisabledParties) {
+        if(localDisabledParties[d].has(oldName)) {
+            localDisabledParties[d].delete(oldName);
+            localDisabledParties[d].add(newName);
+        }
+    }
+
     renderCoalitions(); renderAlliances();
 };
 
 window.renameAlliance = function(idx, newName) {
     newName = newName.trim();
     if(!newName) { renderAlliances(); return; }
+    const oldName = electoralAlliances[idx].name;
     electoralAlliances[idx].name = newName;
+    
+    for(let d in localDisabledParties) {
+        if(localDisabledParties[d].has(oldName)) {
+            localDisabledParties[d].delete(oldName);
+            localDisabledParties[d].add(newName);
+        }
+    }
+
     renderAlliances();
 };
 
@@ -1590,6 +1648,11 @@ function saveProject() {
     const projectData = {
         meta: { version: "9.5", date: new Date().toISOString() },
         datasets, extraParties, coalitions, electoralAlliances, customSeatOverrides, customDotPositions,
+        localDisabledParties: (() => {
+            let obj = {};
+            for(let k in localDisabledParties) obj[k] = Array.from(localDisabledParties[k]);
+            return obj;
+        })(),
         settings: {
             threshold: parseFloat($('thresholdInp').value) || 7,
             calcMethod: $('calcMethodInp').value || 'classic',
@@ -1679,6 +1742,13 @@ function applyProjectData(data) {
     
     customSeatOverrides = data.customSeatOverrides || {};
     customDotPositions = data.customDotPositions || {};
+    
+    localDisabledParties = {};
+    if (data.localDisabledParties) {
+        for(let k in data.localDisabledParties) {
+            localDisabledParties[k] = new Set(data.localDisabledParties[k]);
+        }
+    }
     
     if(data.settings) {
         if(data.settings.threshold !== undefined) $('thresholdInp').value = data.settings.threshold;
@@ -1831,6 +1901,26 @@ function runProjection() {
         const totalScore = Object.values(scoreMap).reduce((a,b)=>a+b,0);
         const finalVotes = {};
         for(let p in scoreMap) finalVotes[p] = (scoreMap[p]/(totalScore||1)) * districtTotalVotes;
+
+        // --- YENİ: İL BAZLI PARTİ İPTALLERİNİ (PASİF DURUMLARI) UYGULA ---
+        const locallyDisabled = localDisabledParties[dName] || new Set();
+        let effectivelyDisabled = new Set(locallyDisabled);
+        
+        locallyDisabled.forEach(name => {
+            let c = coalitions.find(coal => coal.name === name);
+            if (c) c.members.forEach(m => effectivelyDisabled.add(m));
+            let a = electoralAlliances.find(all => all.name === name);
+            if (a) a.members.forEach(m => effectivelyDisabled.add(m));
+        });
+
+        effectivelyDisabled.forEach(p => {
+            if (finalVotes[p] !== undefined) {
+                districtTotalVotes -= finalVotes[p]; // Toplam oydan düş (Oylar yandı)
+                finalVotes[p] = 0; // Partinin oyunu sıfırla
+            }
+        });
+        if(districtTotalVotes <= 0) districtTotalVotes = 1;
+        // ---------------------------------------------------------------
 
         const dhondtInputRaw = {...finalVotes};
         coalitions.forEach(c => {
@@ -2176,6 +2266,7 @@ function renderResults(res){
         
         const card = document.createElement('div');
         card.className = 'dist-card';
+        card.setAttribute('data-district', d);
         card.style.cursor = 'pointer';
         card.title = 'Detayları görmek için tıklayın';
         
@@ -2211,7 +2302,11 @@ function renderResults(res){
 
         card.onclick = (e) => {
             if(e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('.seat-editor') || e.target.closest('.expand-btn')) return;
-            openDistrictOverlay(d);
+            if (isSelectionModeActive) {
+                toggleDistrictSelection(d);
+            } else {
+                openDistrictOverlay(d);
+            }
         };
         
         let tier1Html = '', tier2Html = '', tier3Html = '';
@@ -2258,7 +2353,11 @@ function renderResults(res){
         });
         
         let cardContent = `
-            <h3>${d.replace('🌟 ', '')} 
+            <h3>
+                <div style="display:flex; align-items:center;">
+                    ${d.replace('🌟 ', '')} 
+                    ${(localDisabledParties[d] && localDisabledParties[d].size > 0) ? `<span title="Bu çevrede bazı partiler pasife alınmış" style="font-size:12px; cursor:help; margin-left:8px; background:#fff3cd; color:#856404; padding:2px 6px; border-radius:4px; border:1px solid #ffeeba; display:inline-flex; align-items:center;">🛠️ Özel</span>` : ''}
+                </div>
                 ${displayData.isMilliBakiye 
                     ? `<span class="seat-editor" style="background:var(--purple); color:white; border-color:var(--purple); cursor:default;">${displayData.seats} MB Koltuğu</span>`
                     : `<span class="seat-editor" title="Koltuk sayısını değiştir"><input type="number" value="${displayData.seats}" onchange="updateSeatOverride('${escapeStr(d)}', this.value)"> Mv</span>`
@@ -2289,6 +2388,7 @@ function renderResults(res){
     });
 
     updateMapColors();
+    if (isSelectionModeActive) updateSelectionUI();
 }
 
 function downloadAdvancedResults(){
@@ -2486,6 +2586,16 @@ window.showAllPartiesInOverlay = function() {
     renderDistrictOverlay();
 };
 
+window.toggleLocalParty = function(dName, partyName) {
+    if (!localDisabledParties[dName]) localDisabledParties[dName] = new Set();
+    if (localDisabledParties[dName].has(partyName)) {
+        localDisabledParties[dName].delete(partyName);
+    } else {
+        localDisabledParties[dName].add(partyName);
+    }
+    runProjection(); // Değişikliği anında hesapla ve görünümleri güncelle
+};
+
 function renderDistrictOverlay() {
     if(!currentOverlayData) return;
     const dName = currentOverlayData.name;
@@ -2566,24 +2676,32 @@ function renderDistrictOverlay() {
         const color = getPartyColor(p);
         const hasPassed = hasEntityPassed(p, displayData.passed);
         
-        const isDefaultVisible = s > 0 || pctNum >= 1.00;
+        const isLocallyDisabled = localDisabledParties[dName] && localDisabledParties[dName].has(p);
+        
+        // Eğer parti yerel olarak kapatılmışsa her zaman görünür kalsın (tier3'e saklanmasın)
+        const isDefaultVisible = s > 0 || pctNum >= 1.00 || isLocallyDisabled;
         
         if (!isDefaultVisible && !showingAllInOverlay) {
             hasHidden = true;
             return;
         }
         
+        const toggleBtn = `<button onclick="toggleLocalParty('${escapeStr(dName)}', '${escapeStr(p)}')" class="status-btn ${!isLocallyDisabled ? 'active' : ''}" style="width:28px; height:28px; background:${!isLocallyDisabled ? 'var(--success)' : '#f5f6f7'}; color:${!isLocallyDisabled ? '#fff' : 'var(--text-secondary)'}; border:none; margin-right:12px; flex-shrink:0; cursor:pointer; font-size:12px; font-weight:bold; box-shadow:0 1px 2px rgba(0,0,0,0.1); transition:0.2s;" title="${!isLocallyDisabled ? 'Seçim çevresinde aktif - Pasife almak için tıkla' : 'Seçim çevresinde pasif - Aktif etmek için tıkla'}">${!isLocallyDisabled ? 'A' : 'P'}</button>`;
+        
         listHtml += `
-            <div class="data-row" style="display:flex; justify-content:space-between; align-items:center; border-left: 4px solid ${color}; padding: 12px 16px; border-radius: 6px; border-bottom: 1px solid var(--bg); background: var(--surface);">
-                <div style="width:130px; font-weight:bold; font-size:15px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeStr(p)}">${p}</div>
+            <div class="data-row" style="display:flex; justify-content:space-between; align-items:center; border-left: 4px solid ${color}; padding: 12px 16px; border-radius: 6px; border-bottom: 1px solid var(--bg); background: var(--surface); opacity: ${isLocallyDisabled ? '0.65' : '1'}; filter: ${isLocallyDisabled ? 'grayscale(0.5)' : 'none'};">
+                <div style="width:160px; display:flex; align-items:center;">
+                    ${toggleBtn}
+                    <div style="font-weight:bold; font-size:15px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeStr(p)}">${p}</div>
+                </div>
                 
                 <div style="flex:1; display:flex; align-items:center; margin: 0 15px;">
-                    <div style="width:${pctNum}%; max-width:calc(100% - 60px); background:${color}; height:24px; border-radius:6px; min-width:4px; transition:width 0.5s ease-out;"></div>
-                    <span style="margin-left:8px; font-weight:bold; font-size:15px; color:var(--text); ${!hasPassed ? 'text-decoration: line-through; color: #ef9a9a;' : ''}">%${pctStr}</span>
+                    <div style="width:${pctNum}%; max-width:calc(100% - 60px); background:${isLocallyDisabled ? 'var(--border)' : color}; height:24px; border-radius:6px; min-width:4px; transition:width 0.5s ease-out;"></div>
+                    <span style="margin-left:8px; font-weight:bold; font-size:15px; color:var(--text); ${isLocallyDisabled || !hasPassed ? 'text-decoration: line-through; color: #ef9a9a;' : ''}">${isLocallyDisabled ? 'Aday Yok' : '%'+pctStr}</span>
                 </div>
 
                 <div style="width:110px; text-align:right;">
-                    ${s > 0 
+                    ${s > 0 && !isLocallyDisabled
                         ? `<span class="mv-tag" style="font-size:14px; padding:6px 12px; background:${color}; box-shadow: var(--shadow);">${s} Mv</span>` 
                         : ``}
                 </div>
@@ -2593,6 +2711,159 @@ function renderDistrictOverlay() {
     
     $('doUnifiedList').innerHTML = listHtml;
     $('doShowAllBtn').style.display = hasHidden ? 'block' : 'none';
+}
+
+// --- ÖZEL İNCELEME (ARA SEÇİM) FONKSİYONLARI ---
+function toggleSelectionMode() {
+    isSelectionModeActive = !isSelectionModeActive;
+    const btn = $('selectionModeToggleBtn');
+    const panel = $('selectionPanel');
+    
+    if (isSelectionModeActive) {
+        btn.innerHTML = '<span style="font-size:18px;">🎯</span> Özel İnceleme: AÇIK';
+        btn.style.borderColor = 'var(--purple)';
+        btn.style.color = 'var(--purple)';
+        btn.style.background = '#f3e5f5';
+        panel.style.display = 'flex';
+    } else {
+        btn.innerHTML = '<span style="font-size:18px;">🖱️</span> Özel İnceleme';
+        btn.style.borderColor = 'var(--border)';
+        btn.style.color = 'var(--text)';
+        btn.style.background = 'var(--surface)';
+        panel.style.display = 'none';
+        selectedDistricts.clear();
+    }
+    updateSelectionUI();
+}
+
+function toggleDistrictSelection(dName) {
+    if (dName.includes('Milli Bakiye')) return; // Milli Bakiye hariç tutulur
+    if (selectedDistricts.has(dName)) {
+        selectedDistricts.delete(dName);
+    } else {
+        selectedDistricts.add(dName);
+    }
+    updateSelectionUI();
+}
+
+function updateSelectionUI() {
+    // 1. Paneli Güncelle
+    $('selCount').innerText = selectedDistricts.size;
+    const body = $('selectionPanelBody');
+    
+    if (selectedDistricts.size === 0) {
+        body.innerHTML = '<div style="font-size:12px; color:var(--text-secondary); text-align:center; padding: 20px 0;">Haritadan veya yandaki kartlardan<br>incelemek istediğiniz çevreleri seçin.</div>';
+    } else {
+        let totalVotes = 0;
+        let totalSeats = 0;
+        let partyVotes = {};
+        let partySeats = {};
+        
+        selectedDistricts.forEach(d => {
+            const res = globalResults[d];
+            if (res) {
+                totalVotes += res.totalVotes;
+                totalSeats += res.seats;
+                
+                const displayData = getDisplayData(res);
+                Object.entries(displayData.rawVotes).forEach(([p, v]) => {
+                    partyVotes[p] = (partyVotes[p] || 0) + v;
+                });
+                Object.entries(displayData.mvs).forEach(([p, s]) => {
+                    partySeats[p] = (partySeats[p] || 0) + s;
+                });
+            }
+        });
+        
+        const sortedParties = Object.keys(partyVotes).sort((a,b) => partyVotes[b] - partyVotes[a]);
+        
+        let html = `<div style="font-size:11px; color:var(--text-secondary); margin-bottom:8px; text-align:center; border-bottom:1px solid var(--border); padding-bottom:8px;">Toplam Geçerli Oy: <b style="color:var(--text);">${Math.round(totalVotes).toLocaleString('tr-TR')}</b> | Koltuk: <b style="color:var(--text);">${totalSeats}</b></div>`;
+        
+        sortedParties.forEach(p => {
+            const v = partyVotes[p];
+            const s = partySeats[p] || 0;
+            if (v < 10) return;
+            
+            const pct = totalVotes > 0 ? ((v / totalVotes) * 100).toFixed(2) : '0.00';
+            const color = getPartyColor(p);
+            
+            html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:8px 12px; border-radius:6px; border-left:4px solid ${color};">
+                <span style="font-weight:bold; font-size:13px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text);" title="${p}">${p}</span>
+                <div style="text-align:right; display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                        <span style="font-weight:bold; font-size:13px; color:var(--text);">%${pct}</span>
+                        <span style="font-size:10px; color:var(--text-secondary);">${Math.round(v).toLocaleString('tr-TR')} oy</span>
+                    </div>
+                    ${s > 0 ? `<span style="font-size:11px; background:${color}; color:white; padding:4px 6px; border-radius:4px; font-weight:bold; min-width:40px; text-align:center;">${s} Mv</span>` : `<span style="width:40px;"></span>`}
+                </div>
+            </div>`;
+        });
+        
+        body.innerHTML = html;
+    }
+
+    // 2. Kartları Görsel Olarak Vurgula
+    document.querySelectorAll('.dist-card').forEach(card => {
+        const dName = card.getAttribute('data-district');
+        if (isSelectionModeActive && selectedDistricts.size > 0) {
+            if (selectedDistricts.has(dName)) {
+                card.style.boxShadow = '0 0 0 4px var(--purple)';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(-2px)';
+            } else {
+                card.style.boxShadow = 'var(--shadow)';
+                card.style.opacity = '0.35';
+                card.style.transform = 'none';
+            }
+        } else {
+            card.style.boxShadow = 'var(--shadow)';
+            card.style.opacity = '1';
+            card.style.transform = 'none';
+        }
+    });
+    
+    // 3. Haritayı Görsel Olarak Vurgula
+    const svg = document.querySelector('#svgMapWrapper svg');
+    if (svg) {
+        const paths = svg.querySelectorAll('path, g, polygon, polyline, rect');
+        paths.forEach(el => {
+            const dName = el.getAttribute('data-district-name');
+            if (dName && globalResults[dName]) {
+                if (isSelectionModeActive && selectedDistricts.size > 0) {
+                    if (selectedDistricts.has(dName)) el.style.opacity = '1';
+                    else el.style.opacity = '0.2';
+                } else {
+                    el.style.opacity = '1';
+                }
+            }
+        });
+        
+        const dotLayer = svg.querySelector('#mp-dots-layer');
+        if (dotLayer) {
+            dotLayer.childNodes.forEach(g => {
+                const dName = g.getAttribute('data-district');
+                if (isSelectionModeActive && selectedDistricts.size > 0) {
+                    if (selectedDistricts.has(dName)) g.style.opacity = '1';
+                    else g.style.opacity = '0.2';
+                } else {
+                    g.style.opacity = '1';
+                }
+            });
+        }
+    }
+}
+
+function toggleSelectionPanelBody() {
+    const body = $('selectionPanelBody');
+    isSelectionPanelCollapsed = !isSelectionPanelCollapsed;
+    if (isSelectionPanelCollapsed) {
+        body.style.display = 'none';
+        $('selPanelIcon').style.transform = 'rotate(-90deg)';
+    } else {
+        body.style.display = 'flex';
+        $('selPanelIcon').style.transform = 'rotate(0deg)';
+    }
 }
 </script>
 </body>

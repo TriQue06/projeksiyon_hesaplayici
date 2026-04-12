@@ -1,7 +1,7 @@
 {
   "meta": {
-    "version": "8.5",
-    "date": "2026-04-08T16:26:35.711Z"
+    "version": "9.5",
+    "date": "2026-04-12T21:24:27.633Z"
   },
   "datasets": [
     {
@@ -2558,7 +2558,7 @@
         "AP": 0.0020262775802904667,
         "ZP": 0.02299665705119564
       },
-      "w": 0.82
+      "w": 0.8
     },
     {
       "id": 1775245971969.7864,
@@ -3706,7 +3706,7 @@
         "SP": 0.013416820063196123,
         "İYİ": 0.0996767175128188
       },
-      "w": 0.06
+      "w": 0.1
     },
     {
       "id": 1775245973939.1687,
@@ -6791,95 +6791,100 @@
         "SP": 0.013830799070390198,
         "VP": 0.001086128358692676
       },
-      "w": 0.12
+      "w": 0.1
     }
   ],
   "extraParties": [
     {
       "name": "CHP",
-      "nat": 32.22,
+      "nat": 32.26,
       "similarity": {
-        "CHP": 0.96,
-        "AKP": 0.01,
-        "DEM": 0.01,
-        "MHP": 0.01,
-        "YRP": 0.005,
-        "ZP": 0.005
+        "CHP": 0.95,
+        "AKP": 0.005,
+        "DEM": 0.005,
+        "MHP": 0.005,
+        "YRP": 0,
+        "ZP": 0.005,
+        "İYİ": 0.015,
+        "MP": 0.005
       },
       "isOpen": false,
-      "color": "#e00719",
+      "color": "#E61919",
       "isEnabled": true
     },
     {
       "name": "AK Parti",
-      "nat": 29.77,
+      "nat": 29.32,
       "similarity": {
-        "AKP": 0.985,
-        "MHP": 0.015
+        "AKP": 0.99,
+        "MHP": 0.01
       },
       "isOpen": false,
-      "color": "#fa9405",
+      "color": "#F2920C",
       "isEnabled": true
     },
     {
       "name": "DEM Parti",
-      "nat": 8.36,
+      "nat": 8.25,
       "similarity": {
         "DEM": 1
       },
       "isOpen": false,
-      "color": "#aa14b8",
+      "color": "#AA14B8",
       "isEnabled": true
     },
     {
       "name": "MHP",
-      "nat": 5.67,
+      "nat": 6.65,
       "similarity": {
         "MHP": 1
       },
       "isOpen": false,
-      "color": "#a1124d",
+      "color": "#A1124D",
       "isEnabled": true
     },
     {
       "name": "İYİ Parti",
-      "nat": 5.95,
+      "nat": 5.87,
       "similarity": {
-        "İYİ": 0.94,
-        "MHP": 0.02,
+        "İYİ": 0.965,
+        "MHP": 0.01,
         "CHP": 0,
-        "AKP": 0.01,
-        "ZP": 0.03
+        "AKP": 0.005,
+        "ZP": 0.01,
+        "MP": 0.005,
+        "YRP": 0.005
       },
       "isOpen": false,
-      "color": "#31abe8",
+      "color": "#FFD400",
       "isEnabled": true
     },
     {
       "name": "Anahtar Parti",
-      "nat": 4.02,
+      "nat": 4.05,
       "similarity": {
-        "AKP": 0.58,
-        "BBP": 0.15,
-        "MHP": 0.15,
-        "YRP": 0.15,
-        "İYİ": 0.1,
-        "CHP": 0.01,
-        "ZP": 0.01
+        "AKP": 0.495,
+        "BBP": 0.13,
+        "MHP": 0.12,
+        "YRP": 0.12,
+        "İYİ": 0.13,
+        "CHP": 0,
+        "ZP": 0.005
       },
       "isOpen": false,
-      "color": "#1f4694",
+      "color": "#1F3D7A",
       "isEnabled": true
     },
     {
       "name": "Zafer Partisi",
-      "nat": 3.57,
+      "nat": 3.54,
       "similarity": {
-        "ZP": 0.92,
-        "İYİ": 0.03,
-        "CHP": 0.02,
-        "AKP": 0.01,
-        "MHP": 0.02
+        "ZP": 0.945,
+        "İYİ": 0.015,
+        "CHP": 0.015,
+        "AKP": 0.005,
+        "MHP": 0.015,
+        "MP": 0.005
       },
       "isOpen": false,
       "color": "#404040",
@@ -6887,102 +6892,106 @@
     },
     {
       "name": "Yeniden Refah",
-      "nat": 3.34,
+      "nat": 4.15,
       "similarity": {
-        "YRP": 0.95,
-        "AKP": 0.05
+        "YRP": 0.97,
+        "AKP": 0.015,
+        "DEM": 0.005,
+        "MHP": 0.005,
+        "İYİ": 0.005
       },
       "isOpen": false,
-      "color": "#169c42",
-      "isEnabled": true
-    },
-    {
-      "name": "Büyük Birlik",
-      "nat": 1.07,
-      "similarity": {
-        "BBP": 0.98,
-        "AKP": 0.01,
-        "MHP": 0.01
-      },
-      "isOpen": false,
-      "color": "#f2590c",
+      "color": "#32993B",
       "isEnabled": true
     },
     {
       "name": "TİP",
-      "nat": 1.03,
+      "nat": 1.05,
       "similarity": {
         "TİP": 1
       },
       "isOpen": false,
-      "color": "#f5257b",
+      "color": "#F5257B",
+      "isEnabled": true
+    },
+    {
+      "name": "Büyük Birlik",
+      "nat": 1.03,
+      "similarity": {
+        "BBP": 0.99,
+        "AKP": 0.005,
+        "MHP": 0.005
+      },
+      "isOpen": false,
+      "color": "#ED5C13",
       "isEnabled": true
     },
     {
       "name": "Saadet",
-      "nat": 1.93,
+      "nat": 0.92,
       "similarity": {
-        "YRP": 0.2,
-        "SP": 0.4,
-        "CHP": 0.1,
-        "İYİ": 0.1,
-        "AKP": 0.2
+        "YRP": 0.05,
+        "SP": 0.8,
+        "CHP": 0.03,
+        "İYİ": 0.07,
+        "AKP": 0.05
       },
       "isOpen": false,
-      "color": "#bf6043",
+      "color": "#BF6041",
       "isEnabled": true
     },
     {
       "name": "HÜDA PAR",
-      "nat": 0.71,
+      "nat": 0.67,
       "similarity": {
-        "HÜDA": 0.98,
-        "AKP": 0.01,
-        "YRP": 0.01
+        "HÜDA": 0.985,
+        "AKP": 0.005,
+        "YRP": 0.005,
+        "DEM": 0.005
       },
       "isOpen": false,
       "isEnabled": true,
-      "color": "#7cbc0c"
+      "color": "#8BBD28"
     },
     {
       "name": "BTP",
-      "nat": 0.33,
+      "nat": 0.34,
       "similarity": {
-        "BTP": 0.3,
+        "BTP": 0.33,
         "AKP": 0.05,
         "CHP": 0.05,
         "MHP": 0.05,
-        "MP": 0.05,
-        "ZP": 0.05,
+        "MP": 0.01,
+        "ZP": 0.06,
         "İYİ": 0.1
       },
       "isOpen": false,
       "isEnabled": true,
-      "color": "#bf000a"
+      "color": "#B31919"
     },
     {
       "name": "DEVA Partisi",
-      "nat": 0.29,
+      "nat": 0.32,
       "similarity": {
-        "DEVA": 0.45,
-        "AKP": 0.32,
-        "CHP": 0.05,
-        "YRP": 0.05,
+        "DEVA": 0.25,
+        "AKP": 0.57,
+        "CHP": 0.03,
+        "YRP": 0.03,
         "İYİ": 0.1,
-        "DEM": 0.02,
-        "MHP": 0.01
+        "DEM": 0.015,
+        "MHP": 0.005
       },
       "isOpen": false,
       "isEnabled": true,
-      "color": "#006ca6"
+      "color": "#0078B4"
     },
     {
       "name": "TKP",
-      "nat": 0.21,
+      "nat": 0.18,
       "similarity": {
         "CHP": 0.02,
-        "TİP": 0.02,
-        "TKP": 0.96
+        "TİP": 0.01,
+        "TKP": 0.97
       },
       "isOpen": false,
       "isEnabled": true,
@@ -6990,7 +6999,7 @@
     },
     {
       "name": "SOL Parti",
-      "nat": 0.17,
+      "nat": 0.16,
       "similarity": {
         "CHP": 0.02,
         "TİP": 0.01,
@@ -7001,8 +7010,48 @@
       "color": "#000000"
     },
     {
+      "name": "AP",
+      "nat": 0.13,
+      "similarity": {
+        "AP": 1
+      },
+      "isOpen": false,
+      "isEnabled": true,
+      "color": "#000000"
+    },
+    {
+      "name": "Gelecek Partisi",
+      "nat": 0.13,
+      "similarity": {
+        "GP": 0.2,
+        "AKP": 0.7,
+        "CHP": 0.01,
+        "DEM": 0.005,
+        "ZP": 0,
+        "YRP": 0.07,
+        "İYİ": 0.015
+      },
+      "isOpen": false,
+      "isEnabled": true,
+      "color": "#006655"
+    },
+    {
+      "name": "ANAP",
+      "nat": 0.12,
+      "similarity": {
+        "ANAP": 0.795,
+        "AKP": 0.075,
+        "ZP": 0.015,
+        "İYİ": 0.1,
+        "YRP": 0.015
+      },
+      "isOpen": false,
+      "isEnabled": true,
+      "color": "#f2c318"
+    },
+    {
       "name": "DP",
-      "nat": 0.16,
+      "nat": 0.11,
       "similarity": {
         "AP": 0.05,
         "DP": 0.6,
@@ -7016,18 +7065,8 @@
       "color": "#000000"
     },
     {
-      "name": "AP",
-      "nat": 0.15,
-      "similarity": {
-        "AP": 1
-      },
-      "isOpen": false,
-      "isEnabled": true,
-      "color": "#000000"
-    },
-    {
       "name": "HKP",
-      "nat": 0.13,
+      "nat": 0.11,
       "similarity": {
         "HKP": 0.97,
         "CHP": 0.02,
@@ -7038,35 +7077,8 @@
       "color": "#000000"
     },
     {
-      "name": "Gelecek Partisi",
-      "nat": 0.12,
-      "similarity": {
-        "GP": 0.35,
-        "AKP": 0.47,
-        "CHP": 0.03,
-        "DEM": 0.01,
-        "ZP": 0,
-        "YRP": 0.1,
-        "İYİ": 0.04
-      },
-      "isOpen": false,
-      "isEnabled": true,
-      "color": "#0d8053"
-    },
-    {
-      "name": "ANAP",
-      "nat": 0.12,
-      "similarity": {
-        "ANAP": 0.99,
-        "AKP": 0.01
-      },
-      "isOpen": false,
-      "isEnabled": true,
-      "color": "#f2c318"
-    },
-    {
       "name": "Genç Parti",
-      "nat": 0.12,
+      "nat": 0.09,
       "similarity": {
         "GENÇ": 1
       },
@@ -7076,7 +7088,7 @@
     },
     {
       "name": "Vatan Partisi",
-      "nat": 0.1,
+      "nat": 0.09,
       "similarity": {
         "VP": 1
       },
@@ -7118,6 +7130,16 @@
       "color": "#000000"
     },
     {
+      "name": "AB Parti",
+      "nat": 0.03,
+      "similarity": {
+        "AB": 1
+      },
+      "isOpen": false,
+      "isEnabled": true,
+      "color": "#000000"
+    },
+    {
       "name": "DYP",
       "nat": 0.03,
       "similarity": {
@@ -7129,6 +7151,26 @@
         "MHP": 0.05,
         "ZP": 0.05,
         "YRP": 0.05
+      },
+      "isOpen": false,
+      "isEnabled": true,
+      "color": "#000000"
+    },
+    {
+      "name": "GBP",
+      "nat": 0.03,
+      "similarity": {
+        "GBP": 1
+      },
+      "isOpen": false,
+      "isEnabled": true,
+      "color": "#000000"
+    },
+    {
+      "name": "TKH",
+      "nat": 0.03,
+      "similarity": {
+        "TKH": 1
       },
       "isOpen": false,
       "isEnabled": true,
@@ -7147,7 +7189,7 @@
     },
     {
       "name": "TEK Parti",
-      "nat": 0.03,
+      "nat": 0.02,
       "similarity": {
         "AKP": 0.35,
         "CHP": 0.4,
@@ -7160,28 +7202,8 @@
       "color": "#000000"
     },
     {
-      "name": "TKH",
-      "nat": 0.03,
-      "similarity": {
-        "TKH": 1
-      },
-      "isOpen": false,
-      "isEnabled": true,
-      "color": "#000000"
-    },
-    {
-      "name": "AB Parti",
-      "nat": 0.02,
-      "similarity": {
-        "AB": 1
-      },
-      "isOpen": false,
-      "isEnabled": true,
-      "color": "#000000"
-    },
-    {
       "name": "İttifak",
-      "nat": 0.02,
+      "nat": 0.01,
       "similarity": {
         "MP": 0.1,
         "MHP": 0.3,
@@ -7196,7 +7218,7 @@
     },
     {
       "name": "YMP",
-      "nat": 0.02,
+      "nat": 0.01,
       "similarity": {
         "AKP": 0.4,
         "CHP": 0.2,
@@ -7225,16 +7247,6 @@
       "nat": 0.01,
       "similarity": {
         "ABP": 1
-      },
-      "isOpen": false,
-      "isEnabled": true,
-      "color": "#000000"
-    },
-    {
-      "name": "GBP",
-      "nat": 0.01,
-      "similarity": {
-        "GBP": 1
       },
       "isOpen": false,
       "isEnabled": true,
@@ -7276,28 +7288,6 @@
   ],
   "coalitions": [
     {
-      "name": "Saadet - Refah",
-      "members": [
-        "Yeniden Refah",
-        "Saadet"
-      ],
-      "isOpen": false,
-      "isEnabled": true,
-      "color": "#179945"
-    },
-    {
-      "name": "Milliyetçi Blok",
-      "members": [
-        "İYİ Parti",
-        "Zafer Partisi",
-        "BTP",
-        "DP"
-      ],
-      "isOpen": false,
-      "isEnabled": true,
-      "color": "#2eace6"
-    },
-    {
       "name": "AK Parti",
       "members": [
         "AK Parti",
@@ -7305,7 +7295,19 @@
       ],
       "isOpen": false,
       "isEnabled": true,
-      "color": "#f29118"
+      "color": "#F2920D"
+    },
+    {
+      "name": "İYİ + Zafer + BTP + DP",
+      "members": [
+        "BTP",
+        "DP",
+        "İYİ Parti",
+        "Zafer Partisi"
+      ],
+      "isOpen": false,
+      "isEnabled": true,
+      "color": "#31abe8"
     },
     {
       "name": "DEM Parti",
@@ -7315,17 +7317,19 @@
       ],
       "isOpen": false,
       "isEnabled": true,
-      "color": "#a112b3"
+      "color": "#913A8E"
     },
     {
-      "name": "DEVA - Gelecek",
+      "name": "Y. Refah + Yeni Yol",
       "members": [
+        "Yeniden Refah",
+        "Saadet",
         "DEVA Partisi",
         "Gelecek Partisi"
       ],
       "isOpen": false,
       "isEnabled": true,
-      "color": "#0085a6"
+      "color": "#339937"
     }
   ],
   "electoralAlliances": [
@@ -7340,19 +7344,19 @@
       ],
       "isOpen": false,
       "isEnabled": true,
-      "color": "#008098"
+      "color": "#f2920c"
     },
     {
       "name": "Birlik İttifakı",
       "members": [
         "Anahtar Parti",
-        "Saadet - Refah",
+        "Y. Refah + Yeni Yol",
         "Saadet",
         "Yeniden Refah"
       ],
       "isOpen": false,
       "isEnabled": true,
-      "color": "#0AC228"
+      "color": "#339937"
     },
     {
       "name": "Emek ve Özgürlük İttifakı",
@@ -7362,20 +7366,31 @@
       ],
       "isOpen": false,
       "isEnabled": true,
-      "color": "#C706C7"
+      "color": "#913A8E"
     },
     {
       "name": "Milliyetçi Blok",
       "members": [
         "DP",
         "BTP",
-        "İYİ Parti",
+        "Zafer Partisi",
         "Milliyetçi Blok",
-        "Zafer Partisi"
+        "İYİ Parti"
       ],
       "isOpen": false,
       "isEnabled": true,
       "color": "#31abe8"
+    },
+    {
+      "name": "Sosyalist Güç Birliği",
+      "members": [
+        "TKH",
+        "SOL Parti",
+        "TKP"
+      ],
+      "isOpen": false,
+      "isEnabled": true,
+      "color": "#B31919"
     }
   ],
   "customSeatOverrides": {
@@ -7574,7 +7589,7 @@
     },
     "BURSA 1. BÖLGE": {
       "x": 239.74755252482666,
-      "y": 237.6946048006967
+      "y": 234.2671155428842
     },
     "ESKİŞEHİR": {
       "x": 429.06689251197673,
@@ -7701,8 +7716,8 @@
       "y": 280.0819210056062
     },
     "BİTLİS": {
-      "x": 1336.5045747838897,
-      "y": 400.63419817504865
+      "x": 1339.932064041702,
+      "y": 405.7754320617674
     },
     "BATMAN": {
       "x": 1262.437126159626,
@@ -7791,15 +7806,24 @@
     "SİİRT": {
       "x": 1328.9388577311624,
       "y": 460.09054468749815
+    },
+    "KAYSERİ": {
+      "x": 812.0196872495185,
+      "y": 404.29125378704373
+    },
+    "IĞDIR": {
+      "x": 1457.1528344726562,
+      "y": 243.93007611083985
     }
   },
+  "localDisabledParties": {},
   "settings": {
     "threshold": 7,
     "calcMethod": "classic",
     "mbEnabled": false,
     "mbCalcMethod": "classic",
-    "mbSeats": 50,
-    "dominantWhite": 20,
-    "pluralityWhite": 40
+    "mbSeats": 0,
+    "dominantWhite": 15,
+    "pluralityWhite": 45
   }
 }
