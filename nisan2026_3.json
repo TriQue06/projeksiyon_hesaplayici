@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "9.5",
-    "date": "2026-04-12T21:24:27.633Z"
+    "date": "2026-04-17T18:25:27.117Z"
   },
   "datasets": [
     {
@@ -2558,7 +2558,7 @@
         "AP": 0.0020262775802904667,
         "ZP": 0.02299665705119564
       },
-      "w": 0.8
+      "w": 0.79
     },
     {
       "id": 1775245971969.7864,
@@ -3706,7 +3706,7 @@
         "SP": 0.013416820063196123,
         "İYİ": 0.0996767175128188
       },
-      "w": 0.1
+      "w": 0.09
     },
     {
       "id": 1775245973939.1687,
@@ -6791,13 +6791,13 @@
         "SP": 0.013830799070390198,
         "VP": 0.001086128358692676
       },
-      "w": 0.1
+      "w": 0.12
     }
   ],
   "extraParties": [
     {
       "name": "CHP",
-      "nat": 32.26,
+      "nat": 32.3,
       "similarity": {
         "CHP": 0.95,
         "AKP": 0.005,
@@ -6814,7 +6814,7 @@
     },
     {
       "name": "AK Parti",
-      "nat": 29.32,
+      "nat": 29.73,
       "similarity": {
         "AKP": 0.99,
         "MHP": 0.01
@@ -6825,7 +6825,7 @@
     },
     {
       "name": "DEM Parti",
-      "nat": 8.25,
+      "nat": 8.37,
       "similarity": {
         "DEM": 1
       },
@@ -6835,7 +6835,7 @@
     },
     {
       "name": "MHP",
-      "nat": 6.65,
+      "nat": 6.62,
       "similarity": {
         "MHP": 1
       },
@@ -6861,7 +6861,7 @@
     },
     {
       "name": "Anahtar Parti",
-      "nat": 4.05,
+      "nat": 4.06,
       "similarity": {
         "AKP": 0.495,
         "BBP": 0.13,
@@ -6877,7 +6877,7 @@
     },
     {
       "name": "Zafer Partisi",
-      "nat": 3.54,
+      "nat": 3.35,
       "similarity": {
         "ZP": 0.945,
         "İYİ": 0.015,
@@ -6892,7 +6892,7 @@
     },
     {
       "name": "Yeniden Refah",
-      "nat": 4.15,
+      "nat": 3.72,
       "similarity": {
         "YRP": 0.97,
         "AKP": 0.015,
@@ -6916,7 +6916,7 @@
     },
     {
       "name": "Büyük Birlik",
-      "nat": 1.03,
+      "nat": 1.04,
       "similarity": {
         "BBP": 0.99,
         "AKP": 0.005,
@@ -6928,7 +6928,7 @@
     },
     {
       "name": "Saadet",
-      "nat": 0.92,
+      "nat": 0.93,
       "similarity": {
         "YRP": 0.05,
         "SP": 0.8,
@@ -6942,7 +6942,7 @@
     },
     {
       "name": "HÜDA PAR",
-      "nat": 0.67,
+      "nat": 0.69,
       "similarity": {
         "HÜDA": 0.985,
         "AKP": 0.005,
@@ -6955,7 +6955,7 @@
     },
     {
       "name": "BTP",
-      "nat": 0.34,
+      "nat": 0.37,
       "similarity": {
         "BTP": 0.33,
         "AKP": 0.05,
@@ -6971,7 +6971,7 @@
     },
     {
       "name": "DEVA Partisi",
-      "nat": 0.32,
+      "nat": 0.29,
       "similarity": {
         "DEVA": 0.25,
         "AKP": 0.57,
@@ -6987,7 +6987,7 @@
     },
     {
       "name": "TKP",
-      "nat": 0.18,
+      "nat": 0.19,
       "similarity": {
         "CHP": 0.02,
         "TİP": 0.01,
@@ -7051,7 +7051,7 @@
     },
     {
       "name": "DP",
-      "nat": 0.11,
+      "nat": 0.12,
       "similarity": {
         "AP": 0.05,
         "DP": 0.6,
@@ -7066,7 +7066,7 @@
     },
     {
       "name": "HKP",
-      "nat": 0.11,
+      "nat": 0.12,
       "similarity": {
         "HKP": 0.97,
         "CHP": 0.02,
@@ -7320,16 +7320,24 @@
       "color": "#913A8E"
     },
     {
-      "name": "Y. Refah + Yeni Yol",
+      "name": "Y. Refah + Saadet",
       "members": [
         "Yeniden Refah",
-        "Saadet",
+        "Saadet"
+      ],
+      "isOpen": false,
+      "isEnabled": true,
+      "color": "#339937"
+    },
+    {
+      "name": "DEVA - Gelecek",
+      "members": [
         "DEVA Partisi",
         "Gelecek Partisi"
       ],
       "isOpen": false,
       "isEnabled": true,
-      "color": "#339937"
+      "color": "#000000"
     }
   ],
   "electoralAlliances": [
@@ -7350,9 +7358,12 @@
       "name": "Birlik İttifakı",
       "members": [
         "Anahtar Parti",
-        "Y. Refah + Yeni Yol",
+        "Y. Refah + Saadet",
         "Saadet",
-        "Yeniden Refah"
+        "Yeniden Refah",
+        "DEVA - Gelecek",
+        "DEVA Partisi",
+        "Gelecek Partisi"
       ],
       "isOpen": false,
       "isEnabled": true,
@@ -7589,7 +7600,7 @@
     },
     "BURSA 1. BÖLGE": {
       "x": 239.74755252482666,
-      "y": 234.2671155428842
+      "y": 237.6946048006967
     },
     "ESKİŞEHİR": {
       "x": 429.06689251197673,
@@ -7716,8 +7727,8 @@
       "y": 280.0819210056062
     },
     "BİTLİS": {
-      "x": 1339.932064041702,
-      "y": 405.7754320617674
+      "x": 1336.5045747838897,
+      "y": 400.63419817504865
     },
     "BATMAN": {
       "x": 1262.437126159626,
@@ -7806,14 +7817,6 @@
     "SİİRT": {
       "x": 1328.9388577311624,
       "y": 460.09054468749815
-    },
-    "KAYSERİ": {
-      "x": 812.0196872495185,
-      "y": 404.29125378704373
-    },
-    "IĞDIR": {
-      "x": 1457.1528344726562,
-      "y": 243.93007611083985
     }
   },
   "localDisabledParties": {},

@@ -366,13 +366,22 @@
 
     <div class="card" style="border-top: 4px solid var(--primary);">
         <label style="margin-bottom: 8px;">⚙️ Seçim Ayarları</label>
-        <div class="flex-row" style="gap: 12px; margin-bottom:0;">
+        <div class="flex-row" style="gap: 12px; margin-bottom:12px;">
+            <div style="flex: 1;">
+                <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">Matematiksel Model</span>
+                <select id="mathMethodInp" style="width:100%; font-weight:bold; padding: 7px; color:var(--danger);">
+                    <option value="dhondt">D'Hondt Sistemi</option>
+                    <option value="hare">Hare Kotası</option>
+                </select>
+            </div>
             <div style="flex: 1;">
                 <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">Ülke Barajı (%)</span>
                 <input type="number" id="thresholdInp" value="7" step="0.1" style="width:100%; font-weight:bold; color:var(--primary);">
             </div>
-            <div style="flex: 2;">
-                <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">D'Hondt Sistemi</span>
+        </div>
+        <div class="flex-row" style="gap: 12px; margin-bottom:0;">
+            <div style="flex: 1;">
+                <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">İttifak Dağılımı</span>
                 <select id="calcMethodInp" style="width:100%; font-weight:bold; padding: 7px;">
                     <option value="classic">Klasik (Partiler Ayrı - 2022)</option>
                     <option value="alliance">İttifak İçi Dağıtım (2018)</option>
@@ -1657,6 +1666,7 @@ function saveProject() {
         settings: {
             threshold: parseFloat($('thresholdInp').value) || 7,
             calcMethod: $('calcMethodInp').value || 'classic',
+            mathMethod: $('mathMethodInp').value || 'dhondt',
             mbEnabled: $('mbEnabledInp').checked,
             mbCalcMethod: $('mbCalcMethodInp').value || 'classic',
             mbSeats: parseInt($('mbSeatsInp').value) || 0,
@@ -1754,6 +1764,7 @@ function applyProjectData(data) {
     if(data.settings) {
         if(data.settings.threshold !== undefined) $('thresholdInp').value = data.settings.threshold;
         if(data.settings.calcMethod) $('calcMethodInp').value = data.settings.calcMethod;
+        if(data.settings.mathMethod) $('mathMethodInp').value = data.settings.mathMethod;
         if(data.settings.mbEnabled !== undefined) {
             $('mbEnabledInp').checked = data.settings.mbEnabled;
             $('mbSettingsWrapper').style.display = data.settings.mbEnabled ? 'flex' : 'none';
@@ -1790,7 +1801,11 @@ window.togglePartyFilter = function(party) {
 function runDhondt(v, s){
     const res = {}; Object.keys(v).forEach(p=>res[p]=0);
     let lastQ = 0;
-    if(s <= 0) return { seats: res, lastQ: 0 };
+    if(s <= 0) {
+        const remainders = {};
+        for(let p in v) remainders[p] = v[p];
+        return { seats: res, remainders, lastQ: 0 };
+    }
     for(let i=0; i<s; i++){
         let maxQ = -1, winP = null;
         for(let p in v){
@@ -1799,7 +1814,48 @@ function runDhondt(v, s){
         }
         if(winP) { res[winP]++; lastQ = maxQ; }
     }
-    return { seats: res, lastQ };
+    const remainders = {};
+    for(let p in v) remainders[p] = Math.max(0, v[p] - (res[p] * lastQ));
+    return { seats: res, remainders, lastQ };
+}
+
+function runHare(v, s){
+    const res = {}; Object.keys(v).forEach(p=>res[p]=0);
+    const remainders = {}; Object.keys(v).forEach(p=>remainders[p]=v[p]);
+    if(s <= 0) return { seats: res, remainders };
+    
+    let totalVotes = 0;
+    for(let p in v) totalVotes += v[p];
+    if (totalVotes === 0) return { seats: res, remainders };
+    
+    const quota = totalVotes / s;
+    let awarded = 0;
+    
+    for(let p in v) {
+        const exact = v[p] / quota;
+        const intSeats = Math.floor(exact);
+        res[p] = intSeats;
+        remainders[p] = v[p] - (intSeats * quota);
+        awarded += intSeats;
+    }
+    
+    let remList = Object.keys(v).map(p => ({ p: p, r: remainders[p] }));
+    remList.sort((a, b) => b.r - a.r);
+    
+    const remSeats = s - awarded;
+    for(let i=0; i < remSeats; i++) {
+        if (remList[i]) {
+            res[remList[i].p]++;
+            remainders[remList[i].p] = Math.max(0, remainders[remList[i].p] - quota);
+        }
+    }
+    return { seats: res, remainders };
+}
+
+function runSeatAllocation(v, s) {
+    const method = $('mathMethodInp').value;
+    if (method === 'hare') return runHare(v, s);
+    return runDhondt(v, s);
 }
 
 function runProjection() {
@@ -1941,12 +1997,11 @@ function runProjection() {
         const finalSeats = {};
 
         if (calcMethod === 'classic') {
-            const dhRes = runDhondt(eligibleVotes, seats);
-            Object.assign(finalSeats, dhRes.seats);
+            const allocRes = runSeatAllocation(eligibleVotes, seats);
+            Object.assign(finalSeats, allocRes.seats);
             
             Object.keys(eligibleVotes).forEach(p => {
-                let rem = eligibleVotes[p] - (dhRes.seats[p] * dhRes.lastQ);
-                mbPartyPool[p] = (mbPartyPool[p] || 0) + Math.max(0, rem);
+                mbPartyPool[p] = (mbPartyPool[p] || 0) + (allocRes.remainders[p] || 0);
             });
         } else {
             const allianceGroupedVotes = {};
@@ -1968,11 +2023,11 @@ function runProjection() {
                 if (!partyToAllianceMap[p]) allianceGroupedVotes[p] = eligibleVotes[p];
             });
 
-            const aDhRes = runDhondt(allianceGroupedVotes, seats);
-            const firstDhondtSeats = aDhRes.seats;
+            const aAllocRes = runSeatAllocation(allianceGroupedVotes, seats);
+            const firstSeats = aAllocRes.seats;
 
             Object.keys(allianceGroupedVotes).forEach(winner => {
-                let rem = allianceGroupedVotes[winner] - (firstDhondtSeats[winner] * aDhRes.lastQ);
+                let rem = aAllocRes.remainders[winner] || 0;
                 
                 const allianceObj = electoralAlliances.find(a => a.name === winner && a.isEnabled !== false);
                 if (allianceObj) {
@@ -1990,14 +2045,14 @@ function runProjection() {
                         mbPartyPool[m] = (mbPartyPool[m] || 0) + Math.max(0, rem * proportion);
                     });
 
-                    if (firstDhondtSeats[winner] > 0) {
-                        const intDhRes = runDhondt(internalVotes, firstDhondtSeats[winner]);
-                        Object.assign(finalSeats, intDhRes.seats);
+                    if (firstSeats[winner] > 0) {
+                        const intAllocRes = runSeatAllocation(internalVotes, firstSeats[winner]);
+                        Object.assign(finalSeats, intAllocRes.seats);
                     } else {
                         finalSeats[winner] = 0;
                     }
                 } else {
-                    finalSeats[winner] = firstDhondtSeats[winner] || 0;
+                    finalSeats[winner] = firstSeats[winner] || 0;
                     mbPartyPool[winner] = (mbPartyPool[winner] || 0) + Math.max(0, rem);
                 }
             });
@@ -2019,7 +2074,7 @@ function runProjection() {
         const displayRemainders = { ...mbPartyPool };
         
         if (mbCalcMethod === 'classic') {
-            const mbRes = runDhondt(mbPartyPool, mbSeats);
+            const mbRes = runSeatAllocation(mbPartyPool, mbSeats);
             Object.assign(mbFinalSeats, mbRes.seats);
         } else {
             const mbAllianceGrouped = {};
@@ -2041,7 +2096,7 @@ function runProjection() {
                 if (!mbPartyToAlliance[p]) mbAllianceGrouped[p] = mbPartyPool[p];
             });
 
-            const mbADhRes = runDhondt(mbAllianceGrouped, mbSeats);
+            const mbADhRes = runSeatAllocation(mbAllianceGrouped, mbSeats);
             
             Object.keys(mbADhRes.seats).forEach(winner => {
                 const allianceObj = electoralAlliances.find(a => a.name === winner && a.isEnabled !== false);
@@ -2052,7 +2107,7 @@ function runProjection() {
                     });
                     
                     if (mbADhRes.seats[winner] > 0) {
-                        const intMbRes = runDhondt(internalVotes, mbADhRes.seats[winner]);
+                        const intMbRes = runSeatAllocation(internalVotes, mbADhRes.seats[winner]);
                         Object.assign(mbFinalSeats, intMbRes.seats);
                     }
                 } else {
@@ -2397,6 +2452,7 @@ function downloadAdvancedResults(){
     
     let txt = "[AYARLAR]\n";
     txt += `Baraj=${$('thresholdInp').value}\n`;
+    txt += `HesaplamaModeli=${$('mathMethodInp').value}\n`;
     txt += `Sistem=${$('calcMethodInp').value}\n`;
     txt += `MilliBakiye=${$('mbEnabledInp').checked ? 'Aktif' : 'Pasif'}\n`;
     txt += `MilliBakiyeSistem=${$('mbCalcMethodInp').value}\n`;
