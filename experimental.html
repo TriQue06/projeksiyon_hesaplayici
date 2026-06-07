@@ -3004,6 +3004,76 @@ function toggleSelectionPanelBody() {
         $('selPanelIcon').style.transform = 'rotate(0deg)';
     }
 }
+
+// ─── EXPERIMENTAL: Lean Kaydet / Yükle ───────────────────────────────────────
+// Seçim verileri (txt içerikleri) sunucudan zaten çekildiği için
+// kaydedilen JSON'da sadece dosya adı ve katsayı tutulur.
+
+function saveProject() {
+    const projectData = {
+        meta: { version: "9.5-lean", date: new Date().toISOString() },
+        datasets: datasets.map(ds => ({ name: ds.name, w: ds.w })),
+        extraParties, coalitions, electoralAlliances, customSeatOverrides, customDotPositions,
+        localDisabledParties: (() => {
+            let obj = {};
+            for (let k in localDisabledParties) obj[k] = Array.from(localDisabledParties[k]);
+            return obj;
+        })(),
+        settings: {
+            threshold: parseFloat($('thresholdInp').value) || 7,
+            calcMethod: $('calcMethodInp').value || 'classic',
+            mathMethod: $('mathMethodInp').value || 'dhondt',
+            mbEnabled: $('mbEnabledInp').checked,
+            mbCalcMethod: $('mbCalcMethodInp').value || 'classic',
+            mbSeats: parseInt($('mbSeatsInp').value) || 0,
+            dominantWhite: parseFloat($('dominantWhiteInp').value) || 20,
+            pluralityWhite: parseFloat($('pluralityWhiteInp').value) || 40
+        }
+    };
+    const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'secim_projesi_' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+}
+
+// Lean JSON yüklendiğinde eksik dataset'leri sunucudan yeniden çek
+document.getElementById('projectLoader').onchange = async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+        const data = JSON.parse(await file.text());
+
+        if (data.datasets && data.datasets.some(ds => !ds.data)) {
+            const refetched = [];
+            for (const ds of data.datasets) {
+                if (ds.data) {
+                    refetched.push(ds);
+                } else {
+                    try {
+                        const res = await fetch(ds.name);
+                        if (res.ok) {
+                            const text = await res.text();
+                            const parsed = parseTxt(text);
+                            const nat = calcNat(parsed);
+                            refetched.push({ id: Date.now() + Math.random(), name: ds.name, data: parsed, nat, w: ds.w });
+                        }
+                    } catch (err) {
+                        console.warn('Dataset yeniden çekilemedi:', ds.name);
+                    }
+                }
+            }
+            data.datasets = refetched;
+        }
+
+        applyProjectData(data);
+        e.target.value = '';
+        if (datasets.length > 0) runProjection();
+    } catch (err) {
+        alert('Proje yüklenemedi: ' + err.message);
+    }
+};
+// ─────────────────────────────────────────────────────────────────────────────
 </script>
 </body>
 </html>
