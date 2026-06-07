@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>PGM Projeksiyon Arayüzü v9.5 - Experimental</title>
+    <title>PGM Projeksiyon Arayüzü v10.0</title>
     <style>
         @font-face {
             font-family: 'Product Sans';
@@ -1770,7 +1770,7 @@ async function loadSeatData(inp) {
 
 function saveProject() {
     const projectData = {
-        meta: { version: "9.5", date: new Date().toISOString() },
+        meta: { version: "10.0", date: new Date().toISOString() },
         datasets, extraParties, coalitions, electoralAlliances, customSeatOverrides, customDotPositions,
         localDisabledParties: (() => {
             let obj = {};
@@ -3138,7 +3138,7 @@ async function takeScreenshot() {
 
 function saveProject() {
     const projectData = {
-        meta: { version: "9.5-lean", date: new Date().toISOString() },
+        meta: { version: "10.0-lean", date: new Date().toISOString() },
         datasets: datasets.map(ds => ({ name: ds.name, w: ds.w })),
         extraParties, coalitions, electoralAlliances, customSeatOverrides, customDotPositions,
         localDisabledParties: (() => {
