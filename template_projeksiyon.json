@@ -135,7 +135,7 @@
         "MP": 0.025
       },
       "isOpen": false,
-      "color": "#F0416C",
+      "color": "#FF4D79",
       "isEnabled": true
     },
     {
@@ -854,7 +854,7 @@
     "mbEnabled": false,
     "mbCalcMethod": "classic",
     "mbSeats": 0,
-    "dominantWhite": 3.5,
-    "pluralityWhite": 35
+    "dominantWhite": 2.5,
+    "pluralityWhite": 25
   }
 }
