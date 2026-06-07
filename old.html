@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>PGM Projeksiyon Arayüzü v9.5 - Experimental</title>
+    <title>PGM Projeksiyon Arayüzü v9.5 - Tam Ekran Harita & İyileştirilmiş İttifak Motoru</title>
     <style>
         @font-face {
             font-family: 'Product Sans';
@@ -245,11 +245,6 @@
 <div class="left-panel">
     <h1>🗳️ PGM Projeksiyon Arayüzü</h1>
 
-    <div style="display:flex; gap:6px; margin-bottom:16px;">
-        <button id="modeBtnGenel" onclick="setUIMode('genel')" style="flex:1; background:var(--primary); color:white; border:none; padding:8px; border-radius:6px; font-size:13px; font-weight:bold; cursor:pointer; transition:0.2s;">Genel</button>
-        <button id="modeBtnGelismis" onclick="setUIMode('gelismis')" style="flex:1; background:#f5f6f7; color:var(--text-secondary); border:1px solid var(--border); padding:8px; border-radius:6px; font-size:13px; font-weight:bold; cursor:pointer; transition:0.2s;">Gelişmiş</button>
-    </div>
-
     <div class="card archive-card">
         <label>☁️ Arşivden Proje Getir</label>
         <span style="font-size: 11px; margin-bottom: 8px; display:block;">Arşivlenmiş seçim projeksiyon verilerini görüntüleyin. Seçildiğinde harita dosyaları otomatik yüklenir.</span>
@@ -267,7 +262,7 @@
         </div>
     </div>
 
-    <div class="card" id="cardVeriYukle">
+    <div class="card">
         <label>1. Seçim Verisi Yükle (.txt)</label>
         <span style="font-size: 11px; margin-bottom: 8px; color: var(--text-secondary); display:block;">Bilgisayarınızdan yerel seçim sonuçlarını (.txt dosyası) aktarın.</span>
         <input type="file" id="fileInp" accept=".txt" multiple style="width: 100%; margin-bottom: 12px; background: #f8f9fa;">
@@ -311,7 +306,7 @@
         <div id="allianceArea" class="scroll-area"></div>
     </div>
 
-    <div class="card" id="cardKoltukVerisi">
+    <div class="card">
         <label>5. İl/Çevre Koltuk Verisi</label>
         <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Tüm illerin koltuk sayılarını topluca değiştirmek için .JSON formatında veri yükleyebilir veya mevcut dağılımı indirebilirsiniz. Eklenen veriler ana dosyadaki sayıları ezer.</span>
         <div style="display:flex; gap:8px;">
@@ -326,7 +321,7 @@
         <label>6. Harita Verisi</label>
         <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Sonuçları sağ paneldeki haritada boyamak için SVG haritanızı ve şehir eşleştirme sözlüğünüzü tanımlayın.</span>
         
-        <div id="haritaManuelYukle" class="flex-row" style="gap:12px; align-items: flex-end;">
+        <div class="flex-row" style="gap:12px; align-items: flex-end;">
             <div style="flex:1;">
                 <span style="font-size: 11px; font-weight: bold; color: var(--text-secondary); display:block; margin-bottom:4px;">Manuel SVG Harita:</span>
                 <input type="file" accept=".svg" onchange="handleManualSvgLoad(this)" style="width:100%; padding: 6px;">
@@ -366,22 +361,17 @@
             </label>
             <span style="font-size:10.5px; color:var(--text-secondary); display:block; margin-top:6px; margin-left:26px;">Vekil sayıları seçilen konuma geniş veya hafif dikey (20+ vekil için) olacak şekilde dizilir. Çarpışma önleyici fizik algoritması aktiftir.</span>
             
-            <div id="haritaVekilKonumYukle" style="margin-left:26px; margin-top: 12px; border-top: 1px dashed #cfd8dc; padding-top: 12px;">
+            <div style="margin-left:26px; margin-top: 12px; border-top: 1px dashed #cfd8dc; padding-top: 12px;">
                 <span style="font-size: 11px; font-weight: bold; color: var(--text-secondary); display:block; margin-bottom:4px;">📍 Vekil Konum Dosyası Yükle (.json):</span>
                 <input type="file" accept=".json" onchange="loadCustomDotPositions(this)" style="width:100%; padding: 6px;">
             </div>
-        </div>
-
-        <div id="editModeSection" style="margin-top: 12px; border-top: 1px dashed #b0c4de; padding-top: 12px; display:none; gap:8px;">
-            <button id="toggleEditModeBtn" onclick="toggleEditMode()" style="flex:1; background:var(--text); color:white; border-radius:6px; font-size:12px; padding:8px 10px; border:1px solid rgba(0,0,0,0.1); cursor:pointer; font-weight:bold;">✏️ Düzenleme Modu: KAPALI</button>
-            <button id="downloadPositionsBtn" onclick="downloadDotPositions()" style="display:none; background:var(--purple); color:white; border-radius:6px; font-size:12px; padding:8px 10px; border:none; cursor:pointer; font-weight:bold;">💾 Konumları İndir</button>
         </div>
     </div>
 
     <div class="card" style="border-top: 4px solid var(--primary);">
         <label style="margin-bottom: 8px;">⚙️ Seçim Ayarları</label>
         <div class="flex-row" style="gap: 12px; margin-bottom:12px;">
-            <div id="settingMathMethod" style="flex: 1;">
+            <div style="flex: 1;">
                 <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">Matematiksel Model</span>
                 <select id="mathMethodInp" style="width:100%; font-weight:bold; padding: 7px; color:var(--danger);">
                     <option value="dhondt">D'Hondt Sistemi</option>
@@ -393,7 +383,7 @@
                 <input type="number" id="thresholdInp" value="7" step="0.1" style="width:100%; font-weight:bold; color:var(--primary);">
             </div>
         </div>
-        <div id="settingCalcMethod" class="flex-row" style="gap: 12px; margin-bottom:0;">
+        <div class="flex-row" style="gap: 12px; margin-bottom:0;">
             <div style="flex: 1;">
                 <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">İttifak Dağılımı</span>
                 <select id="calcMethodInp" style="width:100%; font-weight:bold; padding: 7px;">
@@ -432,20 +422,18 @@
         </div>
         <input type="file" id="projectLoader" accept=".json" style="display:none" onchange="loadProject(this)">
         
+        <button onclick="downloadAdvancedResults()" class="danger" style="width: 100%; background-color:#8e24aa;">📥 Gelişmiş Sonuçları İndir (.TXT)</button>
     </div>
 </div>
 
 <div class="right-panel">
     <!-- GLOBAL TOGGLE BUTONU -->
-    <div id="globalModeToggle" style="display:flex; gap:8px; flex-wrap:wrap;">
+    <div id="globalModeToggle" style="display:flex; gap:8px;">
         <button id="selectionModeToggleBtn" onclick="toggleSelectionMode()" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 14px; font-weight:bold; padding: 10px 16px; border: 2px solid var(--border); display: flex; align-items: center; gap: 8px; transition: 0.2s; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
             <span style="font-size:18px;">🖱️</span> Özel İnceleme
         </button>
         <button id="mapModeToggleBtn" onclick="toggleMapMode()" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 14px; font-weight:bold; padding: 10px 16px; border: 2px solid var(--border); display: flex; align-items: center; gap: 8px; transition: 0.2s; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
             <span style="font-size:18px;">🔄</span> Görünüm: Partiler
-        </button>
-        <button id="screenshotBtn" onclick="takeScreenshot()" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 14px; font-weight:bold; padding: 10px 16px; border: 2px solid var(--border); display: flex; align-items: center; gap: 8px; transition: 0.2s; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-            <span style="font-size:18px;">📸</span> Görüntü Al
         </button>
     </div>
 
@@ -461,9 +449,14 @@
 
         <!-- STATİK HARİTA ALANI -->
         <div id="mapContainer" class="card" style="display:none; margin-bottom: 24px; text-align:center; padding-bottom: 24px; position: relative;">
-
+            
+            <div id="editModeControls" style="position: absolute; top: 16px; left: 16px; z-index: 20; display: flex; gap: 8px;">
+                <button id="toggleEditModeBtn" onclick="toggleEditMode()" style="background: var(--text); color: white; border-radius: 8px; font-size: 12px; padding: 6px 12px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.1);">✏️ Düzenleme Modu: KAPALI</button>
+                <button id="downloadPositionsBtn" onclick="downloadDotPositions()" style="display: none; background: var(--purple); color: white; border-radius: 8px; font-size: 12px; padding: 6px 12px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.1);">💾 Konumları İndir</button>
+            </div>
+            
             <div id="fullscreenMapBtn" style="position: absolute; top: 16px; right: 16px; z-index: 20;">
-                <button id="fullscreenToggleBtn" onclick="toggleFullscreenMap()" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 12px; padding: 6px 12px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: 0.2s;">Tam Ekran</button>
+                <button onclick="toggleFullscreenMap()" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 12px; padding: 6px 12px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: 0.2s;">⛶ Tam Ekran</button>
             </div>
 
             <h3 style="margin-bottom:16px;">Türkiye Haritası <span style="font-size: 11px; font-weight: normal; color: var(--text-secondary); display:block; margin-top: 4px;">Detayları görmek için harita üzerindeki illerin üstüne gelin veya tıklayın.</span></h3>
@@ -656,19 +649,17 @@ function toggleMapMode() {
 window.toggleFullscreenMap = function() {
     isFullscreen = !isFullscreen;
     const container = $('mapContainer');
-    const btn = $('fullscreenToggleBtn');
+    const btn = $('fullscreenMapBtn').querySelector('button');
     if (isFullscreen) {
         container.classList.add('fullscreen-map');
-        btn.textContent = 'Kapat';
-        btn.style.background = 'var(--danger)';
-        btn.style.color = 'white';
-        btn.style.borderColor = 'var(--danger)';
+        btn.innerHTML = '✖ Kapat';
+        btn.classList.add('danger');
+        btn.style.color = "white";
     } else {
         container.classList.remove('fullscreen-map');
-        btn.textContent = 'Tam Ekran';
-        btn.style.background = 'var(--surface)';
-        btn.style.color = 'var(--text)';
-        btn.style.borderColor = 'var(--border)';
+        btn.innerHTML = '⛶ Tam Ekran';
+        btn.classList.remove('danger');
+        btn.style.color = "var(--text)";
     }
 };
 
@@ -703,115 +694,14 @@ window.loadMappingJson = async function(inp) {
 };
 
 window.addEventListener('DOMContentLoaded', async () => {
-    const loadingEl = document.createElement('div');
-    loadingEl.id = 'bootstrapLoader';
-    loadingEl.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.92);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
-    loadingEl.innerHTML = `
-        <div style="text-align:center;">
-            <div style="font-size:3rem;margin-bottom:16px;">🗳️</div>
-            <div style="font-size:1.3rem;font-weight:bold;color:#1a73e8;margin-bottom:8px;">PGM Projeksiyon Yükleniyor</div>
-            <div id="loadStatus" style="font-size:0.9rem;color:#606770;min-height:20px;"></div>
-            <div style="margin-top:20px;width:280px;height:4px;background:#e4e6eb;border-radius:4px;overflow:hidden;">
-                <div id="loadBar" style="height:100%;width:0%;background:#1a73e8;border-radius:4px;transition:width 0.3s ease;"></div>
-            </div>
-        </div>`;
-    document.body.appendChild(loadingEl);
-
-    const setStatus = (msg, pct) => {
-        const s = document.getElementById('loadStatus');
-        const b = document.getElementById('loadBar');
-        if (s) s.textContent = msg;
-        if (b && pct !== undefined) b.style.width = pct + '%';
-    };
-
     try {
-        setStatus('Yapılandırma okunuyor...', 10);
-        const cfgRes = await fetch('config.json');
-        if (!cfgRes.ok) throw new Error('config.json bulunamadı');
-        const cfg = await cfgRes.json();
-
-        if (cfg.map) {
-            setStatus('Türkiye haritası yükleniyor...', 25);
-            try {
-                const svgRes = await fetch(cfg.map);
-                if (svgRes.ok) {
-                    $('svgMapWrapper').innerHTML = await svgRes.text();
-                    $('mapContainer').style.display = 'block';
-                }
-            } catch(e) {}
+        const res = await fetch('turkiye_harita.svg');
+        if (res.ok) {
+            const text = await res.text();
+            $('svgMapWrapper').innerHTML = text;
+            $('mapContainer').style.display = 'block';
         }
-
-        if (cfg.mapping) {
-            setStatus('Şehir eşleştirme sözlüğü yükleniyor...', 45);
-            try {
-                const jsonRes = await fetch(cfg.mapping);
-                if (jsonRes.ok) {
-                    const dictData = await jsonRes.json();
-                    mapDictionary = dictData.cityMapping || dictData;
-                }
-            } catch(e) {}
-        }
-
-        if (cfg.dotPositions) {
-            setStatus('Vekil konum verileri yükleniyor...', 60);
-            try {
-                const konumRes = await fetch(cfg.dotPositions);
-                if (konumRes.ok) customDotPositions = await konumRes.json();
-            } catch(e) {}
-        }
-
-        if (cfg.defaultProject) {
-            setStatus(`Proje yükleniyor: ${cfg.defaultProject}`, 75);
-            const projRes = await fetch(cfg.defaultProject);
-            if (!projRes.ok) throw new Error(`Proje dosyası bulunamadı: ${cfg.defaultProject}`);
-            const projData = await projRes.json();
-
-            // Lean dataset'lerde data/nat yok — txt dosyalarını yeniden çek
-            if (projData.datasets && projData.datasets.some(ds => !ds.data)) {
-                setStatus('Seçim verileri yükleniyor...', 82);
-                const refetched = [];
-                for (const ds of projData.datasets) {
-                    if (ds.data) {
-                        refetched.push(ds);
-                    } else {
-                        try {
-                            const r = await fetch(ds.name);
-                            if (r.ok) {
-                                const text = await r.text();
-                                const parsed = parseTxt(text);
-                                const nat = calcNat(parsed);
-                                refetched.push({ id: Date.now() + Math.random(), name: ds.name, data: parsed, nat, w: ds.w });
-                            }
-                        } catch(e) { console.warn('Dataset çekilemedi:', ds.name); }
-                    }
-                }
-                projData.datasets = refetched;
-            }
-
-            applyProjectData(projData);
-
-            if (datasets.length > 0) {
-                setStatus('Projeksiyon hesaplanıyor...', 90);
-                runProjection();
-            }
-        }
-
-        setStatus('Tamamlandı!', 100);
-        await new Promise(r => setTimeout(r, 300));
-
-    } catch(err) {
-        console.error('Bootstrap hatası:', err);
-        loadingEl.innerHTML = `
-            <div style="text-align:center;padding:32px;">
-                <div style="font-size:2.5rem;margin-bottom:16px;">⚠️</div>
-                <div style="font-size:1rem;font-weight:bold;color:#e41e3f;margin-bottom:8px;">Otomatik yükleme başarısız</div>
-                <div style="font-size:0.85rem;color:#606770;margin-bottom:20px;">${err.message}</div>
-                <button onclick="document.getElementById('bootstrapLoader').remove()" style="padding:10px 24px;background:#1a73e8;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:14px;">Manuel Devam Et</button>
-            </div>`;
-        return;
-    }
-
-    loadingEl.remove();
+    } catch (err) { }
 });
 
 function setElementFillAggressive(el, color) {
@@ -3036,171 +2926,6 @@ function toggleSelectionPanelBody() {
         $('selPanelIcon').style.transform = 'rotate(0deg)';
     }
 }
-
-// ─── EXPERIMENTAL: Genel / Gelişmiş Mod ──────────────────────────────────────
-let currentUIMode = 'genel';
-
-function setUIMode(mode) {
-    currentUIMode = mode;
-    const isGelismis = mode === 'gelismis';
-
-    // Buton görünümleri
-    $('modeBtnGenel').style.background    = isGelismis ? '#f5f6f7' : 'var(--primary)';
-    $('modeBtnGenel').style.color         = isGelismis ? 'var(--text-secondary)' : 'white';
-    $('modeBtnGenel').style.border        = isGelismis ? '1px solid var(--border)' : 'none';
-    $('modeBtnGelismis').style.background = isGelismis ? 'var(--primary)' : '#f5f6f7';
-    $('modeBtnGelismis').style.color      = isGelismis ? 'white' : 'var(--text-secondary)';
-    $('modeBtnGelismis').style.border     = isGelismis ? 'none' : '1px solid var(--border)';
-
-    const hide = el => { if (el) el.style.display = 'none'; };
-    const show = (el, disp) => { if (el) el.style.display = disp || 'block'; };
-
-    // Seçim Verisi Yükle kartı
-    isGelismis ? show($('cardVeriYukle')) : hide($('cardVeriYukle'));
-
-    // Koltuk Verisi kartı
-    isGelismis ? show($('cardKoltukVerisi')) : hide($('cardKoltukVerisi'));
-
-    // Harita Verisi — manuel yükleme + vekil konum
-    isGelismis ? show($('haritaManuelYukle'), 'flex') : hide($('haritaManuelYukle'));
-    isGelismis ? show($('haritaVekilKonumYukle')) : hide($('haritaVekilKonumYukle'));
-
-    // Seçim Ayarları — matematiksel model + ittifak dağılımı
-    isGelismis ? show($('settingMathMethod')) : hide($('settingMathMethod'));
-    isGelismis ? show($('settingCalcMethod'), 'flex') : hide($('settingCalcMethod'));
-    isGelismis ? show($('editModeSection'), 'flex') : hide($('editModeSection'));
-}
-
-// Sayfa yüklenince Genel modu uygula
-document.addEventListener('DOMContentLoaded', () => setUIMode('genel'));
-
-// ─── EXPERIMENTAL: Ekran Görüntüsü ───────────────────────────────────────────
-async function takeScreenshot() {
-    const btn = $('screenshotBtn');
-    const origHTML = btn.innerHTML;
-    btn.innerHTML = '<span style="font-size:18px;">⏳</span> Kaydediliyor...';
-    btn.disabled = true;
-
-    try {
-        const svgEl = document.querySelector('#svgMapWrapper svg');
-        if (!svgEl) { alert('Harita henüz yüklenmedi!'); return; }
-
-        const W = 1920, H = 1080;
-        const bgColor = '#e9eaef';
-
-        const svgClone = svgEl.cloneNode(true);
-        svgClone.setAttribute('width', W);
-        svgClone.setAttribute('height', H);
-        svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-
-        // Arka plan
-        const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        bgRect.setAttribute('width', '100%');
-        bgRect.setAttribute('height', '100%');
-        bgRect.setAttribute('fill', bgColor);
-        svgClone.insertBefore(bgRect, svgClone.firstChild);
-
-        const svgStr = new XMLSerializer().serializeToString(svgClone);
-        const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-
-        const canvas = document.createElement('canvas');
-        canvas.width = W; canvas.height = H;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = bgColor;
-        ctx.fillRect(0, 0, W, H);
-
-        await new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => { ctx.drawImage(img, 0, 0, W, H); URL.revokeObjectURL(url); resolve(); };
-            img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('SVG render başarısız')); };
-            img.src = url;
-        });
-
-        const link = document.createElement('a');
-        link.download = 'harita_' + new Date().toISOString().slice(0, 10) + '.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-
-    } catch (err) {
-        console.error(err);
-        alert('Ekran görüntüsü alınamadı: ' + err.message);
-    } finally {
-        btn.innerHTML = origHTML;
-        btn.disabled = false;
-    }
-}
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ─── EXPERIMENTAL: Lean Kaydet / Yükle ───────────────────────────────────────
-// Seçim verileri (txt içerikleri) sunucudan zaten çekildiği için
-// kaydedilen JSON'da sadece dosya adı ve katsayı tutulur.
-
-function saveProject() {
-    const projectData = {
-        meta: { version: "9.5-lean", date: new Date().toISOString() },
-        datasets: datasets.map(ds => ({ name: ds.name, w: ds.w })),
-        extraParties, coalitions, electoralAlliances, customSeatOverrides, customDotPositions,
-        localDisabledParties: (() => {
-            let obj = {};
-            for (let k in localDisabledParties) obj[k] = Array.from(localDisabledParties[k]);
-            return obj;
-        })(),
-        settings: {
-            threshold: parseFloat($('thresholdInp').value) || 7,
-            calcMethod: $('calcMethodInp').value || 'classic',
-            mathMethod: $('mathMethodInp').value || 'dhondt',
-            mbEnabled: $('mbEnabledInp').checked,
-            mbCalcMethod: $('mbCalcMethodInp').value || 'classic',
-            mbSeats: parseInt($('mbSeatsInp').value) || 0,
-            dominantWhite: parseFloat($('dominantWhiteInp').value) || 20,
-            pluralityWhite: parseFloat($('pluralityWhiteInp').value) || 40
-        }
-    };
-    const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'secim_projesi_' + new Date().toISOString().slice(0, 10) + '.json';
-    a.click();
-}
-
-// Lean JSON yüklendiğinde eksik dataset'leri sunucudan yeniden çek
-document.getElementById('projectLoader').onchange = async function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    try {
-        const data = JSON.parse(await file.text());
-
-        if (data.datasets && data.datasets.some(ds => !ds.data)) {
-            const refetched = [];
-            for (const ds of data.datasets) {
-                if (ds.data) {
-                    refetched.push(ds);
-                } else {
-                    try {
-                        const res = await fetch(ds.name);
-                        if (res.ok) {
-                            const text = await res.text();
-                            const parsed = parseTxt(text);
-                            const nat = calcNat(parsed);
-                            refetched.push({ id: Date.now() + Math.random(), name: ds.name, data: parsed, nat, w: ds.w });
-                        }
-                    } catch (err) {
-                        console.warn('Dataset yeniden çekilemedi:', ds.name);
-                    }
-                }
-            }
-            data.datasets = refetched;
-        }
-
-        applyProjectData(data);
-        e.target.value = '';
-        if (datasets.length > 0) runProjection();
-    } catch (err) {
-        alert('Proje yüklenemedi: ' + err.message);
-    }
-};
-// ─────────────────────────────────────────────────────────────────────────────
 </script>
 </body>
 </html>
