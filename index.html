@@ -386,6 +386,7 @@
                 <select id="mathMethodInp" style="width:100%; font-weight:bold; padding: 7px; color:var(--danger);">
                     <option value="dhondt">D'Hondt Sistemi</option>
                     <option value="hare">Hare Kotası</option>
+                    <option value="wta">Winner Takes All</option>
                 </select>
             </div>
             <div style="flex: 1;">
@@ -1966,9 +1967,21 @@ function runHare(v, s){
     return { seats: res, remainders };
 }
 
+function runWta(v, s) {
+    const res = {}; Object.keys(v).forEach(p => res[p] = 0);
+    if (s <= 0) return { seats: res, remainders: {...v} };
+    let winner = null, maxV = -1;
+    for (let p in v) { if (v[p] > maxV) { maxV = v[p]; winner = p; } }
+    if (winner) res[winner] = s;
+    const remainders = {};
+    for (let p in v) remainders[p] = p === winner ? 0 : v[p];
+    return { seats: res, remainders };
+}
+
 function runSeatAllocation(v, s) {
     const method = $('mathMethodInp').value;
     if (method === 'hare') return runHare(v, s);
+    if (method === 'wta') return runWta(v, s);
     return runDhondt(v, s);
 }
 
