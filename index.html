@@ -2759,12 +2759,20 @@ function getMiniMapSvg(dName, fillColor) {
     const svg = document.querySelector('#svgMapWrapper svg');
     if(!svg || dName.includes('Milli Bakiye')) return '';
 
-    // Birden fazla SVG temsili olan seçim çevreleri için tercih edilen SVG id eşleşmesi
+    // updateMapColors ile aynı cleanId mantığı: _1, _2 gibi sayısal suffix'leri temizle
+    function toCleanId(raw) {
+        return raw.toLowerCase()
+            .replace(/_[0-9]+_?/g, '')
+            .replace(/_x5f_.*/,    '')
+            .replace(/-[0-9]+$/,   '');
+    }
+
+    // Birden fazla SVG temsili olan seçim çevreleri için tercih edilen clean id'ler
     const svgIdPreference = {
-        'Kocaeli':            id => id.toLowerCase() === 'kocaeli',
-        'İstanbul 1. Bölge':  id => id.toLowerCase() === 'istanbul1',
-        'İstanbul 2. Bölge':  id => id.toLowerCase() === 'istanbul2',
-        'İstanbul 3. Bölge':  id => id.toLowerCase() === 'istanbul3',
+        'Kocaeli':            cid => cid === 'kocaeli',
+        'İstanbul 1. Bölge':  cid => cid === 'istanbul1',
+        'İstanbul 2. Bölge':  cid => cid === 'istanbul2',
+        'İstanbul 3. Bölge':  cid => cid === 'istanbul3',
     };
 
     let elements = Array.from(svg.querySelectorAll('path, g, polygon, polyline, rect'))
@@ -2773,8 +2781,8 @@ function getMiniMapSvg(dName, fillColor) {
     const preferFn = svgIdPreference[dName];
     if (preferFn && elements.length > 0) {
         const filtered = elements.filter(el => {
-            const id = el.getAttribute('id') || el.getAttribute('name') || '';
-            return preferFn(id);
+            const raw = el.getAttribute('id') || el.getAttribute('name') || '';
+            return preferFn(toCleanId(raw));
         });
         if (filtered.length > 0) elements = filtered;
     }
