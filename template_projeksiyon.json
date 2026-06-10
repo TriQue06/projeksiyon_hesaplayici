@@ -5,15 +5,15 @@
   },
   "datasets": [
     {
-      "name": "2023_milletvekili.txt",
+      "name": "2023_milletvekili.json",
       "w": 0.75
     },
     {
-      "name": "2018_milletvekili.txt",
+      "name": "2018_milletvekili.json",
       "w": 0.05
     },
     {
-      "name": "2024_igm.txt",
+      "name": "2024_igm.json",
       "w": 0.25
     }
   ],

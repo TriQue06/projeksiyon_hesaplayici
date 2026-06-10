@@ -268,9 +268,9 @@
     </div>
 
     <div class="card" id="cardVeriYukle">
-        <label>1. Seçim Verisi Yükle (.txt)</label>
-        <span style="font-size: 11px; margin-bottom: 8px; color: var(--text-secondary); display:block;">Bilgisayarınızdan yerel seçim sonuçlarını (.txt dosyası) aktarın.</span>
-        <input type="file" id="fileInp" accept=".txt" multiple style="width: 100%; margin-bottom: 12px; background: #f8f9fa;">
+        <label>1. Seçim Verisi Yükle (.json)</label>
+        <span style="font-size: 11px; margin-bottom: 8px; color: var(--text-secondary); display:block;">Bilgisayarınızdan yerel seçim sonuçlarını (.json dosyası) aktarın.</span>
+        <input type="file" id="fileInp" accept=".json,.txt" multiple style="width: 100%; margin-bottom: 12px; background: #f8f9fa;">
         <div id="datasetsList" class="scroll-area"></div>
     </div>
 
@@ -432,6 +432,7 @@
             <button onclick="document.getElementById('projectLoader').click()" class="teal" style="flex:1;">📂 Yükle (.JSON)</button>
         </div>
         <input type="file" id="projectLoader" accept=".json" style="display:none" onchange="loadProject(this)">
+        <button onclick="downloadDataset()" class="blue" style="width:100%;">📊 Veri Seti Olarak İndir (.JSON)</button>
         
     </div>
 </div>
@@ -779,7 +780,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                             const r = await fetch(ds.name);
                             if (r.ok) {
                                 const text = await r.text();
-                                const parsed = parseTxt(text);
+                                const parsed = ds.name.endsWith('.json') ? parseDataJson(text) : parseTxt(text);
                                 const nat = calcNat(parsed);
                                 refetched.push({ id: Date.now() + Math.random(), name: ds.name, data: parsed, nat, w: ds.w });
                             }
@@ -1439,13 +1440,34 @@ function updateTotalTracker() {
 $('fileInp').onchange = async (e) => {
     for(let file of e.target.files){
         const text = await file.text();
-        const data = parseTxt(text);
+        const data = file.name.endsWith('.json') ? parseDataJson(text) : parseTxt(text);
         const nat = calcNat(data);
         datasets.push({ id:Date.now()+Math.random(), name:file.name, data, nat, w:1.0 });
     }
     updateGlobalParties();
     renderDatasets();
 };
+
+function parseDataJson(text) {
+    try {
+        const raw = JSON.parse(text);
+        const out = {};
+        for (const dName in raw) {
+            const entry = raw[dName];
+            out[dName] = {
+                seats: parseInt(entry.seats) || 0,
+                votes: {}
+            };
+            for (const p in (entry.votes || {})) {
+                out[dName].votes[p] = parseInt(entry.votes[p]) || 0;
+            }
+        }
+        return out;
+    } catch(e) {
+        alert('JSON parse hatası: ' + e.message);
+        return {};
+    }
+}
 
 function parseTxt(t){
     const out = {};
@@ -2574,6 +2596,23 @@ function renderResults(res){
     if (isSelectionModeActive) updateSelectionUI();
 }
 
+function downloadDataset() {
+    if (Object.keys(globalResults).length === 0) return alert("Önce hesaplama yapın!");
+    const out = {};
+    for (const dName in globalResults) {
+        const res = globalResults[dName];
+        if (res.isMilliBakiye) continue;
+        const votes = {};
+        for (const p in res.pureVotes) votes[p] = Math.round(res.pureVotes[p]);
+        out[dName] = { seats: res.seats, votes };
+    }
+    const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'secim_verisi_' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+}
+
 function downloadAdvancedResults(){
     if(Object.keys(globalResults).length === 0) return alert("Önce hesaplama yapın!");
     
@@ -2936,7 +2975,36 @@ function updateSelectionUI() {
     const body = $('selectionPanelBody');
     
     if (selectedDistricts.size === 0) {
-        body.innerHTML = '<div style="font-size:12px; color:var(--text-secondary); text-align:center; padding: 20px 0;">Haritadan veya yandaki kartlardan<br>incelemek istediğiniz çevreleri seçin.</div>';
+        let totalVotes = 0, totalSeats = 0, partyVotes = {}, partySeats = {};
+        for (const d in globalResults) {
+            const res = globalResults[d];
+            if (res.isMilliBakiye) continue;
+            totalVotes += res.totalVotes;
+            totalSeats += res.seats;
+            const dd = getDisplayData(res);
+            Object.entries(dd.rawVotes).forEach(([p, v]) => { partyVotes[p] = (partyVotes[p] || 0) + v; });
+            Object.entries(dd.mvs).forEach(([p, s]) => { partySeats[p] = (partySeats[p] || 0) + s; });
+        }
+        const sorted = Object.keys(partyVotes).sort((a, b) => partyVotes[b] - partyVotes[a]);
+        let html = `<div style="font-size:11px; color:var(--text-secondary); margin-bottom:8px; text-align:center; border-bottom:1px solid var(--border); padding-bottom:8px;">🇹🇷 Türkiye Geneli | Koltuk: <b style="color:var(--text);">${totalSeats}</b></div>`;
+        sorted.forEach(p => {
+            const v = partyVotes[p];
+            if (v < 10) return;
+            const pct = totalVotes > 0 ? ((v / totalVotes) * 100).toFixed(2) : '0.00';
+            const s = partySeats[p] || 0;
+            const color = getPartyColor(p);
+            html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:8px 12px; border-radius:6px; border-left:4px solid ${color};">
+                <span style="font-weight:bold; font-size:13px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text);" title="${p}">${p}</span>
+                <div style="text-align:right; display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                        <span style="font-weight:bold; font-size:13px; color:var(--text);">%${pct}</span>
+                    </div>
+                    ${s > 0 ? `<span style="font-size:11px; background:${color}; color:white; padding:4px 6px; border-radius:4px; font-weight:bold; min-width:40px; text-align:center;">${s} Mv</span>` : `<span style="width:40px;"></span>`}
+                </div>
+            </div>`;
+        });
+        body.innerHTML = Object.keys(globalResults).length > 0 ? html : '<div style="font-size:12px; color:var(--text-secondary); text-align:center; padding: 20px 0;">Haritadan veya yandaki kartlardan<br>incelemek istediğiniz çevreleri seçin.</div>';
     } else {
         let totalVotes = 0;
         let totalSeats = 0;
