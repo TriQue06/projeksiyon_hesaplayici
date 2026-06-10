@@ -165,7 +165,7 @@
         #districtOverlay { display: none; width: 100%; box-sizing: border-box; animation: fadeIn 0.2s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .do-container { background: var(--surface); border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--border); border-top: 10px solid var(--primary); margin: 0 auto; max-width: 950px; transition: border-top-color 0.3s ease; }
+        .do-container { background: var(--surface); border-radius: 12px; padding: 32px 36px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--border); border-top: 10px solid var(--primary); margin: 0 auto; max-width: 1050px; transition: border-top-color 0.3s ease; }
         .nav-btn { background: #f0f2f5; color: var(--text); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 16px; display: flex; align-items: center; justify-content: center; }
         .nav-btn:hover { background: #e4e6eb; transform: scale(1.05); }
 
@@ -195,10 +195,10 @@
         
         /* Map Toggle Btn */
         #globalModeToggle {
-            position: absolute; 
-            top: 30px; 
-            right: 30px; 
-            z-index: 100;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
         }
         #mapModeToggleBtn {
             cursor: pointer;
@@ -265,6 +265,21 @@
             </select>
             <button onclick="loadFromArchive()" class="purple" style="flex:1;">Buluttan Getir ☁️</button>
         </div>
+    </div>
+
+    <div id="globalModeToggle">
+        <button id="selectionModeToggleBtn" onclick="toggleSelectionMode()" style="flex:1; background:var(--surface); color:var(--text); border-radius:6px; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow); white-space:nowrap;">
+            <span>🖱️</span> Özel İnceleme
+        </button>
+        <button id="mapModeToggleBtn" onclick="toggleMapMode()" style="flex:1; background:var(--surface); color:var(--text); border-radius:6px; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow); white-space:nowrap;">
+            <span>🔄</span> Partiler
+        </button>
+        <button id="localEditToggleBtn" onclick="toggleLocalEditButtons()" style="background:var(--surface); color:var(--text-secondary); border-radius:6px; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow);" title="İl bazlı aktif/pasif düzenlemeyi aç/kapat">
+            🔧
+        </button>
+        <button id="screenshotBtn" onclick="takeScreenshot()" style="background:var(--surface); color:var(--text-secondary); border-radius:6px; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow);">
+            📸
+        </button>
     </div>
 
     <div class="card" id="cardVeriYukle">
@@ -438,18 +453,6 @@
 </div>
 
 <div class="right-panel">
-    <!-- GLOBAL TOGGLE BUTONU -->
-    <div id="globalModeToggle" style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button id="selectionModeToggleBtn" onclick="toggleSelectionMode()" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 14px; font-weight:bold; padding: 10px 16px; border: 2px solid var(--border); display: flex; align-items: center; gap: 8px; transition: 0.2s; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-            <span style="font-size:18px;">🖱️</span> Özel İnceleme
-        </button>
-        <button id="mapModeToggleBtn" onclick="toggleMapMode()" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 14px; font-weight:bold; padding: 10px 16px; border: 2px solid var(--border); display: flex; align-items: center; gap: 8px; transition: 0.2s; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-            <span style="font-size:18px;">🔄</span> Görünüm: Partiler
-        </button>
-        <button id="screenshotBtn" onclick="takeScreenshot()" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 14px; font-weight:bold; padding: 10px 16px; border: 2px solid var(--border); display: flex; align-items: center; gap: 8px; transition: 0.2s; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-            <span style="font-size:18px;">📸</span> Görüntü Al
-        </button>
-    </div>
 
     <div id="mainContentWrapper">
         <div class="proj-header">
@@ -499,7 +502,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px; border-bottom: 2px solid #f0f2f5; padding-bottom: 15px;">
                 
                 <div style="display:flex; align-items:center; gap:12px; flex:1;">
-                    <h2 style="color:var(--text); margin:0; font-size: 2.6rem; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <h2 style="color:var(--text); margin:0; font-size: 2.8rem; font-weight:900; display:flex; align-items:center; gap:16px; flex-wrap:wrap; letter-spacing:-0.5px;">
                         <span id="doTitleName"></span>
                         <span id="doTitleWinner" style="margin-left: 12px;"></span>
                     </h2>
@@ -515,7 +518,7 @@
                 </div>
             </div>
             
-            <div id="doUnifiedList" style="display:flex; flex-direction:column; gap:10px; margin-bottom: 20px;"></div>
+            <div id="doUnifiedList" style="display:flex; flex-direction:column; gap:0; margin-bottom: 20px; border-radius:8px; overflow:hidden; border: 1px solid #f0f2f5;"></div>
             
             <button id="doShowAllBtn" onclick="showAllPartiesInOverlay()" style="background: var(--text-secondary); display:none; padding: 12px; font-size: 14px; width: 100%;">Gizlenen Tüm Partileri Göster ▼</button>
         </div>
@@ -560,7 +563,8 @@ let localDisabledParties = {}; // YENİ: İl bazlı parti iptallerini tutar
 
 let dragCtx = { type: null, idx: null };
 let activePartyFilter = null;
-let filterSortMode = 'mv'; // 'mv' veya 'pct'
+let filterSortMode = 'mv';
+let showLocalToggleButtons = false;
 let savedScrollPosition = 0;
 let mapDictionary = {};
 let customDotPositions = {}; 
@@ -2795,13 +2799,15 @@ function getMiniMapSvg(dName, fillColor) {
         clone.removeAttribute('class');
         clone.removeAttribute('data-district-name');
         clone.removeAttribute('id');
-        clone.style.cssText = `fill: ${fillColor} !important; stroke: #1c1e21 !important; stroke-width: 1px !important; transition: none;`;
+        clone.style.cssText = `fill: ${fillColor} !important; stroke: none !important; stroke-width: 0 !important; transition: none;`;
         clone.setAttribute('fill', fillColor);
-        
+        clone.setAttribute('stroke', 'none');
+
         clone.querySelectorAll('*').forEach(child => {
             child.removeAttribute('class');
-            child.style.cssText = `fill: ${fillColor} !important; stroke: #1c1e21 !important; stroke-width: 1px !important; transition: none;`;
+            child.style.cssText = `fill: ${fillColor} !important; stroke: none !important; stroke-width: 0 !important; transition: none;`;
             child.setAttribute('fill', fillColor);
+            child.setAttribute('stroke', 'none');
         });
 
         clonedNodes.push(clone.outerHTML);
@@ -2821,7 +2827,7 @@ function getMiniMapSvg(dName, fillColor) {
     let vbW = (maxX - minX) + padding * 2;
     let vbH = (maxY - minY) + padding * 2;
 
-    return `<svg viewBox="${vbX} ${vbY} ${vbW} ${vbH}" style="width: 72px; height: 72px; display: inline-block; vertical-align: middle; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.28)); flex-shrink:0;">${clonedNodes.join('')}</svg>`;
+    return `<svg viewBox="${vbX} ${vbY} ${vbW} ${vbH}" style="width: 110px; height: 110px; display: inline-block; vertical-align: middle; flex-shrink:0;">${clonedNodes.join('')}</svg>`;
 }
 
 window.openDistrictOverlay = function(dName) {
@@ -2907,7 +2913,7 @@ function renderDistrictOverlay() {
         
         borderCol = blendWithWhite(wColor, isDominant ? domRatio : pluRatio);
         
-        winnerTagHtml = `<span style="background:${wColor}; color:#ffffff; padding:4px 12px; border-radius:8px; font-size:1.1rem; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.15);">${winnerParty}</span>`;
+        winnerTagHtml = `<span style="background:${wColor}; color:#ffffff; padding:6px 18px; border-radius:8px; font-size:1.3rem; font-weight:900; box-shadow:0 2px 6px rgba(0,0,0,0.18); letter-spacing:-0.3px;">${winnerParty}</span>`;
     }
 
     const overlayContainer = document.querySelector('.do-container');
@@ -2925,8 +2931,8 @@ function renderDistrictOverlay() {
         seatHtml = `<div style="background:var(--purple); color:white; padding:6px 12px; border-radius:6px; font-size:1.1rem; font-weight:bold; border:1px solid var(--purple); white-space:nowrap;">${displayData.seats} MB Koltuğu</div>`;
     } else {
         seatHtml = `
-            <div class="seat-editor" title="Koltuk sayısını değiştir" style="background:#e8f0fe; color:var(--primary); padding:6px 12px; border-radius:6px; font-size:1.2rem; font-weight:bold; border:1px solid var(--primary); white-space:nowrap; display:flex; align-items:center; transition: 0.2s;">
-                <input type="number" value="${displayData.seats}" onchange="updateSeatOverride('${escapeStr(dName)}', this.value)" style="background:transparent; border:none; color:inherit; font-weight:bold; width:45px; text-align:right; font-size:1.2rem; padding:0 4px 0 0; outline:none;"> Mv
+            <div class="seat-editor" title="Koltuk sayısını değiştir" style="background:#e8f0fe; color:var(--primary); padding:8px 16px; border-radius:8px; font-size:1.4rem; font-weight:900; border:1px solid var(--primary); white-space:nowrap; display:flex; align-items:center; transition: 0.2s; letter-spacing:-0.5px;">
+                <input type="number" value="${displayData.seats}" onchange="updateSeatOverride('${escapeStr(dName)}', this.value)" style="background:transparent; border:none; color:inherit; font-weight:900; width:50px; text-align:right; font-size:1.4rem; padding:0 4px 0 0; outline:none;"> Mv
             </div>`;
     }
     $('doTitleMv').innerHTML = seatHtml;
@@ -2957,24 +2963,26 @@ function renderDistrictOverlay() {
         const realPct = preTotal > 0 ? (((itemRaw.preDisableVotes||{})[p] || 0) / preTotal * 100) : pctNum;
         const realPctStr = realPct.toFixed(2);
 
-        const toggleBtn = `<button onclick="toggleLocalParty('${escapeStr(dName)}', '${escapeStr(p)}')" class="status-btn ${!isLocallyDisabled ? 'active' : ''}" style="width:34px; height:34px; background:${!isLocallyDisabled ? 'var(--success)' : '#f5f6f7'}; color:${!isLocallyDisabled ? '#fff' : 'var(--text-secondary)'}; border:none; margin-right:14px; flex-shrink:0; cursor:pointer; font-size:13px; font-weight:bold; box-shadow:0 1px 2px rgba(0,0,0,0.1); transition:0.2s;" title="${!isLocallyDisabled ? 'Seçim çevresinde aktif - Pasife almak için tıkla' : 'Seçim çevresinde pasif - Aktif etmek için tıkla'}">${!isLocallyDisabled ? 'A' : 'P'}</button>`;
+        const toggleBtn = showLocalToggleButtons
+            ? `<button onclick="toggleLocalParty('${escapeStr(dName)}', '${escapeStr(p)}')" class="status-btn ${!isLocallyDisabled ? 'active' : ''}" style="width:34px; height:34px; background:${!isLocallyDisabled ? 'var(--success)' : '#f5f6f7'}; color:${!isLocallyDisabled ? '#fff' : 'var(--text-secondary)'}; border:none; margin-right:14px; flex-shrink:0; cursor:pointer; font-size:13px; font-weight:bold; box-shadow:0 1px 2px rgba(0,0,0,0.1); transition:0.2s;" title="${!isLocallyDisabled ? 'Pasife al' : 'Aktif et'}">${!isLocallyDisabled ? 'A' : 'P'}</button>`
+            : (isLocallyDisabled ? `<div style="width:10px; height:34px; margin-right:14px; flex-shrink:0; background:var(--danger); border-radius:3px; opacity:0.5;"></div>` : `<div style="width:10px; height:34px; margin-right:14px; flex-shrink:0;"></div>`);
 
         listHtml += `
-            <div class="data-row" style="display:flex; justify-content:space-between; align-items:center; border-left: 5px solid ${color}; padding: 16px 20px; border-radius: 8px; border-bottom: 1px solid var(--bg); background: var(--surface); opacity: ${isLocallyDisabled ? '0.6' : '1'};">
-                <div style="width:190px; display:flex; align-items:center;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-left: 6px solid ${color}; padding: 14px 20px; border-radius: 0; border-bottom: 1px solid #f0f2f5; background: var(--surface); opacity: ${isLocallyDisabled ? '0.55' : '1'};">
+                <div style="width:220px; display:flex; align-items:center; flex-shrink:0;">
                     ${toggleBtn}
-                    <div style="font-weight:bold; font-size:18px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; ${isLocallyDisabled ? 'text-decoration:line-through; color:var(--text-secondary);' : ''}" title="${escapeStr(p)}">${p}</div>
+                    <div style="font-weight:900; font-size:22px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.3px; ${isLocallyDisabled ? 'text-decoration:line-through; color:var(--text-secondary);' : ''}" title="${escapeStr(p)}">${p}</div>
                 </div>
 
-                <div style="flex:1; display:flex; align-items:center; margin: 0 18px;">
-                    <div style="width:${realPct}%; max-width:calc(100% - 75px); background:${isLocallyDisabled ? '#ccc' : color}; height:30px; border-radius:8px; min-width:4px; transition:width 0.5s ease-out;"></div>
-                    <span style="margin-left:12px; font-weight:bold; font-size:18px; ${isLocallyDisabled ? 'text-decoration:line-through; color:#bbb;' : (!hasPassed ? 'text-decoration:line-through; color:#ef9a9a;' : 'color:var(--text);')}">%${realPctStr}</span>
+                <div style="flex:1; display:flex; align-items:center; margin: 0 20px;">
+                    <div style="width:${realPct}%; max-width:calc(100% - 80px); background:${isLocallyDisabled ? '#ddd' : color}; height:46px; border-radius:6px; min-width:4px; transition:width 0.5s ease-out;"></div>
+                    <span style="margin-left:14px; font-weight:900; font-size:22px; white-space:nowrap; ${isLocallyDisabled ? 'text-decoration:line-through; color:#bbb;' : (!hasPassed ? 'text-decoration:line-through; color:#ef9a9a;' : 'color:var(--text);')}">%${realPctStr}</span>
                 </div>
 
-                <div style="width:130px; text-align:right;">
+                <div style="width:100px; text-align:right; flex-shrink:0;">
                     ${s > 0 && !isLocallyDisabled
-                        ? `<span class="mv-tag" style="font-size:17px; padding:8px 16px; background:${color}; box-shadow: var(--shadow);">${s} Mv</span>`
-                        : (isLocallyDisabled ? `<span style="font-size:13px; color:#bbb; font-weight:bold;">pasif</span>` : ``)}
+                        ? `<span style="font-size:32px; font-weight:900; color:${color}; letter-spacing:-1px;">${s}</span><span style="font-size:13px; color:var(--text-secondary); font-weight:bold; margin-left:3px;">Mv</span>`
+                        : (isLocallyDisabled ? `<span style="font-size:13px; color:#bbb; font-weight:bold;">pasif</span>` : `<span style="font-size:32px; font-weight:900; color:#ddd;">0</span>`)}
                 </div>
             </div>
         `;
@@ -2983,6 +2991,21 @@ function renderDistrictOverlay() {
     $('doUnifiedList').innerHTML = listHtml;
     $('doShowAllBtn').style.display = hasHidden ? 'block' : 'none';
 }
+
+window.toggleLocalEditButtons = function() {
+    showLocalToggleButtons = !showLocalToggleButtons;
+    const btn = $('localEditToggleBtn');
+    if (showLocalToggleButtons) {
+        btn.style.background = 'var(--orange)';
+        btn.style.color = 'white';
+        btn.style.borderColor = 'var(--orange)';
+    } else {
+        btn.style.background = 'var(--surface)';
+        btn.style.color = 'var(--text-secondary)';
+        btn.style.borderColor = 'var(--border)';
+    }
+    if ($('districtOverlay').style.display === 'block') renderDistrictOverlay();
+};
 
 // --- ÖZEL İNCELEME (ARA SEÇİM) FONKSİYONLARI ---
 function toggleSelectionMode() {
