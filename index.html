@@ -2875,9 +2875,18 @@ function renderDistrictOverlay() {
     const itemRaw = currentOverlayData.data;
     const displayData = getDisplayData(itemRaw);
     
-    // preDisableVotes varsa sıralamayı orijinal oylara göre yap (pasif partiler yerinden oynamasın)
-    const sortRef = itemRaw.preDisableVotes || displayData.rawVotes;
-    const sortedParties = Object.keys(displayData.rawVotes).sort((a,b) => (sortRef[b]||0) - (sortRef[a]||0));
+    // preDisableVotes yoksa rawVotes kullan; alliance modunda üye oylarını topla
+    function preVotesOf(entityName) {
+        if (mapMode !== 'party') {
+            const al = electoralAlliances.find(a => a.isEnabled !== false && a.name === entityName);
+            if (al) return al.members.reduce((s,m) => s + ((itemRaw.preDisableVotes||{})[m]||0), 0);
+        }
+        return (itemRaw.preDisableVotes||{})[entityName] || (displayData.rawVotes[entityName] || 0);
+    }
+    const preDisTotal = Object.values(itemRaw.preDisableVotes || {}).reduce((a,b)=>a+b,0) || displayData.totalVotes || 1;
+    const sortedParties = Object.keys(displayData.rawVotes).sort((a,b) => preVotesOf(b) - preVotesOf(a));
+    // Lider partinin oy yüzdesi: bar normalizasyonu için sabit referans (pasif yapılsa bile değişmez)
+    const leaderPct = Math.max(...sortedParties.map(p => preVotesOf(p) / preDisTotal * 100), 0.01);
     
     let winnerParty = null;
     let maxMvs = -1;
@@ -2958,10 +2967,11 @@ function renderDistrictOverlay() {
             return;
         }
         
-        // Pasif partinin gerçek oy oranını preDisableVotes'tan hesapla
-        const preTotal = Object.values(itemRaw.preDisableVotes || {}).reduce((a,b)=>a+b,0) || displayData.totalVotes;
-        const realPct = preTotal > 0 ? (((itemRaw.preDisableVotes||{})[p] || 0) / preTotal * 100) : pctNum;
+        // realPct: preDisableVotes'tan (alliance modunda üye oyları toplanır), bu sayede %0 hatası olmaz
+        const realPct = preDisTotal > 0 ? (preVotesOf(p) / preDisTotal * 100) : pctNum;
         const realPctStr = realPct.toFixed(2).replace('.', ',');
+        // Bar genişliği: lider her zaman %100, diğerleri orantılı; pasif yapılsa değişmez
+        const normalizedBarWidth = leaderPct > 0 ? (realPct / leaderPct) * 100 : realPct;
 
         const toggleBtn = showLocalToggleButtons
             ? `<button onclick="toggleLocalParty('${escapeStr(dName)}', '${escapeStr(p)}')" class="status-btn ${!isLocallyDisabled ? 'active' : ''}" style="width:34px; height:34px; background:${!isLocallyDisabled ? 'var(--success)' : '#f5f6f7'}; color:${!isLocallyDisabled ? '#fff' : 'var(--text-secondary)'}; border:none; margin-right:14px; flex-shrink:0; cursor:pointer; font-size:13px; font-weight:bold; box-shadow:0 1px 2px rgba(0,0,0,0.1); transition:0.2s;" title="${!isLocallyDisabled ? 'Pasife al' : 'Aktif et'}">${!isLocallyDisabled ? 'A' : 'P'}</button>`
@@ -2975,7 +2985,7 @@ function renderDistrictOverlay() {
                 </div>
 
                 <div style="flex:1; display:flex; align-items:center; margin: 0 20px;">
-                    <div style="width:${realPct}%; max-width:calc(100% - 90px); background:${isLocallyDisabled ? '#ddd' : color}; height:38px; border-radius:6px; min-width:4px; transition:width 0.5s ease-out;"></div>
+                    <div style="width:${normalizedBarWidth}%; max-width:calc(100% - 90px); background:${isLocallyDisabled ? '#ddd' : color}; height:38px; border-radius:6px; min-width:4px; transition:width 0.5s ease-out;"></div>
                     <span style="margin-left:14px; font-weight:900; font-size:26px; white-space:nowrap; ${isLocallyDisabled ? 'text-decoration:line-through; color:#bbb;' : 'color:var(--text);'}">%${realPctStr}</span>
                 </div>
 
@@ -3292,7 +3302,44 @@ async function captureMapPng() {
     link.click();
 }
 
+async function ensureHtml2Canvas() {
+    if (window.html2canvas) return;
+    await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.crossOrigin = 'anonymous';
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('html2canvas yüklenemedi — internet bağlantısını kontrol edin'));
+        document.head.appendChild(s);
+    });
+}
+
 async function captureDistrictPanel() {
+    if (!currentOverlayData) return;
+
+    try {
+        await ensureHtml2Canvas();
+        const el = $('doMainContent');
+        if (!el) return;
+        const dName = currentOverlayData.name;
+        const canvas = await html2canvas(el, {
+            scale: 2,
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            logging: false,
+            allowTaint: false
+        });
+        const link = document.createElement('a');
+        link.download = dName.replace('🌟 ', '') + '_' + new Date().toISOString().slice(0, 10) + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    } catch(e) {
+        console.warn('html2canvas başarısız, SVG yedek kullanılıyor:', e);
+        await captureDistrictPanelFallback();
+    }
+}
+
+async function captureDistrictPanelFallback() {
     if (!currentOverlayData) return;
 
     const dName = currentOverlayData.name;
