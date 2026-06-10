@@ -498,7 +498,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px; border-bottom: 2px solid #f0f2f5; padding-bottom: 15px;">
                 
                 <div style="display:flex; align-items:center; gap:12px; flex:1;">
-                    <h2 style="color:var(--text); margin:0; font-size: 1.8rem; display:flex; align-items:center; gap:0px; flex-wrap:wrap;">
+                    <h2 style="color:var(--text); margin:0; font-size: 2.2rem; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                         <span id="doTitleName"></span>
                         <span id="doTitleWinner" style="margin-left: 12px;"></span>
                     </h2>
@@ -2777,19 +2777,28 @@ function getMiniMapSvg(dName, fillColor) {
 }
 
 window.openDistrictOverlay = function(dName) {
-    currentOverlayData = {
-        name: dName,
-        data: globalResults[dName]
-    };
     showingAllInOverlay = false;
-    
     savedScrollPosition = document.querySelector('.right-panel').scrollTop;
-    
+
+    // getBBox gizli SVG'de çalışmaz — rengi ve mini haritayı DOM gizlenmeden önce hesapla
+    const itemRaw = globalResults[dName];
+    const displayData = getDisplayData(itemRaw);
+    let winnerParty = null, maxMvs = -1, maxVotes = -1;
+    Object.entries(displayData.mvs).forEach(([p, s]) => {
+        let v = displayData.rawVotes[p] || 0;
+        if (s > maxMvs || (s === maxMvs && v > maxVotes)) { maxMvs = s; maxVotes = v; winnerParty = p; }
+    });
+    if (!winnerParty) Object.entries(displayData.rawVotes).forEach(([p, v]) => { if (v > maxVotes) { maxVotes = v; winnerParty = p; } });
+    const wColor = (winnerParty && !displayData.isMilliBakiye) ? getPartyColor(winnerParty) : 'var(--purple)';
+
+    const cachedMiniMap = getMiniMapSvg(dName, wColor);
+
+    currentOverlayData = { name: dName, data: itemRaw, cachedMiniMap, wColor };
+
     $('mainContentWrapper').style.display = 'none';
     $('districtOverlay').style.display = 'block';
-    
     document.querySelector('.right-panel').scrollTop = 0;
-    
+
     renderDistrictOverlay();
 };
 
@@ -2874,12 +2883,9 @@ function renderDistrictOverlay() {
         overlayContainer.style.borderTop = `10px solid ${borderCol}`;
     }
     
-    let titleIcon = getMiniMapSvg(dName, wColor);
-    if (titleIcon) {
-        titleIcon = `<span style="display:inline-flex; align-items:center;">${titleIcon}</span>`;
-    }
-    
-    $('doTitleName').innerHTML = `${titleIcon}${dName.replace('🌟 ', '')}`;
+    const titleIcon = currentOverlayData.cachedMiniMap || '';
+
+    $('doTitleName').innerHTML = `${titleIcon}<span>${dName.replace('🌟 ', '')}</span>`;
     $('doTitleWinner').innerHTML = winnerTagHtml;
     
     let seatHtml = '';
@@ -2919,24 +2925,24 @@ function renderDistrictOverlay() {
         const realPct = preTotal > 0 ? (((itemRaw.preDisableVotes||{})[p] || 0) / preTotal * 100) : pctNum;
         const realPctStr = realPct.toFixed(2);
 
-        const toggleBtn = `<button onclick="toggleLocalParty('${escapeStr(dName)}', '${escapeStr(p)}')" class="status-btn ${!isLocallyDisabled ? 'active' : ''}" style="width:30px; height:30px; background:${!isLocallyDisabled ? 'var(--success)' : '#f5f6f7'}; color:${!isLocallyDisabled ? '#fff' : 'var(--text-secondary)'}; border:none; margin-right:14px; flex-shrink:0; cursor:pointer; font-size:12px; font-weight:bold; box-shadow:0 1px 2px rgba(0,0,0,0.1); transition:0.2s;" title="${!isLocallyDisabled ? 'Seçim çevresinde aktif - Pasife almak için tıkla' : 'Seçim çevresinde pasif - Aktif etmek için tıkla'}">${!isLocallyDisabled ? 'A' : 'P'}</button>`;
+        const toggleBtn = `<button onclick="toggleLocalParty('${escapeStr(dName)}', '${escapeStr(p)}')" class="status-btn ${!isLocallyDisabled ? 'active' : ''}" style="width:34px; height:34px; background:${!isLocallyDisabled ? 'var(--success)' : '#f5f6f7'}; color:${!isLocallyDisabled ? '#fff' : 'var(--text-secondary)'}; border:none; margin-right:14px; flex-shrink:0; cursor:pointer; font-size:13px; font-weight:bold; box-shadow:0 1px 2px rgba(0,0,0,0.1); transition:0.2s;" title="${!isLocallyDisabled ? 'Seçim çevresinde aktif - Pasife almak için tıkla' : 'Seçim çevresinde pasif - Aktif etmek için tıkla'}">${!isLocallyDisabled ? 'A' : 'P'}</button>`;
 
         listHtml += `
-            <div class="data-row" style="display:flex; justify-content:space-between; align-items:center; border-left: 4px solid ${color}; padding: 14px 18px; border-radius: 6px; border-bottom: 1px solid var(--bg); background: var(--surface); opacity: ${isLocallyDisabled ? '0.6' : '1'};">
-                <div style="width:170px; display:flex; align-items:center;">
+            <div class="data-row" style="display:flex; justify-content:space-between; align-items:center; border-left: 5px solid ${color}; padding: 16px 20px; border-radius: 8px; border-bottom: 1px solid var(--bg); background: var(--surface); opacity: ${isLocallyDisabled ? '0.6' : '1'};">
+                <div style="width:190px; display:flex; align-items:center;">
                     ${toggleBtn}
-                    <div style="font-weight:bold; font-size:16px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; ${isLocallyDisabled ? 'text-decoration:line-through; color:var(--text-secondary);' : ''}" title="${escapeStr(p)}">${p}</div>
+                    <div style="font-weight:bold; font-size:18px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; ${isLocallyDisabled ? 'text-decoration:line-through; color:var(--text-secondary);' : ''}" title="${escapeStr(p)}">${p}</div>
                 </div>
 
-                <div style="flex:1; display:flex; align-items:center; margin: 0 16px;">
-                    <div style="width:${realPct}%; max-width:calc(100% - 65px); background:${isLocallyDisabled ? '#ccc' : color}; height:26px; border-radius:6px; min-width:4px; transition:width 0.5s ease-out;"></div>
-                    <span style="margin-left:10px; font-weight:bold; font-size:16px; ${isLocallyDisabled ? 'text-decoration:line-through; color:#bbb;' : (!hasPassed ? 'text-decoration:line-through; color:#ef9a9a;' : 'color:var(--text);')}">%${realPctStr}</span>
+                <div style="flex:1; display:flex; align-items:center; margin: 0 18px;">
+                    <div style="width:${realPct}%; max-width:calc(100% - 75px); background:${isLocallyDisabled ? '#ccc' : color}; height:30px; border-radius:8px; min-width:4px; transition:width 0.5s ease-out;"></div>
+                    <span style="margin-left:12px; font-weight:bold; font-size:18px; ${isLocallyDisabled ? 'text-decoration:line-through; color:#bbb;' : (!hasPassed ? 'text-decoration:line-through; color:#ef9a9a;' : 'color:var(--text);')}">%${realPctStr}</span>
                 </div>
 
-                <div style="width:120px; text-align:right;">
+                <div style="width:130px; text-align:right;">
                     ${s > 0 && !isLocallyDisabled
-                        ? `<span class="mv-tag" style="font-size:15px; padding:7px 14px; background:${color}; box-shadow: var(--shadow);">${s} Mv</span>`
-                        : (isLocallyDisabled ? `<span style="font-size:11px; color:#bbb; font-weight:bold;">pasif</span>` : ``)}
+                        ? `<span class="mv-tag" style="font-size:17px; padding:8px 16px; background:${color}; box-shadow: var(--shadow);">${s} Mv</span>`
+                        : (isLocallyDisabled ? `<span style="font-size:13px; color:#bbb; font-weight:bold;">pasif</span>` : ``)}
                 </div>
             </div>
         `;
