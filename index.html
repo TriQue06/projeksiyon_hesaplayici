@@ -2128,14 +2128,36 @@ async function loadProject(inp) {
 async function loadFromArchive() {
     const fileName = $('archiveSelector').value;
     if(!fileName) return;
-    
+
     try {
         const response = await fetch(fileName);
         if(!response.ok) throw new Error("Sunucu Hatası");
-        
+
         const data = await response.json();
+
+        // Lean JSON'larda dataset'lerin data/nat alanları yok — sunucudan çek
+        if (data.datasets && data.datasets.some(ds => !ds.data)) {
+            const refetched = [];
+            for (const ds of data.datasets) {
+                if (ds.data) {
+                    refetched.push(ds);
+                } else {
+                    try {
+                        const r = await fetch(ds.name);
+                        if (r.ok) {
+                            const text = await r.text();
+                            const parsed = ds.name.endsWith('.json') ? parseDataJson(text) : parseTxt(text);
+                            const nat = calcNat(parsed);
+                            refetched.push({ id: Date.now() + Math.random(), name: ds.name, data: parsed, nat, w: ds.w });
+                        }
+                    } catch(e) { console.warn('Dataset çekilemedi:', ds.name); }
+                }
+            }
+            data.datasets = refetched;
+        }
+
         applyProjectData(data);
-        
+
         try {
             const svgRes = await fetch('turkiye_harita.svg');
             if (svgRes.ok) {
@@ -2152,9 +2174,9 @@ async function loadFromArchive() {
                 customDotPositions = await konumRes.json();
             }
         } catch(e) {}
-        
+
         if (datasets.length > 0) runProjection();
-        
+
     } catch(err) {
         alert("Arşiv yüklenemedi:\n" + err.message);
     }
@@ -3871,7 +3893,7 @@ function saveProject() {
     const projectData = {
         meta: { version: "10.0-lean", date: new Date().toISOString() },
         datasets: datasets.map(ds => ({ name: ds.name, w: ds.w })),
-        extraParties, coalitions, electoralAlliances, customSeatOverrides, customDotPositions,
+        extraParties, coalitions, electoralAlliances, fermuarListes, digerGroups, digerDisplayEnabled, customSeatOverrides, customDotPositions,
         localDisabledParties: (() => {
             let obj = {};
             for (let k in localDisabledParties) obj[k] = Array.from(localDisabledParties[k]);
@@ -3912,7 +3934,7 @@ document.getElementById('projectLoader').onchange = async function(e) {
                         const res = await fetch(ds.name);
                         if (res.ok) {
                             const text = await res.text();
-                            const parsed = parseTxt(text);
+                            const parsed = ds.name.endsWith('.json') ? parseDataJson(text) : parseTxt(text);
                             const nat = calcNat(parsed);
                             refetched.push({ id: Date.now() + Math.random(), name: ds.name, data: parsed, nat, w: ds.w });
                         }
