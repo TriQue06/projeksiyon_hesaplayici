@@ -1994,12 +1994,19 @@ function renderFermuar() {
     const allParties = extraParties.map(e => e.name).sort((a, b) => a.localeCompare(b, 'tr'));
     const districts = getMasterDistricts();
 
+    // Scroll pozisyonlarını render öncesi kaydet
+    const scrollSave = {};
+    $('fermuarArea').querySelectorAll('[data-fg-grid]').forEach(el => {
+        scrollSave[el.dataset.fgGrid] = el.scrollTop;
+    });
+
     $('fermuarArea').innerHTML = fermuarListes.map((fl, idx) => {
-        const memberRows = fl.isOpen ? fl.members.map(m => {
+        const memberRows = fl.isOpen ? fl.members.map((m, mIdx) => {
             const assigned = fl.districtMap[m] || [];
             const isDistOpen = (fl.openParties || {})[m];
+            const gridKey = `${idx}-${mIdx}`;
             const distGrid = isDistOpen && districts.length > 0 ? `
-                <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:4px; max-height:160px; overflow-y:auto; padding:6px; border:1px dashed var(--border); border-radius:6px; margin-top:4px;">
+                <div data-fg-grid="${gridKey}" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:4px; max-height:240px; overflow-y:auto; padding:6px; border:1px dashed var(--border); border-radius:6px; margin-top:4px;">
                     ${districts.map(d => `
                         <label class="coal-sim-box ${assigned.includes(d)?'active':''}" style="${assigned.includes(d)?'background:var(--primary);border-color:var(--primary);color:white;':''}" title="${escapeStr(d)}">
                             <input type="checkbox" style="display:none;" ${assigned.includes(d)?'checked':''} onchange="toggleFermuarDistrict(${idx},'${escapeStr(m)}','${escapeStr(d)}')">
@@ -2044,6 +2051,11 @@ function renderFermuar() {
             </div>` : ''}
         </div>`;
     }).join('');
+
+    // Scroll pozisyonlarını geri yükle
+    $('fermuarArea').querySelectorAll('[data-fg-grid]').forEach(el => {
+        if (scrollSave[el.dataset.fgGrid] !== undefined) el.scrollTop = scrollSave[el.dataset.fgGrid];
+    });
 }
 
 window.renameFermuar = function(idx, newName) {
