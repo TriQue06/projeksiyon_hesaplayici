@@ -1,0 +1,3588 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>PGM Projeksiyon Arayüzü v10.0</title>
+    <style>
+        @font-face {
+            font-family: 'Product Sans';
+            src: url('ProductSans-Bold.ttf') format('truetype');
+            font-weight: bold;
+        }
+
+        :root {
+            --primary: #1a73e8;
+            --primary-hover: #1557b0;
+            --bg: #f0f2f5;
+            --surface: #ffffff;
+            --text: #1c1e21;
+            --text-secondary: #606770;
+            --border: #dadde1;
+            --danger: #e41e3f;
+            --success: #31a24c;
+            --purple: #673ab7;
+            --orange: #f57c00;
+            --teal: #00897b;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Product Sans', sans-serif; }
+        body { display: flex; height: 100vh; background-color: var(--bg); color: var(--text); overflow: hidden; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 0; }
+        ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+        /* Sol panel */
+        .left-panel { flex: 1; min-width: 450px; max-width: 540px; padding: 20px; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--border); box-shadow: 2px 0 5px rgba(0,0,0,0.05); z-index: 10; display: flex; flex-direction: column; }
+        .right-panel { flex: 2; padding: 30px; overflow-y: auto; background: #e9eaef; position: relative; }
+
+        h1 { font-size: 1.5rem; margin-bottom: 20px; color: var(--primary); display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f0f2f5; padding-bottom: 12px; }
+        .proj-header { font-size: 1.8rem; margin-bottom: 16px; color: #1c1e21; border-bottom: 2px solid #dadde1; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+        .card { background: var(--surface); border-radius: 0; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .card label { display: block; font-weight: bold; margin-bottom: 12px; color: var(--primary); font-size: 1.1rem; }
+
+        .flex-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; flex-wrap: nowrap; }
+        
+        input, select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 0; font-size: 13px; outline: none; flex: 1; background: #f5f6f7; transition: 0.2s; }
+        input:focus, select:focus { border-color: var(--primary); background: #fff; }
+        input[type="number"] { max-width: 90px; }
+        input[type="file"] { padding: 6px; background: #fff; font-size: 12px; cursor: pointer; }
+
+        button { background-color: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 0; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        button:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        button.danger { background-color: var(--danger); }
+        button.danger:hover { background-color: #c9182b; }
+        button.purple { background-color: var(--purple); }
+        button.purple:hover { background-color: #512da8; }
+        button.orange { background-color: var(--orange); }
+        button.orange:hover { background-color: #e65100; }
+        button.teal { background-color: var(--teal); }
+        button.teal:hover { background-color: #00695c; }
+        button.success { background-color: var(--success); font-size: 15px; padding: 14px; }
+        button.success:hover { background-color: #27823b; }
+        button.blue { background-color: #0288d1; }
+        button.blue:hover { background-color: #01579b; }
+
+        button.toggle-btn { flex-shrink: 0; background: #f5f6f7; border: 1px solid var(--border); color: var(--text-secondary); width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 0; font-size: 15px; }
+        button.toggle-btn:hover { background: #e4e6eb; color: var(--text); transform: none; }
+        .data-row .danger { flex-shrink: 0; width: 32px !important; height: 32px !important; border-radius: 50%; font-size: 15px; }
+
+        button.status-btn { flex-shrink: 0; background: #f5f6f7; border: 1px solid var(--border); color: var(--text-secondary); padding: 0; width: 32px; height: 32px; border-radius: 0; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; }
+        button.status-btn.active { background: var(--success); color: white; border-color: var(--success); }
+
+        .data-row { background: var(--surface); padding: 10px; border-radius: 0; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid var(--border); border-left: 4px solid var(--border); font-size: 13px; transition: background-color 0.2s; }
+        .data-row.drag-over { background-color: #e8f0fe !important; border-style: dashed; }
+        
+        .editable-name { background: transparent; border: 1px solid transparent; padding: 4px; font-weight: bold; color: var(--text); flex: 1; min-width: 50px; outline: none; border-radius: 0; transition: 0.2s; margin: 0 4px; }
+        .editable-name:hover { background: #f5f6f7; }
+        .editable-name:focus { background: #fff; border: 1px solid var(--primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
+
+        .drag-handle { flex-shrink: 0; cursor: grab; padding: 4px 2px; color: #a0aabf; display: flex; align-items: center; justify-content: center; font-size: 16px; user-select: none; }
+        .drag-handle:active { cursor: grabbing; }
+        .drag-handle:hover { color: var(--primary); }
+
+        .similarity-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+        .sim-input-box { background: #f5f6f7; padding: 8px; border-radius: 0; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+        .sim-input-box span { font-size: 10px; color: var(--text-secondary); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sim-input-box input { padding: 4px; margin: 0; font-size: 12px; }
+
+        .coal-sim-box { background: #f5f6f7; padding: 10px; border-radius: 0; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; text-align: center; }
+        .coal-sim-box:hover { background: #e8f0fe; border-color: var(--primary); }
+        .coal-sim-box.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 4px rgba(26,115,232,0.3); }
+        .coal-sim-box.active span { color: white; }
+        .coal-sim-box span { font-size: 11px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-secondary); pointer-events: none; }
+
+        .scroll-area { max-height: 250px; overflow-y: auto; padding-right: 5px; }
+
+        .action-bar { position: sticky; bottom: -20px; background: var(--surface); z-index: 10; padding-top: 16px; padding-bottom: 20px; border-top: 2px solid #f0f2f5; margin-top: auto; }
+
+        /* PROJEKSİYON STİLLERİ */
+        #results { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; align-items: start; }
+        
+        .dist-card { background: var(--surface); border-radius: 0; padding: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); border-top: 8px solid var(--border); transition: transform 0.2s; }
+        .dist-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+        
+        .dist-card h3 { margin: 0 0 16px 0; font-size: 1.3rem; color: var(--text); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f2f5; padding-bottom: 10px; }
+        .dist-card h3 span.seat-editor { background: #e8f0fe; color: var(--primary); padding: 4px 8px; border-radius: 0; font-size: 1rem; display:flex; align-items:center; border: 1px solid var(--primary); transition: 0.2s; }
+        .dist-card h3 span.seat-editor:focus-within { box-shadow: 0 0 0 2px rgba(26,115,232,0.3); }
+        .dist-card h3 span.seat-editor input { background:transparent; border:none; color:inherit; font-weight:bold; width:35px; text-align:right; font-size:1rem; padding:0 4px 0 0; outline:none; }
+        
+        .p-line { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid #f5f6f7; }
+        .p-line:last-child { border-bottom: none; }
+        .p-line.is-coal { background: #f8faff; border-left: 3px solid var(--primary); padding-left: 8px; margin-left: -12px; padding-right: 12px; border-radius: 0; }
+        
+        .p-line-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        
+        .p-name-area { display: flex; flex-direction: column; }
+        .p-name { font-weight: bold; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 4px; }
+        .p-coal-members { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+        
+        .p-stats-area { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .p-pct { color: var(--text-secondary); font-size: 12px; font-weight: bold; }
+        .mv-tag { background: var(--primary); color: #fff; padding: 3px 8px; border-radius: 0; font-size: 11px; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .fail-tag { background: #ffebee; color: #d32f2f; padding: 2px 5px; border-radius: 0; font-size: 9px; font-weight: bold; border: 1px solid #ef9a9a; }
+        .alliance-tag { font-size: 9px; color: var(--teal); background: #e0f2f1; padding: 2px 4px; border-radius: 0; font-weight: normal; }
+
+        .p-line-bar { width: 100%; height: 4px; background: transparent; border-radius: 0; margin-top: 6px; overflow: hidden; display: flex; }
+        .p-line-bar-fill { height: 100%; border-radius: 0; transition: width 0.5s ease-out; }
+
+        .expand-btn { width: 100%; background: #f8f9fa; border: 1px solid var(--border); color: var(--text-secondary); padding: 8px; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 0; margin-top: 8px; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 4px; }
+        .expand-btn:hover { background: #e8f0fe; color: var(--primary); border-color: var(--primary); }
+        .tier { display: flex; flex-direction: column; }
+
+        .empty-state { grid-column: 1/-1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 100px 20px; color: var(--text-secondary); text-align: center; }
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
+        .empty-state h2 { font-size: 1.5rem; color: var(--text); margin-bottom: 8px; }
+
+        /* Modal Stilleri */
+        #colorModalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; }
+        .modal-box { background:#fff; padding:24px; border-radius: 0; width:320px; box-shadow:0 10px 25px rgba(0,0,0,0.2); }
+        .modal-box h3 { margin-top:0; color:var(--text); margin-bottom: 16px; font-size: 1.2rem; }
+
+        /* Hover Tooltip Stilleri */
+        #chartTooltip { position: absolute; background: rgba(0, 0, 0, 0.85); color: #fff; padding: 8px 12px; border-radius: 0; font-size: 13px; font-weight: bold; pointer-events: none; z-index: 9999; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.3); white-space: nowrap; line-height: 1.4; }
+        #chartTooltip span.tt-party { font-size: 14px; display: block; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; }
+        #chartTooltip span.tt-stats { font-size: 12px; color: #ddd; font-weight: normal; display: block; }
+        #chartTooltip span.tt-hint { display: block; margin-top: 6px; font-size: 10px; color: #aaa; font-style: italic; }
+
+        /* Harita Üzeri Detay Tooltip Stilleri */
+        #mapTooltip { position: absolute; background: rgba(255, 255, 255, 0.98); color: var(--text); padding: 14px; border-radius: 0; font-size: 13px; pointer-events: none; z-index: 9999; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.25); border: 1px solid var(--border); min-width: 190px; line-height: 1.4; transition: opacity 0.1s; }
+        #mapTooltip h4 { margin: 0 0 10px 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; color: var(--text); font-size: 14px; display:flex; justify-content:space-between; align-items:center; }
+        #mapTooltip h4 span.mt-seat { font-size:11px; background: var(--bg); padding:3px 8px; border-radius: 0; font-weight:bold; color:var(--text-secondary); border: 1px solid var(--border); }
+        .mt-row { display: flex; justify-content: space-between; align-items:center; gap: 20px; margin-bottom: 8px; }
+        .mt-row:last-child { margin-bottom: 0; }
+        .mt-party { font-weight: bold; display:flex; align-items:center; gap:6px; font-size: 13px; }
+        .mt-party-color { width:12px; height:12px; border-radius:50%; box-shadow:0 1px 2px rgba(0,0,0,0.2); display: inline-block; }
+        .mt-stats { text-align: right; font-size: 12.5px; display: flex; align-items: center; gap: 8px; }
+        .mt-mv { background: var(--primary); color: white; padding: 2px 6px; border-radius: 0; font-size: 11px; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+
+        #mainContentWrapper { display: block; animation: fadeIn 0.2s ease; }
+
+        #districtOverlay { display: none; width: 100%; box-sizing: border-box; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .do-container { background: var(--surface); border-radius: 0; padding: 32px 36px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--border); border-top: 10px solid var(--primary); margin: 0 auto; max-width: 1050px; transition: border-top-color 0.3s ease; }
+        .nav-btn { background: #f0f2f5; color: var(--text); border: 1px solid var(--border); padding: 8px 12px; border-radius: 50%; cursor: pointer; transition: 0.2s; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+        .nav-btn:hover { background: #e4e6eb; transform: scale(1.05); }
+
+        /* Bulut/Arşiv Kartı */
+        .archive-card { background: linear-gradient(to bottom, #0d47a1 0%, #00acc1 80%, #ffffff 100%); border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .archive-card label { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); margin-bottom: 8px !important; }
+        .archive-card span { color: #e0f7fa !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        .archive-card button.purple { background-color: rgba(255,255,255,0.95) !important; color: #0d47a1 !important; text-shadow: none; font-weight: 900; }
+        .archive-card button.purple:hover { background-color: #ffffff !important; transform: translateY(-1px) scale(1.02); }
+
+        /* STATİK HARİTA STİLLERİ + İNTERAKTİF HOVER EFEKTLERİ */
+        #svgMapWrapper svg { width: 100%; height: auto; max-height: 500px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05)); display: block; margin: 0 auto; user-select: none; }
+        #svgMapWrapper path, #svgMapWrapper g, #svgMapWrapper polygon, #svgMapWrapper polyline, #svgMapWrapper rect {
+            stroke: #ffffff !important;
+            stroke-width: 1px !important;
+            stroke-linejoin: round;
+            shape-rendering: geometricPrecision;
+            transition: fill 0.4s ease, filter 0.2s ease, stroke-width 0.2s ease;
+        }
+        
+        [data-district-name] { cursor: pointer; outline: none; }
+        [data-district-name]:hover {
+            filter: brightness(0.85) drop-shadow(0px 0px 4px rgba(0,0,0,0.3));
+            stroke: #1c1e21 !important;
+            stroke-width: 2px !important;
+        }
+        
+        /* Map Toggle Btn */
+        #globalModeToggle {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        #mapModeToggleBtn {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        #mapModeToggleBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.2); }
+
+        /* Tam Ekran Harita */
+        .fullscreen-map {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999 !important;
+            border-radius: 0;
+            margin: 0 !important;
+            padding: 20px !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: var(--bg) !important;
+        }
+        .fullscreen-map #svgMapWrapper svg {
+            max-height: 90vh !important;
+            width: auto !important;
+            height: auto !important;
+        }
+        .fullscreen-map h3 { display: none !important; }
+        
+        /* Özel İnceleme Modu Geçişleri */
+        .dist-card { transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s; }
+        #svgMapWrapper path, #svgMapWrapper g, #svgMapWrapper polygon, #svgMapWrapper polyline, #svgMapWrapper rect {
+            transition: fill 0.4s ease, filter 0.2s ease, stroke-width 0.2s ease, opacity 0.3s ease;
+        }
+    
+        /* ═══ EXPERIMENTAL: Sert köşe / daire tasarımı ═══ */
+        * { border-radius: 0 !important; }
+        /* Kare ikon butonları → tam daire */
+        button.nav-btn,
+        button.danger,
+        .status-btn { border-radius: 50% !important; }
+        /* Renk gösterge noktaları → daire kalsın */
+        .mt-party-color { border-radius: 50% !important; }
+    </style>
+</head>
+<body>
+
+<div id="chartTooltip"></div>
+<div id="mapTooltip"></div>
+
+<div class="left-panel">
+    <h1>🗳️ PGM Projeksiyon Arayüzü</h1>
+
+    <div style="display:flex; gap:6px; margin-bottom:16px;">
+        <button id="modeBtnGenel" onclick="setUIMode('genel')" style="flex:1; background:var(--primary); color:white; border:none; padding:8px; border-radius: 0; font-size:13px; font-weight:bold; cursor:pointer; transition:0.2s;">Genel</button>
+        <button id="modeBtnGelismis" onclick="setUIMode('gelismis')" style="flex:1; background:#f5f6f7; color:var(--text-secondary); border:1px solid var(--border); padding:8px; border-radius: 0; font-size:13px; font-weight:bold; cursor:pointer; transition:0.2s;">Gelişmiş</button>
+    </div>
+
+    <div class="card archive-card">
+        <label>☁️ Arşivden Proje Getir</label>
+        <span style="font-size: 11px; margin-bottom: 8px; display:block;">Arşivlenmiş seçim projeksiyon verilerini görüntüleyin. Seçildiğinde harita dosyaları otomatik yüklenir.</span>
+        <div style="display:flex; gap:8px; margin-bottom:0;">
+            <select id="archiveSelector" style="flex:2; font-weight: bold; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <option value="">-- Arşivden Seç --</option>
+            </select>
+            <button onclick="loadFromArchive()" class="purple" style="flex:1;">Buluttan Getir ☁️</button>
+        </div>
+    </div>
+
+    <div id="globalModeToggle">
+        <button id="selectionModeToggleBtn" onclick="toggleSelectionMode()" style="flex:1; background:var(--surface); color:var(--text); border-radius: 0; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow); white-space:nowrap;">
+            <span>🖱️</span> Özel İnceleme
+        </button>
+        <button id="mapModeToggleBtn" onclick="toggleMapMode()" style="flex:1; background:var(--surface); color:var(--text); border-radius: 0; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow); white-space:nowrap;">
+            <span>🔄</span> Partiler
+        </button>
+        <button id="localEditToggleBtn" onclick="toggleLocalEditButtons()" style="background:var(--surface); color:var(--text-secondary); border-radius: 0; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow);" title="İl bazlı aktif/pasif düzenlemeyi aç/kapat">
+            🔧
+        </button>
+        <button id="screenshotBtn" onclick="takeScreenshot()" style="background:var(--surface); color:var(--text-secondary); border-radius: 0; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow);">
+            📸
+        </button>
+    </div>
+
+    <div class="card" id="cardVeriYukle">
+        <label>1. Seçim Verisi Yükle (.json)</label>
+        <span style="font-size: 11px; margin-bottom: 8px; color: var(--text-secondary); display:block;">Bilgisayarınızdan yerel seçim sonuçlarını (.json dosyası) aktarın.</span>
+        <input type="file" id="fileInp" accept=".json,.txt" multiple style="width: 100%; margin-bottom: 12px; background: #f8f9fa;">
+        <div id="datasetsList" class="scroll-area"></div>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <label style="margin-bottom: 0;">2. Partileri Oluştur / Ekle</label>
+            <div id="voteTotalTracker" style="font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 0; background: #e8f0fe; color: var(--primary); border: 1px solid var(--primary); transition: 0.3s;">
+                Toplam: %0.00 | Kalan: %100.00
+            </div>
+        </div>
+        <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Simülasyona girecek partileri tanımlayın. Sol kısımdan <b>sürükleyerek</b> sıralarını değiştirebilirsiniz. Partinin <b>isminin üstüne tıklayarak</b> adını düzenleyebilirsiniz.</span>
+        
+        <div class="flex-row">
+            <input id="newPName" placeholder="Parti Adı">
+            <input id="newPNat" type="number" step="0.01" placeholder="Oy (%)" style="width:80px">
+            <button onclick="addExtraParty()" style="width:40px; font-size: 16px;">+</button>
+        </div>
+        <div id="extraPartiesArea"></div>
+    </div>
+
+    <div class="card">
+        <label>3. Ortak Listeler (Tam Birleşme)</label>
+        <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Partiler seçime tek bir çatı altında girer. Sürükleyerek sırasını, üstüne tıklayarak adını ve renk kutusundan rengini değiştirebilirsiniz.</span>
+        <div class="flex-row">
+            <input id="coalName" placeholder="Liste Adı (Örn: CHP Listesi)">
+            <button onclick="addCoalition()" class="purple" style="width:40px; font-size: 16px;">+</button>
+        </div>
+        <div id="coalitionArea" class="scroll-area"></div>
+    </div>
+
+    <div class="card">
+        <label>4. Seçim İttifakları (Ayrı Listeler)</label>
+        <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Partiler ayrı girer, barajı beraber geçerler. Yukarıdakiler gibi sürüklenebilir ve rengi değiştirilebilir.</span>
+        <div class="flex-row">
+            <input id="allianceName" placeholder="İttifak Adı (Örn: Cumhur İttifakı)">
+            <button onclick="addAlliance()" class="teal" style="width:40px; font-size: 16px;">+</button>
+        </div>
+        <div id="allianceArea" class="scroll-area"></div>
+    </div>
+
+    <div class="card" id="cardKoltukVerisi">
+        <label>5. İl/Çevre Koltuk Verisi</label>
+        <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Tüm illerin koltuk sayılarını topluca değiştirmek için .JSON formatında veri yükleyebilir veya mevcut dağılımı indirebilirsiniz. Eklenen veriler ana dosyadaki sayıları ezer.</span>
+        <div style="display:flex; gap:8px;">
+            <button onclick="downloadSeatData()" class="blue" style="flex:1;">📥 Koltukları İndir (.JSON)</button>
+            <button onclick="document.getElementById('seatDataLoader').click()" class="orange" style="flex:1;">📤 Koltuk Verisi Yükle (.JSON)</button>
+            <input type="file" id="seatDataLoader" accept=".json" style="display:none" onchange="loadSeatData(this)">
+        </div>
+    </div>
+
+    <!-- 6. ADIM HARİTA VERİSİ -->
+    <div class="card" style="border-left: 4px solid var(--primary); background: #f8faff;">
+        <label>6. Harita Verisi</label>
+        <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Sonuçları sağ paneldeki haritada boyamak için SVG haritanızı ve şehir eşleştirme sözlüğünüzü tanımlayın.</span>
+        
+        <div id="haritaManuelYukle" class="flex-row" style="gap:12px; align-items: flex-end;">
+            <div style="flex:1;">
+                <span style="font-size: 11px; font-weight: bold; color: var(--text-secondary); display:block; margin-bottom:4px;">Manuel SVG Harita:</span>
+                <input type="file" accept=".svg" onchange="handleManualSvgLoad(this)" style="width:100%; padding: 6px;">
+            </div>
+            <div style="flex:1;">
+                <span style="font-size: 11px; font-weight: bold; color: var(--text-secondary); display:block; margin-bottom:4px;">Manuel Sözlük (.json):</span>
+                <input type="file" accept=".json" onchange="loadMappingJson(this)" style="width:100%; padding: 6px;">
+            </div>
+        </div>
+        
+        <!-- DİNAMİK RENK KARIŞIMI -->
+        <div style="margin-top: 12px; border-top: 1px dashed #b0c4de; padding-top: 12px;">
+            <label style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">🎨 Harita Renk Yoğunluğu (Beyaz Karışım Oranı)</label>
+            <div class="flex-row" style="gap: 12px; margin-bottom: 0;">
+                <div style="flex: 1; background: #e8f0fe; padding: 8px; border-radius: 0; border: 1px solid #d2e3fc;">
+                    <span style="font-size:10px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">Baskın Durum (%50+)</span>
+                    <div style="display:flex; align-items:center;">
+                        <input type="number" id="dominantWhiteInp" value="20" min="0" max="100" style="width:100%; font-weight:bold; padding:4px;" onchange="if(Object.keys(globalResults).length > 0) renderResults(globalResults);">
+                        <span style="font-size:12px; margin-left:4px; font-weight:bold;">%</span>
+                    </div>
+                </div>
+                <div style="flex: 1; background: #f8f9fa; padding: 8px; border-radius: 0; border: 1px solid var(--border);">
+                    <span style="font-size:10px; font-weight:bold; color:var(--text-secondary); display:block; margin-bottom:4px;">Sadece 1. Parti</span>
+                    <div style="display:flex; align-items:center;">
+                        <input type="number" id="pluralityWhiteInp" value="40" min="0" max="100" style="width:100%; font-weight:bold; padding:4px;" onchange="if(Object.keys(globalResults).length > 0) renderResults(globalResults);">
+                        <span style="font-size:12px; margin-left:4px; font-weight:bold;">%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MİLLETVEKİLİ NOKTALARI AÇ/KAPAT VE KONUM ÖZELLEŞTİRME -->
+        <div style="margin-top: 12px; border-top: 1px dashed #b0c4de; padding-top: 12px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor: pointer; margin:0;">
+                <input type="checkbox" id="showMVDotsInp" onchange="updateMapColors()" style="width:18px; height:18px; flex:none;" checked>
+                <span style="font-size: 13px; font-weight: bold; color: var(--purple);">🟣 Harita Üzerinde Milletvekillerini Göster</span>
+            </label>
+            <span style="font-size:10.5px; color:var(--text-secondary); display:block; margin-top:6px; margin-left:26px;">Vekil sayıları seçilen konuma geniş veya hafif dikey (20+ vekil için) olacak şekilde dizilir. Çarpışma önleyici fizik algoritması aktiftir.</span>
+            
+            <div id="haritaVekilKonumYukle" style="margin-left:26px; margin-top: 12px; border-top: 1px dashed #cfd8dc; padding-top: 12px;">
+                <span style="font-size: 11px; font-weight: bold; color: var(--text-secondary); display:block; margin-bottom:4px;">📍 Vekil Konum Dosyası Yükle (.json):</span>
+                <input type="file" accept=".json" onchange="loadCustomDotPositions(this)" style="width:100%; padding: 6px;">
+            </div>
+        </div>
+
+        <div id="editModeSection" style="margin-top: 12px; border-top: 1px dashed #b0c4de; padding-top: 12px; display:none; gap:8px;">
+            <button id="toggleEditModeBtn" onclick="toggleEditMode()" style="flex:1; background:var(--text); color:white; border-radius: 0; font-size:12px; padding:8px 10px; border:1px solid rgba(0,0,0,0.1); cursor:pointer; font-weight:bold;">✏️ Düzenleme Modu: KAPALI</button>
+            <button id="downloadPositionsBtn" onclick="downloadDotPositions()" style="display:none; background:var(--purple); color:white; border-radius: 0; font-size:12px; padding:8px 10px; border:none; cursor:pointer; font-weight:bold;">💾 Konumları İndir</button>
+        </div>
+    </div>
+
+    <div class="card" style="border-top: 4px solid var(--primary);">
+        <label style="margin-bottom: 8px;">⚙️ Seçim Ayarları</label>
+        <div class="flex-row" style="gap: 12px; margin-bottom:12px;">
+            <div id="settingMathMethod" style="flex: 1;">
+                <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">Matematiksel Model</span>
+                <select id="mathMethodInp" style="width:100%; font-weight:bold; padding: 7px; color:var(--danger);">
+                    <option value="dhondt">D'Hondt Sistemi</option>
+                    <option value="hare">Hare Kotası</option>
+                    <option value="wta">Winner Takes All</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">Ülke Barajı (%)</span>
+                <input type="number" id="thresholdInp" value="7" step="0.1" style="width:100%; font-weight:bold; color:var(--primary);">
+            </div>
+        </div>
+        <div id="settingCalcMethod" class="flex-row" style="gap: 12px; margin-bottom:0;">
+            <div style="flex: 1;">
+                <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">İttifak Dağılımı</span>
+                <select id="calcMethodInp" style="width:100%; font-weight:bold; padding: 7px;">
+                    <option value="classic">Klasik (Partiler Ayrı - 2022)</option>
+                    <option value="alliance">İttifak İçi Dağıtım (2018)</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex-row" style="gap: 12px; margin-bottom:0; margin-top:12px; border-top:1px dashed var(--border); padding-top:12px;">
+            <div style="flex: 1; display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="mbEnabledInp" style="flex:none; width:16px; height:16px;" onchange="document.getElementById('mbSettingsWrapper').style.display = this.checked ? 'flex' : 'none'">
+                <span style="font-size:12px; font-weight:bold; color:var(--text-secondary);">Milli Bakiye Ekle</span>
+            </div>
+            <div id="mbSettingsWrapper" style="flex: 2; display:none; gap:12px;">
+                <div style="flex:1;">
+                    <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">MB D'Hondt Modeli</span>
+                    <select id="mbCalcMethodInp" style="width:100%; font-weight:bold; padding: 7px; color:var(--purple);">
+                        <option value="classic">Klasik (2022)</option>
+                        <option value="alliance">İttifaklı (2018)</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">MB Koltuk Sayısı</span>
+                    <input type="number" id="mbSeatsInp" value="50" min="1" style="width:100%; font-weight:bold; color:var(--purple);">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button id="runBtn" class="success" style="width: 100%; margin-bottom:12px;">🚀 PROJEKSİYONU HESAPLA</button>
+        
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <button onclick="saveProject()" class="purple" style="flex:1;">💾 Kaydet (.JSON)</button>
+            <button onclick="document.getElementById('projectLoader').click()" class="teal" style="flex:1;">📂 Yükle (.JSON)</button>
+        </div>
+        <input type="file" id="projectLoader" accept=".json" style="display:none" onchange="loadProject(this)">
+        <button onclick="downloadDataset()" class="blue" style="width:100%;">📊 Veri Seti Olarak İndir (.JSON)</button>
+        
+    </div>
+</div>
+
+<div class="right-panel">
+
+    <div id="mainContentWrapper">
+        <div class="proj-header">
+            <div>Seçim Çevresi Sonuçları</div>
+        </div>
+
+        <div id="parliamentContainer" class="card" style="display:none; margin-bottom: 24px; text-align:center; padding-top: 24px;">
+            <h3 style="margin:0 0 16px 0; color:var(--text); font-size:1.4rem;">Türkiye Geneli Koltuk Dağılımı</h3>
+            <div id="parliamentChartArea" style="width:100%;"></div>
+        </div>
+
+        <!-- STATİK HARİTA ALANI -->
+        <div id="mapContainer" class="card" style="display:none; margin-bottom: 24px; text-align:center; padding-bottom: 24px; position: relative;">
+
+            <div id="fullscreenMapBtn" style="position: absolute; top: 16px; right: 16px; z-index: 20;">
+                <button id="fullscreenToggleBtn" onclick="toggleFullscreenMap()" style="background: var(--surface); color: var(--text); border-radius: 0; font-size: 12px; padding: 6px 12px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: 0.2s;">Tam Ekran</button>
+            </div>
+
+            <h3 style="margin-bottom:16px;">Türkiye Haritası <span style="font-size: 11px; font-weight: normal; color: var(--text-secondary); display:block; margin-top: 4px;">Detayları görmek için harita üzerindeki illerin üstüne gelin veya tıklayın.</span></h3>
+            <div id="svgMapWrapper" style="position: relative;">
+                <p style="color:var(--text-secondary); font-size:13px; font-style:italic;">Harita Bekleniyor...</p>
+            </div>
+        </div>
+        
+        <div id="filterBanner" style="display:none; color: white; padding: 12px 16px; border-radius: 0; margin-bottom: 16px; align-items: center; justify-content: space-between; font-weight: bold; box-shadow: var(--shadow); gap: 10px;">
+            <span id="filterBannerText" style="font-size: 1.05rem; flex:1;"></span>
+            <button id="filterSortBtn" onclick="toggleFilterSort()" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 6px 12px; border-radius: 0; cursor: pointer; font-weight: bold; font-size: 12px; white-space:nowrap;">Sırala: 🏆 MV</button>
+            <button onclick="togglePartyFilter(activePartyFilter)" style="background: rgba(255,255,255,0.25); color: white; border: none; padding: 6px 12px; border-radius: 0; cursor: pointer; transition: 0.2s; font-weight: bold;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.25)'">Filtreyi Temizle ✖</button>
+        </div>
+
+        <div id="results">
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+                <h2>Veri Bekleniyor</h2>
+                <p>Seçim sonuçlarını görmek için sol panelden veri setlerini yükleyin, partilerinizi tanımlayın ve hesaplamayı başlatın.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇİM ÇEVRESİ DETAY OVERLAY -->
+    <div id="districtOverlay">
+        <div class="do-container" style="display:flex; flex-direction:row; gap:16px; align-items:flex-start;">
+
+            <!-- ANA İÇERİK -->
+            <div id="doMainContent" style="flex:1; min-width:0;">
+                <!-- Başlık: mini harita | ad | birinci parti — tek satırda yan yana -->
+                <div style="display:flex; align-items:center; gap:24px; margin-bottom:14px; border-bottom:2px solid #f0f2f5; padding-bottom:12px;">
+                    <span id="doTitleMapIcon" style="flex-shrink:0;"></span>
+                    <div id="doTitleName" style="font-size:2.8rem; font-weight:900; color:var(--text); line-height:1; letter-spacing:-0.5px; flex-shrink:0;"></div>
+                    <div id="doTitleWinner"></div>
+                </div>
+
+                <div id="doUnifiedList" style="display:flex; flex-direction:column; gap:0; margin-bottom:0; border-radius: 0; overflow:hidden;"></div>
+            </div>
+
+            <!-- SAĞ NAVİGASYON KOLONU -->
+            <div id="doNavColumn" style="display:flex; flex-direction:column; gap:6px; flex-shrink:0; width:40px; padding-top:4px;">
+                <button onclick="closeDistrictOverlay()" class="danger" style="width:40px; height:40px; border-radius: 0; font-size:16px; padding:0;" title="Kapat (ESC)">✖</button>
+                <button onclick="navigateDistrict(-1)" class="nav-btn" style="width:40px; height:40px; border-radius: 0; font-size:16px;" title="Önceki (Sol Ok)">◀</button>
+                <button onclick="navigateDistrict(1)" class="nav-btn" style="width:40px; height:40px; border-radius: 0; font-size:16px;" title="Sonraki (Sağ Ok)">▶</button>
+                <div id="doTitleMv" style="display:flex; flex-direction:column; align-items:center;"></div>
+                <button id="doShowAllBtn" onclick="showAllPartiesInOverlay()" class="nav-btn" style="width:40px; height:40px; border-radius: 0; font-size:18px; display:none; margin-top:4px;" title="Gizlenen partileri göster">↓</button>
+            </div>
+
+        </div>
+    </div>
+    
+    <!-- YENİ: ÖZEL İNCELEME (ARA SEÇİM) PANELİ -->
+    <div id="selectionPanel" style="display:none; position: fixed; bottom: 24px; right: 24px; width: 340px; background: var(--surface); border-radius: 0; border: 2px solid var(--purple); box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 10000; flex-direction: column; max-height: 65vh; animation: fadeIn 0.3s ease;">
+        <div style="background: var(--purple); color: white; padding: 12px 16px; border-radius: 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleSelectionPanelBody()">
+            <h4 style="margin:0; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                <span>📍</span> Seçili Çevreler (<span id="selCount" style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 0;">0</span>)
+            </h4>
+            <span id="selPanelIcon" style="font-size: 12px; transition: transform 0.2s;">▼</span>
+        </div>
+        <div id="selectionPanelBody" style="padding: 16px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border-radius: 0;">
+            <!-- İçerik Dinamik Yüklenecek -->
+        </div>
+    </div>
+</div>
+
+<div id="colorModalOverlay">
+    <div class="modal-box">
+        <h3>Renk Seçimi</h3>
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:12px; margin-top:-8px;">Geçerli bir HEX kodu girin (Örn: #ff0000 veya ff0000)</p>
+        <input type="text" id="hexInput" placeholder="#000000" style="width:100%; margin-bottom:20px; font-size:16px; padding:10px; font-weight:bold; letter-spacing:1px; text-align:center;">
+        <div style="display:flex; gap:10px; justify-content:space-between;">
+            <button onclick="closeColorModal()" style="background:#f0f2f5; color:#333; flex:1;">İptal</button>
+            <button onclick="saveColorModal()" class="success" style="flex:1;">Kaydet</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let datasets = [];
+let extraParties = []; 
+let coalitions = []; 
+let electoralAlliances = []; 
+let globalParties = new Set(); 
+let customSeatOverrides = {}; 
+let globalResults = {}; 
+let localDisabledParties = {}; // YENİ: İl bazlı parti iptallerini tutar
+
+let dragCtx = { type: null, idx: null };
+let activePartyFilter = null;
+let filterSortMode = 'mv';
+let showLocalToggleButtons = false;
+let savedScrollPosition = 0;
+let mapDictionary = {};
+let customDotPositions = {}; 
+let mapMode = 'party'; // 'party' veya 'alliance'
+let isFullscreen = false; // Harita tam ekran modu bayrağı
+
+// Yeni Ara Seçim İnceleme Değişkenleri
+let isSelectionModeActive = false;
+let selectedDistricts = new Set();
+let isSelectionPanelCollapsed = false;
+
+function blendWithWhite(hexColor, whiteRatio) {
+    let hex = hexColor.replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
+    let r = parseInt(hex.substring(0,2), 16);
+    let g = parseInt(hex.substring(2,4), 16);
+    let b = parseInt(hex.substring(4,6), 16);
+    
+    r = Math.round(r * (1 - whiteRatio) + 255 * whiteRatio);
+    g = Math.round(g * (1 - whiteRatio) + 255 * whiteRatio);
+    b = Math.round(b * (1 - whiteRatio) + 255 * whiteRatio);
+    
+    return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+}
+
+// Global Veri Görünüm Yöneticisi
+function getDisplayData(item) {
+    if (mapMode === 'party' || item.isMilliBakiye) { 
+        return {
+            rawVotes: item.rawVotes,
+            mvs: item.mvs,
+            totalVotes: item.totalVotes,
+            passed: item.passed,
+            seats: item.seats,
+            isMilliBakiye: item.isMilliBakiye
+        };
+    }
+
+    let groupedVotes = {};
+    let groupedMvs = {};
+    
+    let partyToAlliance = {};
+    electoralAlliances.forEach(a => {
+        if (a.isEnabled !== false) {
+            a.members.forEach(m => partyToAlliance[m] = a.name);
+        }
+    });
+
+    Object.entries(item.rawVotes).forEach(([p, v]) => {
+        let gKey = partyToAlliance[p] || p;
+        groupedVotes[gKey] = (groupedVotes[gKey] || 0) + v;
+    });
+
+    Object.entries(item.mvs).forEach(([p, s]) => {
+        let gKey = partyToAlliance[p] || p;
+        groupedMvs[gKey] = (groupedMvs[gKey] || 0) + s;
+    });
+
+    return {
+        rawVotes: groupedVotes,
+        mvs: groupedMvs,
+        totalVotes: item.totalVotes,
+        passed: item.passed,
+        seats: item.seats,
+        isMilliBakiye: item.isMilliBakiye
+    };
+}
+
+function hasEntityPassed(entityName, passedSet) {
+    if (passedSet.has(entityName)) return true;
+    const a = electoralAlliances.find(all => all.name === entityName);
+    if (a) {
+        return a.members.some(m => passedSet.has(m));
+    }
+    return false;
+}
+
+function toggleMapMode() {
+    mapMode = mapMode === 'party' ? 'alliance' : 'party';
+    activePartyFilter = null; // Mod değiştiğinde filtre sıfırlanır
+    
+    const btn = $('mapModeToggleBtn');
+    btn.innerHTML = mapMode === 'party' ? '<span style="font-size:18px;">🔄</span> Görünüm: Partiler' : '<span style="font-size:18px;">🤝</span> Görünüm: İttifaklar';
+    btn.style.background = mapMode === 'party' ? 'var(--surface)' : 'var(--teal)';
+    btn.style.color = mapMode === 'party' ? 'var(--text)' : 'white';
+    btn.style.borderColor = mapMode === 'party' ? 'var(--primary)' : 'var(--teal)';
+    
+    if (Object.keys(globalResults).length > 0) {
+        renderResults(globalResults);
+        if (currentOverlayData && $('districtOverlay').style.display === 'block') {
+            currentOverlayData.data = globalResults[currentOverlayData.name];
+            renderDistrictOverlay();
+        }
+    }
+}
+
+window.toggleFullscreenMap = function() {
+    isFullscreen = !isFullscreen;
+    const container = $('mapContainer');
+    const btn = $('fullscreenToggleBtn');
+    if (isFullscreen) {
+        container.classList.add('fullscreen-map');
+        btn.textContent = 'Kapat';
+        btn.style.background = 'var(--danger)';
+        btn.style.color = 'white';
+        btn.style.borderColor = 'var(--danger)';
+    } else {
+        container.classList.remove('fullscreen-map');
+        btn.textContent = 'Tam Ekran';
+        btn.style.background = 'var(--surface)';
+        btn.style.color = 'var(--text)';
+        btn.style.borderColor = 'var(--border)';
+    }
+};
+
+window.handleManualSvgLoad = async function(input) {
+    const file = input.files[0];
+    if(!file) return;
+    try {
+        const text = await file.text();
+        $('svgMapWrapper').innerHTML = text;
+        $('mapContainer').style.display = 'block';
+        if (Object.keys(globalResults).length > 0) updateMapColors();
+    } catch(e) {
+        alert("Harita okunamadı: " + e.message);
+    }
+};
+
+window.loadMappingJson = async function(inp) {
+    const file = inp.files[0];
+    if(!file) return;
+    try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        
+        mapDictionary = data.cityMapping || data;
+        
+        if(mapDictionary && Object.keys(mapDictionary).length > 0) {
+            if (Object.keys(globalResults).length > 0) updateMapColors(); 
+        }
+    } catch(e) {
+        alert("Hata: Sözlük dosyası okunamadı. " + e.message);
+    }
+};
+
+window.addEventListener('DOMContentLoaded', async () => {
+    const loadingEl = document.createElement('div');
+    loadingEl.id = 'bootstrapLoader';
+    loadingEl.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.92);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+    loadingEl.innerHTML = `
+        <div style="text-align:center;">
+            <div style="font-size:3rem;margin-bottom:16px;">🗳️</div>
+            <div style="font-size:1.3rem;font-weight:bold;color:#1a73e8;margin-bottom:8px;">PGM Projeksiyon Yükleniyor</div>
+            <div id="loadStatus" style="font-size:0.9rem;color:#606770;min-height:20px;"></div>
+            <div style="margin-top:20px;width:280px;height:4px;background:#e4e6eb;border-radius: 0;overflow:hidden;">
+                <div id="loadBar" style="height:100%;width:0%;background:#1a73e8;border-radius: 0;transition:width 0.3s ease;"></div>
+            </div>
+        </div>`;
+    document.body.appendChild(loadingEl);
+
+    const setStatus = (msg, pct) => {
+        const s = document.getElementById('loadStatus');
+        const b = document.getElementById('loadBar');
+        if (s) s.textContent = msg;
+        if (b && pct !== undefined) b.style.width = pct + '%';
+    };
+
+    try {
+        setStatus('Yapılandırma okunuyor...', 10);
+        const cfgRes = await fetch('config.json');
+        if (!cfgRes.ok) throw new Error('config.json bulunamadı');
+        const cfg = await cfgRes.json();
+
+        if (cfg.map) {
+            setStatus('Türkiye haritası yükleniyor...', 25);
+            try {
+                const svgRes = await fetch(cfg.map);
+                if (svgRes.ok) {
+                    $('svgMapWrapper').innerHTML = await svgRes.text();
+                    $('mapContainer').style.display = 'block';
+                }
+            } catch(e) {}
+        }
+
+        if (cfg.mapping) {
+            setStatus('Şehir eşleştirme sözlüğü yükleniyor...', 45);
+            try {
+                const jsonRes = await fetch(cfg.mapping);
+                if (jsonRes.ok) {
+                    const dictData = await jsonRes.json();
+                    mapDictionary = dictData.cityMapping || dictData;
+                }
+            } catch(e) {}
+        }
+
+        if (cfg.dotPositions) {
+            setStatus('Vekil konum verileri yükleniyor...', 60);
+            try {
+                const konumRes = await fetch(cfg.dotPositions);
+                if (konumRes.ok) customDotPositions = await konumRes.json();
+            } catch(e) {}
+        }
+
+        if (cfg.defaultProject) {
+            setStatus(`Proje yükleniyor: ${cfg.defaultProject}`, 75);
+            const projRes = await fetch(cfg.defaultProject);
+            if (!projRes.ok) throw new Error(`Proje dosyası bulunamadı: ${cfg.defaultProject}`);
+            const projData = await projRes.json();
+
+            // Lean dataset'lerde data/nat yok — txt dosyalarını yeniden çek
+            if (projData.datasets && projData.datasets.some(ds => !ds.data)) {
+                setStatus('Seçim verileri yükleniyor...', 82);
+                const refetched = [];
+                for (const ds of projData.datasets) {
+                    if (ds.data) {
+                        refetched.push(ds);
+                    } else {
+                        try {
+                            const r = await fetch(ds.name);
+                            if (r.ok) {
+                                const text = await r.text();
+                                const parsed = ds.name.endsWith('.json') ? parseDataJson(text) : parseTxt(text);
+                                const nat = calcNat(parsed);
+                                refetched.push({ id: Date.now() + Math.random(), name: ds.name, data: parsed, nat, w: ds.w });
+                            }
+                        } catch(e) { console.warn('Dataset çekilemedi:', ds.name); }
+                    }
+                }
+                projData.datasets = refetched;
+            }
+
+            applyProjectData(projData);
+
+            if (datasets.length > 0) {
+                setStatus('Projeksiyon hesaplanıyor...', 90);
+                runProjection();
+            }
+        }
+
+        setStatus('Tamamlandı!', 100);
+        await new Promise(r => setTimeout(r, 300));
+
+    } catch(err) {
+        console.error('Bootstrap hatası:', err);
+        loadingEl.innerHTML = `
+            <div style="text-align:center;padding:32px;">
+                <div style="font-size:2.5rem;margin-bottom:16px;">⚠️</div>
+                <div style="font-size:1rem;font-weight:bold;color:#e41e3f;margin-bottom:8px;">Otomatik yükleme başarısız</div>
+                <div style="font-size:0.85rem;color:#606770;margin-bottom:20px;">${err.message}</div>
+                <button onclick="document.getElementById('bootstrapLoader').remove()" style="padding:10px 24px;background:#1a73e8;color:white;border:none;border-radius: 0;cursor:pointer;font-weight:bold;font-size:14px;">Manuel Devam Et</button>
+            </div>`;
+        return;
+    }
+
+    loadingEl.remove();
+});
+
+function setElementFillAggressive(el, color) {
+    el.removeAttribute('class');
+    el.style.setProperty('fill', color, 'important');
+    el.setAttribute('fill', color);
+    
+    el.querySelectorAll('*').forEach(c => {
+        const tag = c.tagName.toLowerCase();
+        if(['path', 'polygon', 'polyline', 'rect', 'circle', 'g'].includes(tag)) {
+            c.removeAttribute('class');
+            c.style.setProperty('fill', color, 'important');
+            c.setAttribute('fill', color);
+        }
+    });
+}
+
+function getDotLayout(n) {
+    if (n <= 0) return [];
+    if (n === 1) return [1];
+    if (n === 2) return [2];
+    if (n === 3) return [3];
+    if (n === 4) return [2, 2];
+    if (n === 5) return [3, 2];
+    if (n === 6) return [3, 3];
+    if (n === 7) return [2, 3, 2];
+    if (n === 8) return [3, 3, 2];
+    if (n === 9) return [3, 3, 3];
+    
+    let cols;
+    if (n > 20) {
+        cols = Math.ceil(Math.sqrt(n * 1.2));
+        if (cols > 7) cols = 7; 
+    } else {
+        cols = Math.ceil(Math.sqrt(n * 1.5));
+        if (cols > 8) cols = 8;
+    }
+    
+    let rows = Math.ceil(n / cols);
+    let layout = [];
+    let remaining = n;
+    for (let i = 0; i < rows; i++) {
+        let r = Math.ceil(remaining / (rows - i));
+        layout.push(r);
+        remaining -= r;
+    }
+    return layout;
+}
+
+function drawMVDots(svgGroup, layout, partyColors, cx, cy, totalMVs) {
+    let dotR = 7.0; 
+    const spacing = 2;
+    const dotSize = dotR * 2;
+    const cell = dotSize + spacing;
+
+    const totalRows = layout.length;
+    const totalHeight = totalRows * cell - spacing;
+    const startY = cy - totalHeight / 2 + dotR;
+
+    let dotIndex = 0;
+    layout.forEach((cols, rIdx) => {
+        const totalWidth = cols * cell - spacing;
+        const startX = cx - totalWidth / 2 + dotR;
+        const y = startY + rIdx * cell;
+
+        for (let cIdx = 0; cIdx < cols; cIdx++) {
+            const x = startX + cIdx * cell;
+            const color = partyColors[dotIndex] || '#000';
+
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("cx", x);
+            circle.setAttribute("cy", y);
+            circle.setAttribute("r", dotR);
+            circle.setAttribute("fill", color);
+            circle.setAttribute("stroke", "#1c1e21");
+            circle.setAttribute("stroke-width", "1.2");
+
+            svgGroup.appendChild(circle);
+            dotIndex++;
+        }
+    });
+}
+
+function updateMapColors() {
+    if(Object.keys(globalResults).length === 0) return;
+    
+    const svg = document.querySelector('#svgMapWrapper svg');
+    if(!svg) return;
+
+    // BBOX HATA DÜZELTMESİ: Ekranda gizliyken SVG boyut hesaplaması (bbox) yapılamaz ve 0 döner.
+    // Eğer map görünür değilse işlemi sonraya (overlay kapanana) erteliyoruz.
+    if ($('mainContentWrapper').style.display === 'none') {
+        window.needsMapUpdate = true;
+        return;
+    }
+
+    let dotLayer = svg.querySelector('#mp-dots-layer');
+    if (dotLayer) {
+        dotLayer.innerHTML = '';
+    } else {
+        dotLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        dotLayer.setAttribute("id", "mp-dots-layer");
+        svg.appendChild(dotLayer); 
+    }
+    
+    const showDots = $('showMVDotsInp') && $('showMVDotsInp').checked;
+    
+    const domRatio = (parseFloat($('dominantWhiteInp').value) || 20) / 100;
+    const pluRatio = (parseFloat($('pluralityWhiteInp').value) || 40) / 100;
+
+    const partyRanks = {};
+    extraParties.forEach(ep => partyRanks[ep.name] = parseFloat(ep.nat) || 0);
+    coalitions.forEach(c => {
+        if (c.isEnabled === false) return;
+        let sum = 0;
+        c.members.forEach(m => sum += (partyRanks[m] || 0));
+        partyRanks[c.name] = sum;
+    });
+
+    const partyToAlliance = {};
+    const allianceMaxScores = {};
+    electoralAlliances.forEach(a => {
+        if (a.isEnabled === false) return;
+        let maxScore = -1;
+        a.members.forEach(m => {
+            partyToAlliance[m] = a;
+            if ((partyRanks[m] || 0) > maxScore) maxScore = (partyRanks[m] || 0);
+        });
+        allianceMaxScores[a.name] = maxScore;
+    });
+
+    const normalizedResults = {};
+    for(let key in globalResults) {
+        normalizedResults[key.trim().toLowerCase()] = globalResults[key];
+    }
+
+    const normalizedDict = {};
+    for(let key in mapDictionary) {
+        normalizedDict[key.trim().toLowerCase()] = mapDictionary[key].trim().toLowerCase();
+    }
+
+    let paintedCount = 0; 
+    let foundAnyId = false;
+    let unmatchedIds = new Set();
+    
+    const mapElements = svg.querySelectorAll('path, g, polygon, polyline, rect');
+    const districtPaths = {}; 
+    
+    mapElements.forEach(el => {
+        if (el.tagName.toLowerCase() === 'circle' && el.parentElement && el.parentElement.id === 'mp-dots-layer') return;
+        if (el.id === 'mp-dots-layer') return;
+
+        let rawId = el.getAttribute('id') || el.getAttribute('name') || el.getAttribute('data-id') || el.getAttribute('data-name');
+        
+        if(!rawId) return; 
+        foundAnyId = true;
+        
+        const originalRawId = rawId; 
+        rawId = rawId.trim().toLowerCase();
+        
+        let cleanId = rawId.replace(/_[0-9]+_?/g, '').replace(/_x5f_.*/, '').replace(/-[0-9]+$/, '');
+        let targetDistrictNameLower = normalizedDict[rawId] || normalizedDict[cleanId];
+        
+        if(!targetDistrictNameLower) {
+            unmatchedIds.add(originalRawId);
+            return; 
+        }
+
+        if(!districtPaths[targetDistrictNameLower]) districtPaths[targetDistrictNameLower] = [];
+        el.originalRawId = originalRawId;
+        districtPaths[targetDistrictNameLower].push(el);
+    });
+
+    let dotGroups = []; 
+
+    Object.keys(districtPaths).forEach(targetDistrictNameLower => {
+        const elements = districtPaths[targetDistrictNameLower];
+        const result = normalizedResults[targetDistrictNameLower]; 
+        
+        if(result) {
+            elements.forEach(el => unmatchedIds.delete(el.originalRawId));
+            
+            let actualDistrictName = Object.keys(globalResults).find(k => k.trim().toLowerCase() === targetDistrictNameLower);
+            let targetColor = '#e4e6eb'; 
+            
+            const displayData = getDisplayData(result);
+
+            if (activePartyFilter) {
+                if (displayData.mvs && displayData.mvs[activePartyFilter] > 0) {
+                    let pColor = getPartyColor(activePartyFilter);
+                    let mvs = displayData.mvs[activePartyFilter];
+                    let isDominant = (mvs > displayData.seats / 2);
+                    targetColor = blendWithWhite(pColor, isDominant ? domRatio : pluRatio);
+                }
+            } else {
+                let maxMvs = -1;
+                let maxVotes = -1;
+                let winnerEntity = null;
+                
+                // Rengi milletvekili galibine göre belirle, MV eşitse oya göre.
+                Object.entries(displayData.mvs).forEach(([p, s]) => {
+                    let v = displayData.rawVotes[p] || 0;
+                    if (s > maxMvs || (s === maxMvs && v > maxVotes)) {
+                        maxMvs = s; maxVotes = v; winnerEntity = p;
+                    }
+                });
+                
+                // Mv çıkaran yoksa en çok oyu alanı baz al.
+                if (!winnerEntity) {
+                    Object.entries(displayData.rawVotes).forEach(([p, v]) => {
+                        if(v > maxVotes) { maxVotes = v; winnerEntity = p; }
+                    });
+                }
+                
+                if(winnerEntity) {
+                    let pColor = getPartyColor(winnerEntity);
+                    let isDominant = (maxMvs > displayData.seats / 2);
+                    targetColor = blendWithWhite(pColor, isDominant ? domRatio : pluRatio);
+                }
+            }
+
+            elements.forEach(el => {
+                if(actualDistrictName) el.setAttribute('data-district-name', actualDistrictName);
+                setElementFillAggressive(el, targetColor);
+                paintedCount++;
+            });
+
+            if (showDots && actualDistrictName) {
+                let maxArea = -1;
+                let bestBBox = null;
+
+                elements.forEach(el => {
+                    try {
+                        const bbox = el.getBBox();
+                        const area = bbox.width * bbox.height;
+                        if (area > maxArea && area > 0) { 
+                            maxArea = area;
+                            bestBBox = bbox;
+                        }
+                    } catch(e) {}
+                });
+
+                if (bestBBox) {
+                    let origCx = bestBBox.x + bestBBox.width / 2;
+                    let origCy = bestBBox.y + bestBBox.height / 2;
+                    let isFixed = false;
+
+                    if (customDotPositions[actualDistrictName]) {
+                        origCx = customDotPositions[actualDistrictName].x;
+                        origCy = customDotPositions[actualDistrictName].y;
+                        isFixed = true; 
+                    }
+
+                    // Vekil dizilimi ittifak modunda da ham (raw) datadan alınıp, ittifak skoruna göre ayrışmalı şekilde çizilir.
+                    let mpList = [];
+                    Object.keys(result.mvs).forEach(p => {
+                        for(let i=0; i<result.mvs[p]; i++) mpList.push(p);
+                    });
+
+                    if (mpList.length > 0) {
+                        mpList.sort((a, b) => {
+                            let aObjA = partyToAlliance[a];
+                            let aObjB = partyToAlliance[b];
+                            let groupScoreA = aObjA ? allianceMaxScores[aObjA.name] : (partyRanks[a] || 0);
+                            let groupScoreB = aObjB ? allianceMaxScores[aObjB.name] : (partyRanks[b] || 0);
+
+                            if (groupScoreA !== groupScoreB) return groupScoreB - groupScoreA;
+
+                            let allianceA = aObjA ? aObjA.name : a;
+                            let allianceB = aObjB ? aObjB.name : b;
+                            
+                            if (allianceA !== allianceB) {
+                                return allianceA.localeCompare(allianceB);
+                            }
+                            
+                            // Genel sıralama
+                            let rankA = partyRanks[a] || result.rawVotes[a] || 0;
+                            let rankB = partyRanks[b] || result.rawVotes[b] || 0;
+                            return rankB - rankA;
+                        });
+                        
+                        let colors = mpList.map(p => {
+                            if (mapMode === 'alliance') {
+                                let aObj = partyToAlliance[p];
+                                if (aObj && aObj.color) return aObj.color;
+                            }
+                            return getPartyColor(p);
+                        });
+
+                        let layout = getDotLayout(mpList.length);
+                        
+                        let maxCols = Math.max(...layout);
+                        let rows = layout.length;
+                        let dotR = 10.5;
+                        let cell = dotR * 2 + 4; 
+                        let gridW = maxCols * cell;
+                        let gridH = rows * cell;
+                        let radius = Math.sqrt((gridW/2)**2 + (gridH/2)**2) * 0.95; 
+
+                        dotGroups.push({
+                            id: actualDistrictName,
+                            origCx: origCx, origCy: origCy, 
+                            cx: origCx, cy: origCy,
+                            isFixed: isFixed,
+                            radius: radius,
+                            layout: layout,
+                            colors: colors,
+                            mpCount: mpList.length
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+    if (showDots) {
+        // Çarpışma Engelleyici Fizik Motoru
+        const iterations = 20; 
+        for (let i = 0; i < iterations; i++) {
+            for (let j = 0; j < dotGroups.length; j++) {
+                let g = dotGroups[j];
+                
+                if (!g.isFixed) {
+                    g.cx += (g.origCx - g.cx) * 0.04;
+                    g.cy += (g.origCy - g.cy) * 0.04;
+                }
+
+                for (let k = j + 1; k < dotGroups.length; k++) {
+                    let g1 = dotGroups[j];
+                    let g2 = dotGroups[k];
+                    let dx = g1.cx - g2.cx;
+                    let dy = g1.cy - g2.cy;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    let minDist = (g1.radius + g2.radius);
+
+                    if (dist < minDist && dist > 0.01) {
+                        let overlap = minDist - dist;
+                        let pushX = (dx / dist) * overlap * 0.2;
+                        let pushY = (dy / dist) * overlap * 0.2;
+
+                        if (!g1.isFixed) { g1.cx += pushX; g1.cy += pushY; }
+                        if (!g2.isFixed) { g2.cx -= pushX; g2.cy -= pushY; }
+                    }
+                }
+            }
+        }
+
+        dotGroups.forEach(g => {
+            const groupEl = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            groupEl.setAttribute("id", "dotGroup_" + g.id.replace(/\s+/g, '_'));
+            groupEl.setAttribute("data-district", g.id);
+            groupEl.setAttribute("data-orig-cx", g.cx);
+            groupEl.setAttribute("data-orig-cy", g.cy);
+            groupEl.setAttribute("data-cx", g.cx);
+            groupEl.setAttribute("data-cy", g.cy);
+            
+            if (isEditModeActive) {
+                groupEl.style.cursor = "move";
+                groupEl.style.pointerEvents = "all";
+            } else {
+                groupEl.style.pointerEvents = "none";
+            }
+            
+            drawMVDots(groupEl, g.layout, g.colors, g.cx, g.cy, g.mpCount);
+            dotLayer.appendChild(groupEl);
+        });
+    }
+
+    let dbg = document.getElementById('mapDebugInfo');
+    if(!dbg) {
+        dbg = document.createElement('div');
+        dbg.id = 'mapDebugInfo';
+        dbg.style.cssText = "font-size:13px; padding:12px; border-radius: 0; margin-top:16px; text-align:left; line-height:1.5;";
+        document.getElementById('mapContainer').appendChild(dbg);
+    }
+    
+    if (paintedCount > 0) {
+        dbg.style.display = 'none'; // Başarı durumunda gizle, temiz kalsın
+    } else if (!foundAnyId) {
+        dbg.style.display = 'block';
+        dbg.style.backgroundColor = '#fce8e8';
+        dbg.style.color = '#c5221f';
+        dbg.style.border = '1px solid #c5221f';
+        dbg.innerHTML = `<strong>⚠️ DİKKAT: Yüklediğiniz SVG'nin içinde hiçbir ID veya isim etiketi yok!</strong><br>
+        Haritanız tamamen 'isimsiz' vektörlerden oluşuyor. Programınızdan haritayı dışa aktarırken katman isimlerini kaydettiğinden emin olun.`;
+    } else {
+        dbg.style.display = 'block';
+        const sampleIds = Array.from(unmatchedIds).slice(0, 15).join('</b>, <b>');
+        dbg.style.backgroundColor = '#fff3cd';
+        dbg.style.color = '#856404';
+        dbg.style.border = '1px solid #ffeeba';
+        dbg.innerHTML = `<strong>⚠️ Haritanız analiz edildi, ancak eşleştirme sözlüğünüz haritayla uyuşmuyor!</strong><br>
+        Harita içerisinden şu isimleri bulduk: <b>${sampleIds}...</b><br>
+        Lütfen <code>.json</code> sözlüğünüzün sol tarafını haritanızdan çıkan bu isimlere göre düzenleyin.`;
+    }
+
+    if (isSelectionModeActive) updateSelectionUI();
+}
+
+// --- İNTERAKTİF DÜZENLEME MODU (DRAG & DROP) ---
+let isEditModeActive = false;
+let selectedDragGroup = null;
+let dragOffset = {x: 0, y: 0};
+
+function toggleEditMode() {
+    isEditModeActive = !isEditModeActive;
+    const btn = $('toggleEditModeBtn');
+    const dBtn = $('downloadPositionsBtn');
+    if (isEditModeActive) {
+        btn.innerHTML = "✏️ Düzenleme Modu: AÇIK";
+        btn.style.background = "var(--success)";
+        btn.style.borderColor = "var(--success)";
+        dBtn.style.display = "block";
+    } else {
+        btn.innerHTML = "✏️ Düzenleme Modu: KAPALI";
+        btn.style.background = "var(--text)";
+        btn.style.borderColor = "rgba(0,0,0,0.1)";
+        dBtn.style.display = "none";
+    }
+    updateMapColors(); 
+}
+
+function getSvgMousePosition(evt) {
+    var svg = document.querySelector('#svgMapWrapper svg');
+    if (!svg) return { x: evt.clientX, y: evt.clientY };
+    var CTM = svg.getScreenCTM();
+    if (!CTM) return { x: evt.clientX, y: evt.clientY };
+    return {
+        x: (evt.clientX - CTM.e) / CTM.a,
+        y: (evt.clientY - CTM.f) / CTM.d
+    };
+}
+
+const svgWrapper = $('svgMapWrapper');
+
+svgWrapper.addEventListener('mousedown', function(evt) {
+    if (!isEditModeActive) return;
+    let target = evt.target;
+    while (target && target.tagName !== 'g' && target !== svgWrapper) {
+        target = target.parentNode;
+    }
+    if (target && target.tagName === 'g' && target.id && target.id.startsWith('dotGroup_')) {
+        selectedDragGroup = target;
+        let mousePos = getSvgMousePosition(evt);
+        let cx = parseFloat(selectedDragGroup.getAttribute('data-cx'));
+        let cy = parseFloat(selectedDragGroup.getAttribute('data-cy'));
+        dragOffset.x = mousePos.x - cx;
+        dragOffset.y = mousePos.y - cy;
+        $('mapTooltip').style.display = 'none';
+        evt.preventDefault();
+    }
+});
+
+svgWrapper.addEventListener('mousemove', function(evt) {
+    if (selectedDragGroup && isEditModeActive) {
+        evt.preventDefault();
+        let mousePos = getSvgMousePosition(evt);
+        let newCx = mousePos.x - dragOffset.x;
+        let newCy = mousePos.y - dragOffset.y;
+        
+        selectedDragGroup.setAttribute('data-cx', newCx);
+        selectedDragGroup.setAttribute('data-cy', newCy);
+        
+        let origCx = parseFloat(selectedDragGroup.getAttribute('data-orig-cx'));
+        let origCy = parseFloat(selectedDragGroup.getAttribute('data-orig-cy'));
+        let dx = newCx - origCx;
+        let dy = newCy - origCy;
+        
+        selectedDragGroup.setAttribute('transform', `translate(${dx}, ${dy})`);
+    }
+});
+
+window.addEventListener('mouseup', function(evt) {
+    if (selectedDragGroup && isEditModeActive) {
+        let dName = selectedDragGroup.getAttribute('data-district');
+        let newCx = parseFloat(selectedDragGroup.getAttribute('data-cx'));
+        let newCy = parseFloat(selectedDragGroup.getAttribute('data-cy'));
+        customDotPositions[dName] = { x: newCx, y: newCy };
+        selectedDragGroup = null;
+    }
+});
+
+window.downloadDotPositions = function() {
+    if (Object.keys(customDotPositions).length === 0) {
+        alert("Henüz hiçbir konumu değiştirmediniz.");
+        return;
+    }
+    const blob = new Blob([JSON.stringify(customDotPositions, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'vekil_konumlari_' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+};
+
+window.loadCustomDotPositions = async function(inp) {
+    const file = inp.files[0];
+    if(!file) return;
+    try {
+        const text = await file.text();
+        customDotPositions = JSON.parse(text);
+        if (Object.keys(globalResults).length > 0) updateMapColors();
+    } catch(e) {
+        alert("Hata: " + e.message);
+    }
+    inp.value = ''; 
+};
+
+// --- HARİTA İNTERAKTİFLİĞİ (HOVER BİLGİ MENÜSÜ) ---
+function getMapDistrictName(el) {
+    while(el && el !== svgWrapper && el !== document.body) {
+        if(el.getAttribute && el.getAttribute('data-district-name')) {
+            return el.getAttribute('data-district-name');
+        }
+        if(el.getAttribute && el.getAttribute('data-district')) {
+            return el.getAttribute('data-district');
+        }
+        el = el.parentElement;
+    }
+    return null;
+}
+
+svgWrapper.addEventListener('mousemove', (e) => {
+    if (selectedDragGroup) {
+        $('mapTooltip').style.display = 'none';
+        return;
+    }
+
+    const dName = getMapDistrictName(e.target);
+    const mapTooltip = $('mapTooltip');
+    
+    if (dName && globalResults[dName]) {
+        const displayData = getDisplayData(globalResults[dName]);
+        
+        let html = `<h4><span>📍 ${dName}</span> <span class="mt-seat">${displayData.seats} Mv</span></h4>`;
+        
+        let sortedEntities = Object.keys(displayData.rawVotes).sort((a,b) => displayData.rawVotes[b] - displayData.rawVotes[a]);
+        let displayParties = sortedEntities.slice(0, 5); 
+        
+        displayParties.forEach(p => {
+            let v = displayData.rawVotes[p];
+            if (v < 10) return; 
+            
+            let pct = displayData.totalVotes > 0 ? ((v / displayData.totalVotes) * 100).toFixed(1) : 0;
+            let s = displayData.mvs[p] || 0;
+            let color = getPartyColor(p);
+            let isWinner = (p === sortedEntities[0]);
+            let hasPassed = hasEntityPassed(p, displayData.passed);
+            
+            let pctStyle = !hasPassed ? 'text-decoration: line-through; color: #ef9a9a;' : 'color:var(--text-secondary); font-weight:bold;';
+            
+            html += `
+            <div class="mt-row">
+                <span class="mt-party">
+                    <span class="mt-party-color" style="background:${color}; ${isWinner ? 'box-shadow: 0 0 0 2px '+color+'40;' : ''}"></span>
+                    ${p}
+                </span>
+                <span class="mt-stats">
+                    <span style="${pctStyle}">%${pct}</span>
+                    ${s > 0 ? `<span class="mt-mv" style="background:${color}">${s} Mv</span>` : ''}
+                </span>
+            </div>`;
+        });
+        
+        mapTooltip.innerHTML = html;
+        mapTooltip.style.display = 'block'; 
+        
+        let ttWidth = mapTooltip.offsetWidth;
+        let ttHeight = mapTooltip.offsetHeight;
+        
+        let leftPos = e.pageX + 15;
+        let topPos = e.pageY + 15;
+        
+        if (leftPos + ttWidth > window.innerWidth - 15) leftPos = e.pageX - ttWidth - 15;
+        if (topPos + ttHeight > window.innerHeight - 15) topPos = e.pageY - ttHeight - 15;
+        
+        mapTooltip.style.left = leftPos + 'px';
+        mapTooltip.style.top = topPos + 'px';
+    } else {
+        mapTooltip.style.display = 'none';
+    }
+});
+
+svgWrapper.addEventListener('mouseout', (e) => {
+    $('mapTooltip').style.display = 'none';
+});
+
+svgWrapper.addEventListener('click', (e) => {
+    // Tam ekrandayken veya düzenleme modundayken seçim çevrelerine tıklama kilitlenir
+    if (isEditModeActive || isFullscreen) return; 
+    
+    const dName = getMapDistrictName(e.target);
+    if (dName && globalResults[dName]) {
+        if (isSelectionModeActive) {
+            toggleDistrictSelection(dName);
+        } else {
+            openDistrictOverlay(dName);
+            $('mapTooltip').style.display = 'none'; 
+        }
+    }
+});
+
+function escapeStr(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+function updateTotalTracker() {
+    let total = 0;
+    extraParties.forEach(ep => {
+        if(ep.isEnabled !== false) total += parseFloat(ep.nat) || 0;
+    });
+    total = Math.round(total * 100) / 100;
+    let remaining = Math.round((100 - total) * 100) / 100;
+
+    const tracker = $('voteTotalTracker');
+    if(!tracker) return;
+
+    let bgColor = '#e8f0fe', textColor = 'var(--primary)', remColor = 'var(--orange)';
+    if (total === 100) { bgColor = '#e6f4ea'; textColor = 'var(--success)'; remColor = 'var(--success)'; } 
+    else if (total > 100) { bgColor = '#fce8e8'; textColor = 'var(--danger)'; remColor = 'var(--danger)'; }
+
+    tracker.style.background = bgColor; tracker.style.color = textColor; tracker.style.borderColor = textColor;
+    tracker.innerHTML = `Toplam: %${total.toFixed(2)} | Kalan: <span style="color:${remColor}; font-weight:900;">%${remaining.toFixed(2)}</span>`;
+}
+
+$('fileInp').onchange = async (e) => {
+    for(let file of e.target.files){
+        const text = await file.text();
+        const data = file.name.endsWith('.json') ? parseDataJson(text) : parseTxt(text);
+        const nat = calcNat(data);
+        datasets.push({ id:Date.now()+Math.random(), name:file.name, data, nat, w:1.0 });
+    }
+    updateGlobalParties();
+    renderDatasets();
+};
+
+function parseDataJson(text) {
+    try {
+        const raw = JSON.parse(text);
+        const out = {};
+        for (const dName in raw) {
+            const entry = raw[dName];
+            out[dName] = {
+                seats: parseInt(entry.seats) || 0,
+                votes: {}
+            };
+            for (const p in (entry.votes || {})) {
+                out[dName].votes[p] = parseInt(entry.votes[p]) || 0;
+            }
+        }
+        return out;
+    } catch(e) {
+        alert('JSON parse hatası: ' + e.message);
+        return {};
+    }
+}
+
+function parseTxt(t){
+    const out = {};
+    t.split(/\n-\s*\n|\n\n+/).forEach(block => {
+        const lines = block.trim().split('\n');
+        if(lines.length < 2) return;
+        let header = lines[0].trim();
+        let parts = header.split('-');
+        let seats = parseInt(parts.pop()) || 0;
+        let name = parts.join('-').trim();
+        const votes = {};
+        lines.slice(1).forEach(l => {
+            const p = l.trim().split(/\s+/);
+            const v = parseInt(p.pop().replace(/\D/g,''));
+            const pName = p.join(' ').trim();
+            if(!isNaN(v) && pName) votes[pName] = v;
+        });
+        out[name] = { votes, seats };
+    });
+    return out;
+}
+
+function calcNat(data){
+    let total = 0, sums = {};
+    for(let d in data){
+        for(let p in data[d].votes){
+            sums[p] = (sums[p]||0) + data[d].votes[p];
+            total += data[d].votes[p];
+        }
+    }
+    for(let p in sums) sums[p] /= (total || 1);
+    return sums;
+}
+
+function getMasterDistricts() {
+    const allDNames = new Set();
+    datasets.forEach(ds => Object.keys(ds.data).forEach(n => { if(ds.data[n].seats > 0) allDNames.add(n); }));
+    const names = Array.from(allDNames);
+    const parentsWithChildren = new Set();
+    names.forEach(n => { if(n.includes('-')) parentsWithChildren.add(n.split('-')[0].trim()); });
+    return names.filter(n => !parentsWithChildren.has(n));
+}
+
+function getDistrictDataWithPatch(dataset, targetName) {
+    if(dataset.data[targetName]) return dataset.data[targetName];
+    const root = targetName.split('-')[0].trim();
+    if(dataset.data[root]) return dataset.data[root];
+    return null;
+}
+
+function updateGlobalParties(){
+    globalParties = new Set(); 
+    datasets.forEach(ds => Object.keys(ds.nat).forEach(p => globalParties.add(p)));
+    renderExtraParties(); 
+    renderCoalitions();
+    renderAlliances();
+}
+
+function renderDatasets(){
+    $('datasetsList').innerHTML = datasets.map(ds => `
+        <div class="data-row flex-row" style="border-left-color: var(--primary);">
+            <span style="flex:1; overflow:hidden; font-weight:bold; white-space:nowrap; text-overflow:ellipsis;">${ds.name}</span>
+            <div style="display:flex; align-items:center; gap:6px">
+                <span style="font-size:11px; color:var(--text-secondary); font-weight:bold;">Ağırlık:</span>
+                <input type="number" step="0.1" value="${ds.w}" class="ds-weight-input" data-id="${ds.id}" style="width:50px; margin:0; padding:4px;">
+            </div>
+            <button class="danger" onclick="datasets=datasets.filter(x=>x.id!=${ds.id});renderDatasets();updateGlobalParties();">✖</button>
+        </div>
+    `).join('');
+}
+
+window.handleDragStart = function(e, type, idx) { dragCtx = { type, idx }; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', idx); };
+window.handleDragOver = function(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; e.currentTarget.classList.add('drag-over'); };
+window.handleDragLeave = function(e) { e.currentTarget.classList.remove('drag-over'); };
+window.handleDrop = function(e, targetType, targetIdx) {
+    e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+    if (dragCtx.type !== targetType || dragCtx.idx === targetIdx || dragCtx.idx === null) return;
+    
+    let arr = targetType === 'party' ? extraParties : (targetType === 'coal' ? coalitions : electoralAlliances);
+    const item = arr.splice(dragCtx.idx, 1)[0];
+    arr.splice(targetIdx, 0, item);
+    dragCtx = { type: null, idx: null };
+    
+    if (targetType === 'party') { renderExtraParties(); renderCoalitions(); renderAlliances(); }
+    if (targetType === 'coal') { renderCoalitions(); renderAlliances(); }
+    if (targetType === 'alliance') { renderAlliances(); }
+};
+
+window.renameParty = function(idx, newName) {
+    newName = newName.trim();
+    if(!newName) { renderExtraParties(); return; }
+    const oldName = extraParties[idx].name;
+    if(oldName === newName) return;
+    
+    extraParties[idx].name = newName;
+    coalitions.forEach(c => { const mIdx = c.members.indexOf(oldName); if(mIdx > -1) c.members[mIdx] = newName; });
+    electoralAlliances.forEach(a => { const mIdx = a.members.indexOf(oldName); if(mIdx > -1) a.members[mIdx] = newName; });
+    
+    for(let d in localDisabledParties) {
+        if(localDisabledParties[d].has(oldName)) {
+            localDisabledParties[d].delete(oldName);
+            localDisabledParties[d].add(newName);
+        }
+    }
+    
+    renderExtraParties(); renderCoalitions(); renderAlliances();
+};
+
+window.renameCoalition = function(idx, newName) {
+    newName = newName.trim();
+    if(!newName) { renderCoalitions(); return; }
+    const oldName = coalitions[idx].name;
+    if(oldName === newName) return;
+    coalitions[idx].name = newName;
+    electoralAlliances.forEach(a => { const mIdx = a.members.indexOf(oldName); if(mIdx > -1) a.members[mIdx] = newName; });
+    
+    for(let d in localDisabledParties) {
+        if(localDisabledParties[d].has(oldName)) {
+            localDisabledParties[d].delete(oldName);
+            localDisabledParties[d].add(newName);
+        }
+    }
+
+    renderCoalitions(); renderAlliances();
+};
+
+window.renameAlliance = function(idx, newName) {
+    newName = newName.trim();
+    if(!newName) { renderAlliances(); return; }
+    const oldName = electoralAlliances[idx].name;
+    electoralAlliances[idx].name = newName;
+    
+    for(let d in localDisabledParties) {
+        if(localDisabledParties[d].has(oldName)) {
+            localDisabledParties[d].delete(oldName);
+            localDisabledParties[d].add(newName);
+        }
+    }
+
+    renderAlliances();
+};
+
+function addExtraParty(){
+    const name = $('newPName').value.trim();
+    const nat = parseFloat($('newPNat').value)||0;
+    if(!name) return;
+    extraParties.push({ name, nat, similarity:{}, isOpen: true, isEnabled: true, color: '#000000' });
+    $('newPName').value = ''; $('newPNat').value = '';
+    renderExtraParties(); renderCoalitions(); renderAlliances();
+}
+
+let activeColorTarget = { type: null, idx: null };
+
+window.updateColorModal = function(type, idx) {
+    activeColorTarget = { type, idx };
+    let currColor = '#000000';
+    if(type === 'party') currColor = extraParties[idx].color || '#000000';
+    if(type === 'coal') currColor = coalitions[idx].color || '#000000';
+    if(type === 'alliance') currColor = electoralAlliances[idx].color || '#000000';
+    $('hexInput').value = currColor;
+    $('colorModalOverlay').style.display = 'flex';
+    $('hexInput').focus();
+};
+window.closeColorModal = function() { $('colorModalOverlay').style.display = 'none'; };
+window.saveColorModal = function() {
+    let val = $('hexInput').value.trim();
+    if (!val) val = "000000";
+    if (!val.startsWith('#')) val = '#' + val;
+    
+    const isValid = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/i.test(val);
+    if (!isValid) return alert("Geçersiz HEX kodu! Örnek formatlar: #ff0000 veya ff0000");
+    
+    if(activeColorTarget.type === 'party') { extraParties[activeColorTarget.idx].color = val; renderExtraParties(); } 
+    else if(activeColorTarget.type === 'coal') { coalitions[activeColorTarget.idx].color = val; renderCoalitions(); }
+    else if(activeColorTarget.type === 'alliance') { electoralAlliances[activeColorTarget.idx].color = val; renderAlliances(); }
+    
+    closeColorModal();
+    if (Object.keys(globalResults).length > 0) runProjection();
+};
+$('hexInput').addEventListener('keyup', function(e) { if (e.key === 'Enter') saveColorModal(); });
+
+function renderExtraParties(){
+    const sortedGlobal = [...globalParties].sort((a,b) => a.localeCompare(b, 'tr'));
+    
+    $('extraPartiesArea').innerHTML = extraParties.map((ep, idx) => `
+        <div class="data-row" style="border-left-color: var(--orange);" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'party', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'party', ${idx})">
+            <div class="flex-row" style="margin-bottom:0;">
+                <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
+                
+                <button class="toggle-btn" onclick="extraParties[${idx}].isOpen=!extraParties[${idx}].isOpen;renderExtraParties()">${ep.isOpen ? '▲' : '▼'}</button>
+                
+                <button class="status-btn ${ep.isEnabled !== false ? 'active' : ''}" style="background:${ep.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${ep.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${ep.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="extraParties[${idx}].isEnabled=!(extraParties[${idx}].isEnabled!==false); updateTotalTracker(); renderExtraParties();" title="${ep.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${ep.isEnabled !== false ? 'A' : 'P'}</button>
+                
+                <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius: 0; background:${ep.color || '#000000'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('party', ${idx})"></div>
+                
+                <input type="text" class="editable-name" value="${escapeStr(ep.name)}" onchange="renameParty(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
+                
+                <input type="number" step="0.01" value="${ep.nat}" style="width:65px; margin:0; font-weight:bold; color:var(--primary); flex-shrink:0;" oninput="extraParties[${idx}].nat=parseFloat(this.value)||0; updateTotalTracker();">
+                <span style="font-weight:bold; color:var(--text-secondary); flex-shrink:0;">%</span>
+                <button class="danger" onclick="extraParties.splice(${idx},1);renderExtraParties();renderCoalitions();renderAlliances();">✖</button>
+            </div>
+            <div class="similarity-grid" style="display: ${ep.isOpen ? 'grid' : 'none'}">
+                ${sortedGlobal.map(p => `
+                    <div class="sim-input-box">
+                        <span title="${escapeStr(p)}">${p}</span>
+                        <input type="number" placeholder="%" value="${(ep.similarity[p]||0)*100}" onchange="extraParties[${idx}].similarity['${escapeStr(p)}']=parseFloat(this.value)/100">
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+    updateTotalTracker();
+}
+
+function addCoalition(){
+    const name = $('coalName').value.trim();
+    if(!name) return;
+    coalitions.push({ name, members:[], isOpen: true, isEnabled: true, color: '#000000' });
+    $('coalName').value = ''; 
+    renderCoalitions(); renderAlliances();
+}
+
+function renderCoalitions(){
+    const all = extraParties.map(e=>e.name).sort((a,b) => a.localeCompare(b, 'tr'));
+    $('coalitionArea').innerHTML = coalitions.map((c, idx) => `
+        <div class="data-row" style="border-left-color: var(--purple);" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'coal', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'coal', ${idx})">
+            <div class="flex-row" style="margin-bottom:0;">
+                <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
+                
+                <button class="toggle-btn" onclick="coalitions[${idx}].isOpen=!coalitions[${idx}].isOpen;renderCoalitions()">${c.isOpen ? '▲' : '▼'}</button>
+                
+                <button class="status-btn ${c.isEnabled !== false ? 'active' : ''}" style="background:${c.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${c.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${c.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="coalitions[${idx}].isEnabled=!(coalitions[${idx}].isEnabled!==false);renderCoalitions()" title="${c.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${c.isEnabled !== false ? 'A' : 'P'}</button>
+                
+                <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius: 0; background:${c.color || '#000000'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('coal', ${idx})"></div>
+                
+                <input type="text" class="editable-name" value="${escapeStr(c.name)}" onchange="renameCoalition(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
+                
+                <button class="danger" onclick="coalitions.splice(${idx},1);renderCoalitions();renderAlliances();">✖</button>
+            </div>
+            <div style="margin-top:10px; display: ${c.isOpen ? 'grid' : 'none'}; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; border-top: 1px dashed var(--border); padding-top:10px;">
+                ${all.map(p => `
+                    <label class="coal-sim-box ${c.members.includes(p)?'active':''}" title="${escapeStr(p)}">
+                        <input type="checkbox" style="display:none;" ${c.members.includes(p)?'checked':''} onchange="const m=coalitions[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : coalitions[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderCoalitions();">
+                        <span>${p}</span>
+                    </label>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function addAlliance(){
+    const name = $('allianceName').value.trim();
+    if(!name) return;
+    electoralAlliances.push({ name, members:[], isOpen: true, isEnabled: true, color: '#000000' });
+    $('allianceName').value = ''; renderAlliances();
+}
+
+function renderAlliances(){
+    const all = [...extraParties.map(e=>e.name), ...coalitions.map(c=>c.name)].sort((a,b) => a.localeCompare(b, 'tr'));
+    $('allianceArea').innerHTML = electoralAlliances.map((a, idx) => `
+        <div class="data-row" style="border-left-color: var(--teal);" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'alliance', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'alliance', ${idx})">
+            <div class="flex-row" style="margin-bottom:0;">
+                <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
+                
+                <button class="toggle-btn" onclick="electoralAlliances[${idx}].isOpen=!electoralAlliances[${idx}].isOpen;renderAlliances()">${a.isOpen ? '▲' : '▼'}</button>
+                
+                <button class="status-btn ${a.isEnabled !== false ? 'active' : ''}" style="background:${a.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${a.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${a.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="electoralAlliances[${idx}].isEnabled=!(electoralAlliances[${idx}].isEnabled!==false);renderAlliances()" title="${a.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${a.isEnabled !== false ? 'A' : 'P'}</button>
+                
+                <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius: 0; background:${a.color || '#000000'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('alliance', ${idx})"></div>
+                
+                <input type="text" class="editable-name" value="${escapeStr(a.name)}" onchange="renameAlliance(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
+                
+                <button class="danger" onclick="electoralAlliances.splice(${idx},1);renderAlliances();">✖</button>
+            </div>
+            <div style="margin-top:10px; display: ${a.isOpen ? 'grid' : 'none'}; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; border-top: 1px dashed var(--border); padding-top:10px;">
+                ${all.map(p => `
+                    <label class="coal-sim-box ${a.members.includes(p)?'active':''}" style="${a.members.includes(p)?'background:var(--teal);border-color:var(--teal);':''}" title="${escapeStr(p)}">
+                        <input type="checkbox" style="display:none;" ${a.members.includes(p)?'checked':''} onchange="const m=electoralAlliances[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : electoralAlliances[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderAlliances();">
+                        <span>${p}</span>
+                    </label>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function downloadSeatData() {
+    const masterDistricts = getMasterDistricts();
+    if (masterDistricts.length === 0) return alert("Önce seçim verisi (.txt) yüklemelisiniz! İndirilecek çevre listesi oluşturulamadı.");
+    
+    let seatData = {};
+    masterDistricts.forEach(dName => {
+        let seats = customSeatOverrides[dName];
+        if (seats === undefined) {
+            for(let ds of datasets) {
+                const match = getDistrictDataWithPatch(ds, dName);
+                if(match && match.seats !== undefined) { seats = match.seats; break; }
+            }
+        }
+        seatData[dName] = parseInt(seats) || 0;
+    });
+    
+    const blob = new Blob([JSON.stringify(seatData, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'koltuk_verisi_' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+}
+
+async function loadSeatData(inp) {
+    const file = inp.files[0];
+    if(!file) return;
+    try {
+        const data = JSON.parse(await file.text());
+        for (let dName in data) {
+            customSeatOverrides[dName] = parseInt(data[dName]) || 0;
+        }
+        inp.value = '';
+        if (Object.keys(globalResults).length > 0) runProjection();
+    } catch (err) {}
+}
+
+function saveProject() {
+    const projectData = {
+        meta: { version: "10.0", date: new Date().toISOString() },
+        datasets, extraParties, coalitions, electoralAlliances, customSeatOverrides, customDotPositions,
+        localDisabledParties: (() => {
+            let obj = {};
+            for(let k in localDisabledParties) obj[k] = Array.from(localDisabledParties[k]);
+            return obj;
+        })(),
+        settings: {
+            threshold: parseFloat($('thresholdInp').value) || 7,
+            calcMethod: $('calcMethodInp').value || 'classic',
+            mathMethod: $('mathMethodInp').value || 'dhondt',
+            mbEnabled: $('mbEnabledInp').checked,
+            mbCalcMethod: $('mbCalcMethodInp').value || 'classic',
+            mbSeats: parseInt($('mbSeatsInp').value) || 0,
+            dominantWhite: parseFloat($('dominantWhiteInp').value) || 20,
+            pluralityWhite: parseFloat($('pluralityWhiteInp').value) || 40
+        }
+    };
+    const blob = new Blob([JSON.stringify(projectData, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'secim_projesi_' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+}
+
+async function loadProject(inp) {
+    const file = inp.files[0];
+    if(!file) return;
+    try {
+        const data = JSON.parse(await file.text());
+        applyProjectData(data);
+        $('fileInp').value = ''; inp.value = '';
+        if (datasets.length > 0) runProjection();
+    } catch(err) {}
+}
+
+async function loadFromArchive() {
+    const fileName = $('archiveSelector').value;
+    if(!fileName) return;
+    
+    try {
+        const response = await fetch(fileName);
+        if(!response.ok) throw new Error("Sunucu Hatası");
+        
+        const data = await response.json();
+        applyProjectData(data);
+        
+        try {
+            const svgRes = await fetch('turkiye_harita.svg');
+            if (svgRes.ok) {
+                $('svgMapWrapper').innerHTML = await svgRes.text();
+                $('mapContainer').style.display = 'block';
+            }
+            const jsonRes = await fetch('eslestirme.json');
+            if (jsonRes.ok) {
+                const dictData = await jsonRes.json();
+                mapDictionary = dictData.cityMapping || dictData;
+            }
+            const konumRes = await fetch('default_konum.json');
+            if (konumRes.ok) {
+                customDotPositions = await konumRes.json();
+            }
+        } catch(e) {}
+        
+        if (datasets.length > 0) runProjection();
+        
+    } catch(err) {
+        alert("Arşiv yüklenemedi:\n" + err.message);
+    }
+}
+
+function applyProjectData(data) {
+    datasets = data.datasets || [];
+    
+    extraParties = (data.extraParties || []).map(ep => ({
+        ...ep, 
+        isOpen: ep.isOpen!==false, 
+        isEnabled: ep.isEnabled!==false,
+        color: ep.color || '#000000' 
+    }));
+    
+    coalitions = (data.coalitions || []).map(c => ({
+        ...c, 
+        isOpen: c.isOpen!==false, 
+        isEnabled: c.isEnabled!==false,
+        color: c.color || '#000000'
+    }));
+    
+    electoralAlliances = (data.electoralAlliances || []).map(a => ({
+        ...a, 
+        isOpen: a.isOpen!==false, 
+        isEnabled: a.isEnabled!==false,
+        color: a.color || '#000000'
+    }));
+    
+    customSeatOverrides = data.customSeatOverrides || {};
+    customDotPositions = data.customDotPositions || {};
+    
+    localDisabledParties = {};
+    if (data.localDisabledParties) {
+        for(let k in data.localDisabledParties) {
+            localDisabledParties[k] = new Set(data.localDisabledParties[k]);
+        }
+    }
+    
+    if(data.settings) {
+        if(data.settings.threshold !== undefined) $('thresholdInp').value = data.settings.threshold;
+        if(data.settings.calcMethod) $('calcMethodInp').value = data.settings.calcMethod;
+        if(data.settings.mathMethod) $('mathMethodInp').value = data.settings.mathMethod;
+        if(data.settings.mbEnabled !== undefined) {
+            $('mbEnabledInp').checked = data.settings.mbEnabled;
+            $('mbSettingsWrapper').style.display = data.settings.mbEnabled ? 'flex' : 'none';
+        }
+        if(data.settings.mbCalcMethod) $('mbCalcMethodInp').value = data.settings.mbCalcMethod;
+        if(data.settings.mbSeats !== undefined) $('mbSeatsInp').value = data.settings.mbSeats;
+        
+        if(data.settings.dominantWhite !== undefined) $('dominantWhiteInp').value = data.settings.dominantWhite;
+        if(data.settings.pluralityWhite !== undefined) $('pluralityWhiteInp').value = data.settings.pluralityWhite;
+    }
+
+    updateGlobalParties(); renderDatasets(); renderExtraParties(); renderCoalitions(); renderAlliances();
+    updateTotalTracker();
+}
+
+window.updateSeatOverride = function(dName, val) {
+    customSeatOverrides[dName] = parseInt(val) || 0;
+    runProjection();
+};
+
+window.applySorting = function() {
+    if(Object.keys(globalResults).length > 0) renderResults(globalResults);
+};
+
+window.togglePartyFilter = function(party) {
+    if (activePartyFilter === party) {
+        activePartyFilter = null;
+        filterSortMode = 'mv';
+    } else {
+        activePartyFilter = party;
+        filterSortMode = 'mv';
+    }
+    renderResults(globalResults);
+};
+
+window.toggleFilterSort = function() {
+    filterSortMode = filterSortMode === 'mv' ? 'pct' : 'mv';
+    const btn = $('filterSortBtn');
+    if (btn) btn.textContent = filterSortMode === 'mv' ? 'Sırala: 🏆 MV' : 'Sırala: 📊 Oy %';
+    renderResults(globalResults);
+};
+
+function runDhondt(v, s){
+    const res = {}; Object.keys(v).forEach(p=>res[p]=0);
+    let lastQ = 0;
+    if(s <= 0) {
+        const remainders = {};
+        for(let p in v) remainders[p] = v[p];
+        return { seats: res, remainders, lastQ: 0 };
+    }
+    for(let i=0; i<s; i++){
+        let maxQ = -1, winP = null;
+        for(let p in v){
+            let q = v[p] / (res[p]+1);
+            if(q > maxQ){ maxQ = q; winP = p; }
+        }
+        if(winP) { res[winP]++; lastQ = maxQ; }
+    }
+    const remainders = {};
+    for(let p in v) remainders[p] = Math.max(0, v[p] - (res[p] * lastQ));
+    return { seats: res, remainders, lastQ };
+}
+
+function runHare(v, s){
+    const res = {}; Object.keys(v).forEach(p=>res[p]=0);
+    const remainders = {}; Object.keys(v).forEach(p=>remainders[p]=v[p]);
+    if(s <= 0) return { seats: res, remainders };
+    
+    let totalVotes = 0;
+    for(let p in v) totalVotes += v[p];
+    if (totalVotes === 0) return { seats: res, remainders };
+    
+    const quota = totalVotes / s;
+    let awarded = 0;
+    
+    for(let p in v) {
+        const exact = v[p] / quota;
+        const intSeats = Math.floor(exact);
+        res[p] = intSeats;
+        remainders[p] = v[p] - (intSeats * quota);
+        awarded += intSeats;
+    }
+    
+    let remList = Object.keys(v).map(p => ({ p: p, r: remainders[p] }));
+    remList.sort((a, b) => b.r - a.r);
+    
+    const remSeats = s - awarded;
+    for(let i=0; i < remSeats; i++) {
+        if (remList[i]) {
+            res[remList[i].p]++;
+            remainders[remList[i].p] = Math.max(0, remainders[remList[i].p] - quota);
+        }
+    }
+    return { seats: res, remainders };
+}
+
+function runWta(v, s) {
+    const res = {}; Object.keys(v).forEach(p => res[p] = 0);
+    if (s <= 0) return { seats: res, remainders: {...v} };
+    let winner = null, maxV = -1;
+    for (let p in v) { if (v[p] > maxV) { maxV = v[p]; winner = p; } }
+    if (winner) res[winner] = s;
+    const remainders = {};
+    for (let p in v) remainders[p] = p === winner ? 0 : v[p];
+    return { seats: res, remainders };
+}
+
+function runSeatAllocation(v, s) {
+    const method = $('mathMethodInp').value;
+    if (method === 'hare') return runHare(v, s);
+    if (method === 'wta') return runWta(v, s);
+    return runDhondt(v, s);
+}
+
+function runProjection() {
+    if(!datasets.length) return alert("Önce veri yükleyin!");
+    if(extraParties.length === 0) return alert("Simülasyona girecek en az 1 parti oluşturmalısınız!");
+
+    document.querySelectorAll('.ds-weight-input').forEach(inp => {
+        const ds = datasets.find(x => x.id == inp.dataset.id);
+        if(ds) ds.w = parseFloat(inp.value) || 0;
+    });
+
+    const threshold = parseFloat($('thresholdInp').value) || 0;
+    const calcMethod = $('calcMethodInp').value;
+    const mbEnabled = $('mbEnabledInp').checked;
+    const mbCalcMethod = $('mbCalcMethodInp').value;
+    const mbSeats = parseInt($('mbSeatsInp').value) || 0;
+
+    const baseTargetNat = {};
+    extraParties.forEach(ep => {
+        if(ep.isEnabled !== false) baseTargetNat[ep.name] = parseFloat(ep.nat)||0;
+    });
+
+    let resolvedNat = { ...baseTargetNat };
+    coalitions.forEach(c => {
+        if (c.isEnabled === false) return;
+        let cSum = 0;
+        c.members.forEach(m => {
+            if (resolvedNat[m] !== undefined) { cSum += resolvedNat[m]; delete resolvedNat[m]; }
+        });
+        if (cSum > 0) resolvedNat[c.name] = cSum;
+    });
+
+    let passedThreshold = new Set();
+    electoralAlliances.forEach(a => {
+        if (a.isEnabled === false) return;
+        let aSum = 0;
+        a.members.forEach(m => { if(resolvedNat[m] !== undefined) aSum += resolvedNat[m]; });
+        if (aSum >= threshold) {
+            a.members.forEach(m => { if(resolvedNat[m] !== undefined) passedThreshold.add(m); });
+        }
+    });
+
+    Object.keys(resolvedNat).forEach(p => {
+        if (!passedThreshold.has(p) && resolvedNat[p] >= threshold) passedThreshold.add(p);
+    });
+
+    globalResults = {}; 
+    let mbPartyPool = {};
+
+    const masterDistrictNames = getMasterDistricts();
+
+    masterDistrictNames.forEach(dName => {
+        let seats = customSeatOverrides[dName];
+        if (seats === undefined) {
+            for(let ds of datasets) {
+                const match = getDistrictDataWithPatch(ds, dName);
+                if(match && match.seats !== undefined) { seats = match.seats; break; }
+            }
+        }
+        seats = parseInt(seats) || 0;
+
+        let districtTotalVotes = 0, dWeightSum = 0;
+        datasets.forEach(ds => {
+            const dData = getDistrictDataWithPatch(ds, dName);
+            if(dData){
+                districtTotalVotes += Object.values(dData.votes).reduce((a,b)=>a+b,0) * ds.w;
+                dWeightSum += ds.w;
+            }
+        });
+        districtTotalVotes = dWeightSum > 0 ? (districtTotalVotes / dWeightSum) : 100000;
+
+        const scoreMap = {};
+        
+        extraParties.forEach(ep => {
+            if(ep.isEnabled === false) return;
+            let epScore = 0;
+            let hasSimilarity = false;
+            for(let key in ep.similarity) {
+                if(ep.similarity[key] > 0) hasSimilarity = true;
+            }
+            if(!hasSimilarity) epScore = 1.0; 
+            else {
+                for(let donor in ep.similarity){
+                    if(ep.similarity[donor] <= 0) continue;
+                    let dPerfSum = 0, dW = 0;
+                    datasets.forEach(ds => {
+                        const dData = getDistrictDataWithPatch(ds, dName);
+                        if(dData && dData.votes[donor] > 0){
+                            const dTotal = Object.values(dData.votes).reduce((a,b)=>a+b,0);
+                            dPerfSum += ((dData.votes[donor]/dTotal) / (ds.nat[donor] || 0.0001)) * ds.w;
+                            dW += ds.w;
+                        }
+                    });
+                    if(dW > 0) epScore += (dPerfSum/dW) * ep.similarity[donor];
+                }
+            }
+            scoreMap[ep.name] = epScore * (ep.nat/100);
+        });
+
+        const totalScore = Object.values(scoreMap).reduce((a,b)=>a+b,0);
+        const finalVotes = {};
+        for(let p in scoreMap) finalVotes[p] = (scoreMap[p]/(totalScore||1)) * districtTotalVotes;
+
+        // --- İL BAZLI PARTİ İPTALLERİNİ (PASİF DURUMLARI) UYGULA ---
+        const locallyDisabled = localDisabledParties[dName] || new Set();
+        let effectivelyDisabled = new Set(locallyDisabled);
+
+        locallyDisabled.forEach(name => {
+            let c = coalitions.find(coal => coal.name === name);
+            if (c) c.members.forEach(m => effectivelyDisabled.add(m));
+            let a = electoralAlliances.find(all => all.name === name);
+            if (a) a.members.forEach(m => effectivelyDisabled.add(m));
+        });
+
+        const preDisableVotes = {...finalVotes}; // sıralama için sıfırlanmadan önceki oylar
+
+        effectivelyDisabled.forEach(p => {
+            if (finalVotes[p] !== undefined) {
+                districtTotalVotes -= finalVotes[p];
+                finalVotes[p] = 0;
+            }
+        });
+        if(districtTotalVotes <= 0) districtTotalVotes = 1;
+        // ---------------------------------------------------------------
+
+        const dhondtInputRaw = {...finalVotes};
+        coalitions.forEach(c => {
+            if (c.isEnabled === false) return;
+            let cSum = 0;
+            c.members.forEach(m => { 
+                if(dhondtInputRaw[m] !== undefined) { cSum += dhondtInputRaw[m]; delete dhondtInputRaw[m]; }
+            });
+            if(cSum > 0) dhondtInputRaw[c.name] = cSum;
+        });
+
+        const eligibleVotes = {};
+        Object.keys(dhondtInputRaw).forEach(p => {
+            if (passedThreshold.has(p) || threshold === 0) eligibleVotes[p] = dhondtInputRaw[p];
+        });
+
+        const finalSeats = {};
+
+        if (calcMethod === 'classic') {
+            const allocRes = runSeatAllocation(eligibleVotes, seats);
+            Object.assign(finalSeats, allocRes.seats);
+            
+            Object.keys(eligibleVotes).forEach(p => {
+                mbPartyPool[p] = (mbPartyPool[p] || 0) + (allocRes.remainders[p] || 0);
+            });
+        } else {
+            const allianceGroupedVotes = {};
+            const partyToAllianceMap = {};
+
+            electoralAlliances.forEach(a => {
+                if (a.isEnabled === false) return;
+                let aSum = 0;
+                a.members.forEach(m => {
+                    if (eligibleVotes[m] !== undefined) {
+                        aSum += eligibleVotes[m];
+                        partyToAllianceMap[m] = a.name;
+                    }
+                });
+                if (aSum > 0) allianceGroupedVotes[a.name] = aSum;
+            });
+
+            Object.keys(eligibleVotes).forEach(p => {
+                if (!partyToAllianceMap[p]) allianceGroupedVotes[p] = eligibleVotes[p];
+            });
+
+            const aAllocRes = runSeatAllocation(allianceGroupedVotes, seats);
+            const firstSeats = aAllocRes.seats;
+
+            Object.keys(allianceGroupedVotes).forEach(winner => {
+                let rem = aAllocRes.remainders[winner] || 0;
+                
+                const allianceObj = electoralAlliances.find(a => a.name === winner && a.isEnabled !== false);
+                if (allianceObj) {
+                    const internalVotes = {};
+                    let totalInternal = 0;
+                    allianceObj.members.forEach(m => {
+                        if (eligibleVotes[m] !== undefined) {
+                            internalVotes[m] = eligibleVotes[m];
+                            totalInternal += eligibleVotes[m];
+                        }
+                    });
+                    
+                    Object.keys(internalVotes).forEach(m => {
+                        let proportion = totalInternal > 0 ? (internalVotes[m] / totalInternal) : 0;
+                        mbPartyPool[m] = (mbPartyPool[m] || 0) + Math.max(0, rem * proportion);
+                    });
+
+                    if (firstSeats[winner] > 0) {
+                        const intAllocRes = runSeatAllocation(internalVotes, firstSeats[winner]);
+                        Object.assign(finalSeats, intAllocRes.seats);
+                    } else {
+                        finalSeats[winner] = 0;
+                    }
+                } else {
+                    finalSeats[winner] = firstSeats[winner] || 0;
+                    mbPartyPool[winner] = (mbPartyPool[winner] || 0) + Math.max(0, rem);
+                }
+            });
+        }
+
+        globalResults[dName] = {
+            pureVotes: finalVotes,
+            preDisableVotes,
+            rawVotes: dhondtInputRaw,
+            mvs: finalSeats,
+            seats,
+            totalVotes: districtTotalVotes,
+            passed: passedThreshold,
+            isMilliBakiye: false
+        };
+    });
+
+    if (mbEnabled && mbSeats > 0) {
+        const mbFinalSeats = {};
+        const displayRemainders = { ...mbPartyPool };
+        
+        if (mbCalcMethod === 'classic') {
+            const mbRes = runSeatAllocation(mbPartyPool, mbSeats);
+            Object.assign(mbFinalSeats, mbRes.seats);
+        } else {
+            const mbAllianceGrouped = {};
+            const mbPartyToAlliance = {};
+            
+            electoralAlliances.forEach(a => {
+                if (a.isEnabled === false) return;
+                let aSum = 0;
+                a.members.forEach(m => {
+                    if (mbPartyPool[m] !== undefined) {
+                        aSum += mbPartyPool[m];
+                        mbPartyToAlliance[m] = a.name;
+                    }
+                });
+                if (aSum > 0) mbAllianceGrouped[a.name] = aSum;
+            });
+
+            Object.keys(mbPartyPool).forEach(p => {
+                if (!mbPartyToAlliance[p]) mbAllianceGrouped[p] = mbPartyPool[p];
+            });
+
+            const mbADhRes = runSeatAllocation(mbAllianceGrouped, mbSeats);
+            
+            Object.keys(mbADhRes.seats).forEach(winner => {
+                const allianceObj = electoralAlliances.find(a => a.name === winner && a.isEnabled !== false);
+                if (allianceObj) {
+                    const internalVotes = {};
+                    allianceObj.members.forEach(m => {
+                        if (mbPartyPool[m] !== undefined) internalVotes[m] = mbPartyPool[m];
+                    });
+                    
+                    if (mbADhRes.seats[winner] > 0) {
+                        const intMbRes = runSeatAllocation(internalVotes, mbADhRes.seats[winner]);
+                        Object.assign(mbFinalSeats, intMbRes.seats);
+                    }
+                } else {
+                    mbFinalSeats[winner] = mbADhRes.seats[winner] || 0;
+                }
+            });
+        }
+
+        globalResults['🌟 Milli Bakiye (Türkiye Geneli)'] = {
+            pureVotes: displayRemainders, 
+            rawVotes: displayRemainders,
+            mvs: mbFinalSeats,
+            seats: mbSeats,
+            totalVotes: Object.values(displayRemainders).reduce((a,b)=>a+b,0) || 1,
+            passed: passedThreshold,
+            isMilliBakiye: true
+        };
+    }
+
+    renderResults(globalResults);
+
+    if (currentOverlayData && $('districtOverlay').style.display === 'block') {
+        if (globalResults[currentOverlayData.name]) {
+            currentOverlayData.data = globalResults[currentOverlayData.name];
+            renderDistrictOverlay();
+        } else {
+            closeDistrictOverlay(); 
+        }
+    }
+}
+
+$('runBtn').onclick = runProjection;
+
+window.toggleTier = function(btn, targetTier) {
+    const card = btn.parentElement;
+    if (targetTier === 2) {
+        const t2 = card.querySelector('.tier-2');
+        if(t2) t2.style.display = 'flex';
+        btn.style.display = 'none';
+        const t2Btn = card.querySelector('.t2-btn');
+        if(t2Btn) t2Btn.style.display = 'flex';
+    } else if (targetTier === 3) {
+        const t3 = card.querySelector('.tier-3');
+        if(t3) t3.style.display = 'flex';
+        btn.style.display = 'none';
+    }
+};
+
+function getPartyColor(pName) {
+    const ep = extraParties.find(e => e.name === pName);
+    if (ep && ep.color) return ep.color;
+    const c = coalitions.find(coal => coal.name === pName);
+    if (c && c.color) return c.color;
+    const a = electoralAlliances.find(all => all.name === pName);
+    if (a && a.color) return a.color;
+    return '#000000';
+}
+
+window.showChartTooltip = function(e, party, seats, total) {
+    const tt = $('chartTooltip');
+    const pct = ((seats / total) * 100).toFixed(1);
+    tt.innerHTML = `
+        <span class="tt-party">${party}</span>
+        <span class="tt-stats">${seats} Milletvekili (%${pct})</span>
+        <span class="tt-hint">Bölgeleri filtrelemek için tıkla</span>
+    `;
+    tt.style.display = 'block';
+    tt.style.left = (e.pageX + 15) + 'px';
+    tt.style.top = (e.pageY + 15) + 'px';
+};
+function hideChartTooltip() { $('chartTooltip').style.display = 'none'; };
+
+function getVisualSeats(seatsObj, total) {
+    let visualObj = {};
+    let visualTotal = 0;
+    const minVisualWeight = 25; 
+    
+    for (let p in seatsObj) {
+        if (seatsObj[p] > 0) {
+            let w = Math.max(seatsObj[p], minVisualWeight);
+            visualObj[p] = w;
+            visualTotal += w;
+        }
+    }
+    return { visualObj, visualTotal };
+}
+
+function createParliamentDonut(seatsObj, total) {
+    if (total === 0) return '';
+    let currentAngle = Math.PI; 
+    let radius = 35; 
+    let cx = 50, cy = 50;
+    let svg = `<svg viewBox="0 0 100 55" style="width:100%; max-width:500px; margin: 0 auto; display:block; overflow:visible;">`;
+    
+    svg += `<path d="M 15 50 A 35 35 0 0 1 85 50" fill="none" stroke="#f0f2f5" stroke-width="20" />`; 
+
+    const { visualObj, visualTotal } = getVisualSeats(seatsObj, total);
+
+    for (let p in seatsObj) {
+        let s = seatsObj[p];
+        if (s === 0) continue;
+        
+        let sliceAngle = (visualObj[p] / visualTotal) * Math.PI;
+        let endAngle = currentAngle - sliceAngle;
+        let midAngle = currentAngle - (sliceAngle / 2);
+
+        let x1 = cx + radius * Math.cos(currentAngle);
+        let y1 = cy - radius * Math.sin(currentAngle);
+        let x2 = cx + radius * Math.cos(endAngle);
+        let y2 = cy - radius * Math.sin(endAngle);
+
+        if (sliceAngle >= Math.PI - 0.001) {
+            x2 = cx + radius * Math.cos(0);
+            y2 = cy - radius * Math.sin(0);
+        }
+
+        let color = getPartyColor(p);
+        let safePartyStr = escapeStr(p);
+        
+        let isFocused = activePartyFilter === p;
+        let pathOpacity = (activePartyFilter && !isFocused) ? '0.25' : '1';
+        let strokeW = isFocused ? '24' : '20'; 
+        
+        svg += `<path d="M ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2}" 
+                fill="none" stroke="${color}" stroke-width="${strokeW}" 
+                style="cursor:pointer; transition: 0.2s; opacity: ${pathOpacity}; outline: none;" 
+                onmouseover="this.setAttribute('stroke-width', '24')" 
+                onmouseout="this.setAttribute('stroke-width', '${strokeW}'); hideChartTooltip();"
+                onmousemove="showChartTooltip(event, '${safePartyStr}', ${s}, ${total})"
+                onclick="togglePartyFilter('${safePartyStr}')"
+                ></path>`;
+                
+        if (sliceAngle > 0.06) {
+            let textX = cx + radius * Math.cos(midAngle);
+            let textY = cy - radius * Math.sin(midAngle);
+            svg += `<text x="${textX}" y="${textY}" fill="#ffffff" font-size="3.5" font-weight="bold" text-anchor="middle" dominant-baseline="central" style="pointer-events:none; opacity: ${pathOpacity}; text-shadow: 0px 1px 3px rgba(0,0,0,0.8);">${s}</text>`;
+        }
+        
+        currentAngle = endAngle;
+    }
+    
+    svg += `<text x="50" y="48" text-anchor="middle" font-size="8" font-weight="bold" fill="var(--text)">${total}</text>`;
+    svg += `</svg>`;
+    return svg;
+}
+
+function renderResults(res){
+    const area = $('results');
+    area.innerHTML = '';
+
+    let totalMvs = {};
+    let globalSeatCount = 0;
+    
+    Object.keys(res).forEach(d => {
+        const displayData = getDisplayData(res[d]);
+        Object.keys(displayData.mvs).forEach(p => {
+            const mvCount = displayData.mvs[p] || 0;
+            if (mvCount > 0) {
+                totalMvs[p] = (totalMvs[p] || 0) + mvCount;
+                globalSeatCount += mvCount;
+            }
+        });
+    });
+
+    if (globalSeatCount > 0) {
+        $('parliamentContainer').style.display = 'block';
+        const sortedMvKeys = Object.keys(totalMvs).sort((a,b) => totalMvs[b] - totalMvs[a]);
+        const sortedMvsObj = {};
+        sortedMvKeys.forEach(k => sortedMvsObj[k] = totalMvs[k]);
+        $('parliamentChartArea').innerHTML = createParliamentDonut(sortedMvsObj, globalSeatCount);
+    } else {
+        $('parliamentContainer').style.display = 'none';
+    }
+
+    let sortedNames = Object.keys(res);
+
+    if (activePartyFilter) {
+        $('filterBanner').style.display = 'flex';
+        $('filterBanner').style.background = getPartyColor(activePartyFilter);
+
+        const btn = $('filterSortBtn');
+        if (btn) btn.textContent = filterSortMode === 'mv' ? 'Sırala: 🏆 MV' : 'Sırala: 📊 Oy %';
+
+        if (filterSortMode === 'mv') {
+            $('filterBannerText').innerHTML = `🎯 <b>${activePartyFilter}</b> — milletvekili çıkardığı çevreler, alfabetik`;
+            sortedNames = sortedNames.filter(d => {
+                let dData = getDisplayData(res[d]);
+                return dData.mvs && dData.mvs[activePartyFilter] > 0;
+            });
+        } else {
+            $('filterBannerText').innerHTML = `📊 <b>${activePartyFilter}</b> — tüm çevreler, oy oranına göre`;
+            sortedNames = sortedNames.filter(d => {
+                let dData = getDisplayData(res[d]);
+                return (dData.rawVotes && dData.rawVotes[activePartyFilter] > 0);
+            });
+            sortedNames.sort((a, b) => {
+                let da = getDisplayData(res[a]), db = getDisplayData(res[b]);
+                let pctA = da.totalVotes > 0 ? (da.rawVotes[activePartyFilter] || 0) / da.totalVotes : 0;
+                let pctB = db.totalVotes > 0 ? (db.rawVotes[activePartyFilter] || 0) / db.totalVotes : 0;
+                return pctB - pctA;
+            });
+        }
+    } else {
+        $('filterBanner').style.display = 'none';
+    }
+
+    const mbKey = '🌟 Milli Bakiye (Türkiye Geneli)';
+    let normalNames = sortedNames.filter(n => n !== mbKey);
+    
+    normalNames.sort((a,b) => a.localeCompare(b, 'tr')); 
+
+    if(sortedNames.includes(mbKey)) normalNames.unshift(mbKey);
+    sortedNames = normalNames;
+
+    if(sortedNames.length === 0) {
+        area.innerHTML = `<div class="empty-state">
+            <h2>${activePartyFilter ? 'Milletvekili Bulunamadı' : 'Geçersiz Veri'}</h2>
+            <p>${activePartyFilter ? 'Bu yapının vekil çıkardığı herhangi bir seçim çevresi bulunmuyor.' : 'Lütfen veri setlerini kontrol edin.'}</p>
+        </div>`;
+        return;
+    }
+
+    const domRatio = (parseFloat($('dominantWhiteInp').value) || 20) / 100;
+    const pluRatio = (parseFloat($('pluralityWhiteInp').value) || 40) / 100;
+
+    sortedNames.forEach(d => {
+        const itemRaw = res[d];
+        const displayData = getDisplayData(itemRaw);
+        
+        const card = document.createElement('div');
+        card.className = 'dist-card';
+        card.setAttribute('data-district', d);
+        card.style.cursor = 'pointer';
+        card.title = 'Detayları görmek için tıklayın';
+        
+        let borderCol = 'var(--border)';
+        if (displayData.isMilliBakiye) {
+            borderCol = 'var(--purple)';
+        } else {
+            let maxMvs = -1;
+            let maxVotes = -1;
+            let winnerEntity = null;
+            
+            // Kart rengini (sınır) vekil sayısına (eşitse oya) göre seç:
+            Object.entries(displayData.mvs).forEach(([p, s]) => {
+                let v = displayData.rawVotes[p] || 0;
+                if (s > maxMvs || (s === maxMvs && v > maxVotes)) {
+                    maxMvs = s; maxVotes = v; winnerEntity = p;
+                }
+            });
+            // Vekil çıkaran yoksa en çok oy alana bak:
+            if (!winnerEntity) {
+                Object.entries(displayData.rawVotes).forEach(([p, v]) => {
+                    if(v > maxVotes) { maxVotes = v; winnerEntity = p; }
+                });
+            }
+            
+            if (winnerEntity) {
+                const wColor = getPartyColor(winnerEntity);
+                const isDominant = (maxMvs > displayData.seats / 2);
+                borderCol = blendWithWhite(wColor, isDominant ? domRatio : pluRatio);
+            }
+        }
+        card.style.borderTop = `8px solid ${borderCol}`;
+
+        card.onclick = (e) => {
+            if(e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('.seat-editor') || e.target.closest('.expand-btn')) return;
+            if (isSelectionModeActive) {
+                toggleDistrictSelection(d);
+            } else {
+                openDistrictOverlay(d);
+            }
+        };
+        
+        let tier1Html = '', tier2Html = '', tier3Html = '';
+        let tier2Count = 0, tier3Count = 0;
+        
+        Object.entries(displayData.rawVotes).sort((a,b)=>b[1]-a[1]).forEach(([p, v])=> {
+            if(v < 10) return;
+            
+            const pctVal = (v / (displayData.totalVotes || 1)) * 100;
+            const pct = pctVal.toFixed(2);
+            const totalMv = displayData.mvs[p] || 0;
+            const hasPassed = hasEntityPassed(p, displayData.passed);
+
+            const isCoal = coalitions.find(c => c.name === p && c.isEnabled !== false);
+            const isAlliance = mapMode === 'party' ? electoralAlliances.find(a => a.members.includes(p) && a.isEnabled !== false) : null;
+            const pColor = getPartyColor(p);
+
+            const rowHtml = `
+                <div class="p-line ${isCoal?'is-coal':''}">
+                    <div class="p-line-top">
+                        <div class="p-name-area">
+                            <span class="p-name">
+                                <div style="width:10px;height:10px;border-radius:50%;background:${pColor};display:inline-block;box-shadow:0 1px 2px rgba(0,0,0,0.2);"></div>
+                                ${p} 
+                                ${isAlliance ? `<span class="alliance-tag" style="background:${isAlliance.color||'var(--teal)'}30; color:${isAlliance.color||'var(--teal)'}; font-weight:bold;">${isAlliance.name}</span>` : ''}
+                            </span>
+                            ${isCoal && mapMode === 'party' ? `<span class="p-coal-members">${isCoal.members.join(', ')}</span>` : ''}
+                        </div>
+                        <div class="p-stats-area">
+                            <span class="p-pct" style="${!hasPassed ? 'text-decoration: line-through; color: #ef9a9a;' : ''}">%${pct}</span>
+                            ${!hasPassed ? `<span class="fail-tag">Baraj Altı</span>` : ''}
+                            ${totalMv > 0 ? `<span class="mv-tag" style="background:${pColor};">${totalMv} Mv</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="p-line-bar">
+                        <div class="p-line-bar-fill" style="width:${pctVal}%; background:${pColor};"></div>
+                    </div>
+                </div>
+            `;
+            
+            if (totalMv > 0) tier1Html += rowHtml;
+            else if (pctVal >= 1) { tier2Html += rowHtml; tier2Count++; } 
+            else { tier3Html += rowHtml; tier3Count++; }
+        });
+        
+        let cardContent = `
+            <h3>
+                <div style="display:flex; align-items:center;">
+                    ${d.replace('🌟 ', '')} 
+                    ${(localDisabledParties[d] && localDisabledParties[d].size > 0) ? `<span title="Bu çevrede bazı partiler pasife alınmış" style="font-size:12px; cursor:help; margin-left:8px; background:#fff3cd; color:#856404; padding:2px 6px; border-radius: 0; border:1px solid #ffeeba; display:inline-flex; align-items:center;">🛠️ Özel</span>` : ''}
+                </div>
+                ${displayData.isMilliBakiye 
+                    ? `<span class="seat-editor" style="background:var(--purple); color:white; border-color:var(--purple); cursor:default;">${displayData.seats} MB Koltuğu</span>`
+                    : `<span class="seat-editor" title="Koltuk sayısını değiştir"><input type="number" value="${displayData.seats}" onchange="updateSeatOverride('${escapeStr(d)}', this.value)"> Mv</span>`
+                }
+            </h3>`;
+            
+        if (displayData.isMilliBakiye) {
+            cardContent += `<div style="font-size:11.5px; color:var(--purple); margin-top:-10px; margin-bottom:14px; font-weight:bold; padding-bottom:10px; border-bottom:1px dashed #e1bee7;">Biriken Artık Oylara Göre Havuz Dağılımı</div>`;
+        }
+            
+        cardContent += `<div class="tier tier-1">${tier1Html || '<div class="p-line" style="justify-content:center; color:#999; font-size:12px; padding:12px 0;">Mv çıkaran yapı yok</div>'}</div>`;
+        
+        let btn1Html = '', btn2Html = '';
+        if (tier2Count > 0) {
+            btn1Html = `<button class="expand-btn t1-btn" onclick="toggleTier(this, 2)">▼ %1 Üzeri Yapılar (${tier2Count})</button>`;
+            if (tier3Count > 0) btn2Html = `<button class="expand-btn t2-btn" style="display:none;" onclick="toggleTier(this, 3)">▼ Diğer Tüm Yapılar (${tier3Count})</button>`;
+        } else if (tier3Count > 0) {
+            btn1Html = `<button class="expand-btn t1-btn" onclick="toggleTier(this, 3)">▼ Diğer Tüm Yapılar (${tier3Count})</button>`;
+        }
+
+        if (btn1Html) cardContent += btn1Html;
+        if (tier2Count > 0) cardContent += `<div class="tier tier-2" style="display:none;">${tier2Html}</div>`;
+        if (btn2Html) cardContent += btn2Html;
+        if (tier3Count > 0) cardContent += `<div class="tier tier-3" style="display:none;">${tier3Html}</div>`;
+
+        card.innerHTML = cardContent;
+        area.appendChild(card);
+    });
+
+    updateMapColors();
+    if (isSelectionModeActive) updateSelectionUI();
+}
+
+function downloadDataset() {
+    if (Object.keys(globalResults).length === 0) return alert("Önce hesaplama yapın!");
+    const out = {};
+    for (const dName in globalResults) {
+        const res = globalResults[dName];
+        if (res.isMilliBakiye) continue;
+        const votes = {};
+        for (const p in res.pureVotes) votes[p] = Math.round(res.pureVotes[p]);
+        out[dName] = { seats: res.seats, votes };
+    }
+    const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'secim_verisi_' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+}
+
+function downloadAdvancedResults(){
+    if(Object.keys(globalResults).length === 0) return alert("Önce hesaplama yapın!");
+    
+    let txt = "[AYARLAR]\n";
+    txt += `Baraj=${$('thresholdInp').value}\n`;
+    txt += `HesaplamaModeli=${$('mathMethodInp').value}\n`;
+    txt += `Sistem=${$('calcMethodInp').value}\n`;
+    txt += `MilliBakiye=${$('mbEnabledInp').checked ? 'Aktif' : 'Pasif'}\n`;
+    txt += `MilliBakiyeSistem=${$('mbCalcMethodInp').value}\n`;
+    txt += `MilliBakiyeKoltuk=${$('mbSeatsInp').value}\n\n`;
+    
+    txt += "[ITTIFAKLAR]\n";
+    electoralAlliances.forEach(a => {
+        if(a.isEnabled !== false && a.members.length > 0) {
+            txt += `${a.name}=${a.members.join(',')}\n`;
+        }
+    });
+    
+    txt += "\n[ORTAK_LISTELER]\n";
+    coalitions.forEach(c => {
+        if(c.isEnabled !== false && c.members.length > 0) {
+            txt += `${c.name}=${c.members.join(',')}\n`;
+        }
+    });
+    
+    txt += "\n[RENKLER]\n";
+    extraParties.forEach(ep => {
+        if(ep.color) {
+            txt += `${ep.name}=${ep.color}\n`;
+        }
+    });
+    coalitions.forEach(c => {
+        if(c.color) {
+            txt += `${c.name}=${c.color}\n`;
+        }
+    });
+    electoralAlliances.forEach(a => {
+        if(a.color) {
+            txt += `${a.name}=${a.color}\n`;
+        }
+    });
+
+    txt += "\n[SONUCLAR]\n";
+    
+    const sortedDistricts = Object.keys(globalResults).filter(k => !globalResults[k].isMilliBakiye).sort((a,b) => a.localeCompare(b, 'tr'));
+
+    sortedDistricts.forEach(dName => {
+        const item = globalResults[dName];
+        txt += `${dName}-${item.seats}\n`;
+        Object.entries(item.pureVotes).sort((a,b)=>b[1]-a[1]).forEach(([party, count]) => {
+            const c = Math.round(count);
+            if (c > 0) txt += `${party} ${c}\n`;
+        });
+        txt += "-\n";
+    });
+
+    const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'simulasyon_sonucu_gelismis.txt';
+    a.click();
+}
+
+let currentOverlayData = null;
+let showingAllInOverlay = false;
+
+document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if ($('districtOverlay').style.display === 'block') {
+        if (e.key === 'ArrowLeft') navigateDistrict(-1);
+        if (e.key === 'ArrowRight') navigateDistrict(1);
+        if (e.key === 'Escape') closeDistrictOverlay();
+    }
+});
+
+function getSortedDistrictNames() {
+    let names = Object.keys(globalResults);
+    if(activePartyFilter) {
+        if (filterSortMode === 'pct') {
+            names = names.filter(d => {
+                let dData = getDisplayData(globalResults[d]);
+                return dData.rawVotes && dData.rawVotes[activePartyFilter] > 0;
+            });
+        } else {
+            names = names.filter(d => {
+                let dData = getDisplayData(globalResults[d]);
+                return dData.mvs && dData.mvs[activePartyFilter] > 0;
+            });
+        }
+    }
+
+    const mbKey = '🌟 Milli Bakiye (Türkiye Geneli)';
+    let normalNames = names.filter(n => n !== mbKey);
+    
+    normalNames.sort((a,b) => a.localeCompare(b, 'tr')); 
+    
+    if(names.includes(mbKey)) normalNames.unshift(mbKey);
+    return normalNames;
+}
+
+window.navigateDistrict = function(dir) {
+    if(!currentOverlayData) return;
+    const names = getSortedDistrictNames();
+    const currIdx = names.indexOf(currentOverlayData.name);
+    if(currIdx === -1) return;
+    
+    let nextIdx = currIdx + dir;
+    if(nextIdx < 0) nextIdx = names.length - 1; 
+    if(nextIdx >= names.length) nextIdx = 0; 
+    
+    openDistrictOverlay(names[nextIdx]);
+};
+
+function getMiniMapSvg(dName, fillColor) {
+    const svg = document.querySelector('#svgMapWrapper svg');
+    if(!svg || dName.includes('Milli Bakiye')) return '';
+
+    // updateMapColors ile aynı cleanId mantığı: _1, _2 gibi sayısal suffix'leri temizle
+    function toCleanId(raw) {
+        return raw.toLowerCase()
+            .replace(/_[0-9]+_?/g, '')
+            .replace(/_x5f_.*/,    '')
+            .replace(/-[0-9]+$/,   '');
+    }
+
+    // Birden fazla SVG temsili olan seçim çevreleri için tercih edilen clean id'ler
+    const svgIdPreference = {
+        'Kocaeli':            cid => cid === 'kocaeli',
+        'İstanbul 1. Bölge':  cid => cid === 'istanbul1',
+        'İstanbul 2. Bölge':  cid => cid === 'istanbul2',
+        'İstanbul 3. Bölge':  cid => cid === 'istanbul3',
+    };
+
+    let elements = Array.from(svg.querySelectorAll('path, g, polygon, polyline, rect'))
+        .filter(el => el.getAttribute('data-district-name') === dName);
+
+    const preferFn = svgIdPreference[dName];
+    if (preferFn && elements.length > 0) {
+        const filtered = elements.filter(el => {
+            const raw = el.getAttribute('id') || el.getAttribute('name') || '';
+            return preferFn(toCleanId(raw));
+        });
+        if (filtered.length > 0) elements = filtered;
+    }
+
+    if (elements.length === 0) return '';
+
+    // getBBox gizli DOM'da 0 döner — geçici olarak görünür yap
+    const wrapper = $('mainContentWrapper');
+    const wasHidden = wrapper && wrapper.style.display === 'none';
+    if (wasHidden) {
+        wrapper.style.cssText += ';visibility:hidden!important;position:absolute!important;display:block!important;';
+    }
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let clonedNodes = [];
+
+    function expandBBox(el) {
+        try {
+            if (el.tagName.toLowerCase() !== 'g') {
+                let bbox = el.getBBox();
+                if(bbox.width > 0 && bbox.height > 0) {
+                    minX = Math.min(minX, bbox.x);
+                    minY = Math.min(minY, bbox.y);
+                    maxX = Math.max(maxX, bbox.x + bbox.width);
+                    maxY = Math.max(maxY, bbox.y + bbox.height);
+                }
+            }
+            Array.from(el.children).forEach(expandBBox);
+        } catch(e) {}
+    }
+
+    elements.forEach(el => {
+        expandBBox(el);
+        let clone = el.cloneNode(true);
+        
+        clone.removeAttribute('class');
+        clone.removeAttribute('data-district-name');
+        clone.removeAttribute('id');
+        clone.style.cssText = `fill: ${fillColor} !important; stroke: none !important; stroke-width: 0 !important; transition: none;`;
+        clone.setAttribute('fill', fillColor);
+        clone.setAttribute('stroke', 'none');
+
+        clone.querySelectorAll('*').forEach(child => {
+            child.removeAttribute('class');
+            child.style.cssText = `fill: ${fillColor} !important; stroke: none !important; stroke-width: 0 !important; transition: none;`;
+            child.setAttribute('fill', fillColor);
+            child.setAttribute('stroke', 'none');
+        });
+
+        clonedNodes.push(clone.outerHTML);
+    });
+
+    if (wasHidden) {
+        wrapper.style.display = 'none';
+        wrapper.style.visibility = '';
+        wrapper.style.position = '';
+    }
+
+    if (clonedNodes.length === 0 || minX === Infinity) return '';
+
+    let padding = Math.max(maxX - minX, maxY - minY) * 0.15;
+    let vbX = minX - padding;
+    let vbY = minY - padding;
+    let vbW = (maxX - minX) + padding * 2;
+    let vbH = (maxY - minY) + padding * 2;
+
+    return `<svg viewBox="${vbX} ${vbY} ${vbW} ${vbH}" style="width: 160px; height: 160px; display: inline-block; vertical-align: middle; flex-shrink:0;">${clonedNodes.join('')}</svg>`;
+}
+
+window.openDistrictOverlay = function(dName) {
+    showingAllInOverlay = false;
+    savedScrollPosition = document.querySelector('.right-panel').scrollTop;
+    currentOverlayData = { name: dName, data: globalResults[dName] };
+    $('mainContentWrapper').style.display = 'none';
+    $('districtOverlay').style.display = 'block';
+    document.querySelector('.right-panel').scrollTop = 0;
+    renderDistrictOverlay();
+};
+
+window.closeDistrictOverlay = function() {
+    $('districtOverlay').style.display = 'none';
+    $('mainContentWrapper').style.display = 'block'; 
+    currentOverlayData = null;
+    
+    document.querySelector('.right-panel').scrollTop = savedScrollPosition;
+    
+    // SVG ekranda görünür olduktan sonra vekil konumları çizilmeli (0 dimension hatasını engeller)
+    if (window.needsMapUpdate) {
+        updateMapColors();
+        window.needsMapUpdate = false;
+    }
+};
+
+window.showAllPartiesInOverlay = function() {
+    showingAllInOverlay = true;
+    renderDistrictOverlay();
+};
+
+window.toggleLocalParty = function(dName, partyName) {
+    if (!localDisabledParties[dName]) localDisabledParties[dName] = new Set();
+    if (localDisabledParties[dName].has(partyName)) {
+        localDisabledParties[dName].delete(partyName);
+    } else {
+        localDisabledParties[dName].add(partyName);
+    }
+    runProjection(); // Değişikliği anında hesapla ve görünümleri güncelle
+};
+
+function renderDistrictOverlay() {
+    if(!currentOverlayData) return;
+    const dName = currentOverlayData.name;
+    const itemRaw = currentOverlayData.data;
+    const displayData = getDisplayData(itemRaw);
+    
+    // preDisableVotes yoksa rawVotes kullan; alliance modunda üye oylarını topla
+    function preVotesOf(entityName) {
+        if (mapMode !== 'party') {
+            const al = electoralAlliances.find(a => a.isEnabled !== false && a.name === entityName);
+            if (al) return al.members.reduce((s,m) => s + ((itemRaw.preDisableVotes||{})[m]||0), 0);
+        }
+        return (itemRaw.preDisableVotes||{})[entityName] || (displayData.rawVotes[entityName] || 0);
+    }
+    const preDisTotal = Object.values(itemRaw.preDisableVotes || {}).reduce((a,b)=>a+b,0) || displayData.totalVotes || 1;
+    const sortedParties = Object.keys(displayData.rawVotes).sort((a,b) => preVotesOf(b) - preVotesOf(a));
+    // Lider partinin oy yüzdesi: bar normalizasyonu için sabit referans (pasif yapılsa bile değişmez)
+    const leaderPct = Math.max(...sortedParties.map(p => preVotesOf(p) / preDisTotal * 100), 0.01);
+    
+    let winnerParty = null;
+    let maxMvs = -1;
+    let maxVotes = -1;
+    
+    // Gelişmiş kazanan algoritması: Önce MP, eşitse Oy
+    Object.entries(displayData.mvs).forEach(([p, s]) => {
+        let v = displayData.rawVotes[p] || 0;
+        if (s > maxMvs || (s === maxMvs && v > maxVotes)) {
+            maxMvs = s; maxVotes = v; winnerParty = p;
+        }
+    });
+    if (!winnerParty) {
+        Object.entries(displayData.rawVotes).forEach(([p, v]) => {
+            if(v > maxVotes) { maxVotes = v; winnerParty = p; }
+        });
+    }
+
+    let winnerTagHtml = '';
+    let borderCol = 'var(--border)'; 
+    let wColor = 'var(--border)';
+    
+    const domRatio = (parseFloat($('dominantWhiteInp').value) || 20) / 100;
+    const pluRatio = (parseFloat($('pluralityWhiteInp').value) || 40) / 100;
+
+    if (displayData.isMilliBakiye) {
+        borderCol = 'var(--purple)';
+        wColor = 'var(--purple)';
+    } else if (winnerParty) {
+        wColor = getPartyColor(winnerParty);
+        const mvs = displayData.mvs[winnerParty] || 0;
+        const isDominant = (mvs > displayData.seats / 2);
+        
+        borderCol = blendWithWhite(wColor, isDominant ? domRatio : pluRatio);
+        
+        winnerTagHtml = `<span style="background:${wColor}; color:#ffffff; padding:6px 18px; border-radius: 0; font-size:1.3rem; font-weight:900; box-shadow:0 2px 6px rgba(0,0,0,0.18); letter-spacing:-0.3px;">${winnerParty}</span>`;
+    }
+
+    const overlayContainer = document.querySelector('.do-container');
+    if (overlayContainer) {
+        overlayContainer.style.borderTop = `10px solid ${borderCol}`;
+    }
+    
+    const titleIcon = getMiniMapSvg(dName, borderCol);
+    $('doTitleMapIcon').innerHTML = titleIcon;
+    $('doTitleName').textContent = dName.replace('🌟 ', '');
+    $('doTitleWinner').innerHTML = winnerTagHtml;
+
+    let seatHtml = '';
+    if (displayData.isMilliBakiye) {
+        seatHtml = `<div style="background:var(--purple); color:white; padding:4px 8px; border-radius: 0; font-size:1rem; font-weight:bold; border:1px solid var(--purple); white-space:nowrap;">${displayData.seats}</div>`;
+    } else {
+        seatHtml = `
+            <div class="seat-editor" title="Koltuk sayısını değiştir" style="background:#e8f0fe; color:var(--primary); padding:4px 6px; border-radius: 0; font-size:1.1rem; font-weight:900; border:1px solid var(--primary); white-space:nowrap; display:flex; align-items:center; transition: 0.2s; letter-spacing:-0.5px; width:40px; justify-content:center;">
+                <input type="number" value="${displayData.seats}" onchange="updateSeatOverride('${escapeStr(dName)}', this.value)" style="background:transparent; border:none; color:inherit; font-weight:900; width:36px; text-align:center; font-size:1.1rem; padding:0; outline:none;">
+            </div>`;
+    }
+    $('doTitleMv').innerHTML = seatHtml;
+    
+    let listHtml = '';
+    let hasHidden = false;
+    
+    sortedParties.forEach(p => {
+        const v = displayData.rawVotes[p];
+        const s = displayData.mvs[p] || 0;
+        const pctNum = displayData.totalVotes > 0 ? ((v / displayData.totalVotes) * 100) : 0;
+        const pctStr = pctNum.toFixed(2).replace('.', ',');
+        const color = getPartyColor(p);
+        const hasPassed = hasEntityPassed(p, displayData.passed);
+        
+        const isLocallyDisabled = localDisabledParties[dName] && localDisabledParties[dName].has(p);
+        
+        // Eğer parti yerel olarak kapatılmışsa her zaman görünür kalsın (tier3'e saklanmasın)
+        const isDefaultVisible = s > 0 || pctNum >= 1.00 || isLocallyDisabled;
+        
+        if (!isDefaultVisible && !showingAllInOverlay) {
+            hasHidden = true;
+            return;
+        }
+        
+        // realPct: preDisableVotes'tan (alliance modunda üye oyları toplanır), bu sayede %0 hatası olmaz
+        const realPct = preDisTotal > 0 ? (preVotesOf(p) / preDisTotal * 100) : pctNum;
+        const realPctStr = realPct.toFixed(2).replace('.', ',');
+        // Bar genişliği: lider her zaman %100, diğerleri orantılı; pasif yapılsa değişmez
+        const normalizedBarWidth = leaderPct > 0 ? (realPct / leaderPct) * 100 : realPct;
+
+        const toggleBtn = showLocalToggleButtons
+            ? `<button onclick="toggleLocalParty('${escapeStr(dName)}', '${escapeStr(p)}')" class="status-btn ${!isLocallyDisabled ? 'active' : ''}" style="width:34px; height:34px; background:${!isLocallyDisabled ? 'var(--success)' : '#f5f6f7'}; color:${!isLocallyDisabled ? '#fff' : 'var(--text-secondary)'}; border:none; margin-right:14px; flex-shrink:0; cursor:pointer; font-size:13px; font-weight:bold; box-shadow:0 1px 2px rgba(0,0,0,0.1); transition:0.2s;" title="${!isLocallyDisabled ? 'Pasife al' : 'Aktif et'}">${!isLocallyDisabled ? 'A' : 'P'}</button>`
+            : ``;
+
+        listHtml += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 20px; background: #ffffff; opacity: ${isLocallyDisabled ? '0.55' : '1'};">
+                <div style="width:${showLocalToggleButtons ? '220px' : '200px'}; display:flex; align-items:center; flex-shrink:0;">
+                    ${toggleBtn}
+                    <div style="font-weight:900; font-size:26px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.3px; ${isLocallyDisabled ? 'text-decoration:line-through; color:var(--text-secondary);' : ''}">${p}</div>
+                </div>
+
+                <div style="flex:1; display:flex; align-items:center; margin: 0 20px; gap:14px;">
+                    <div style="flex:1; min-width:0;">
+                        <div style="width:${normalizedBarWidth}%; background:${isLocallyDisabled ? '#ddd' : color}; height:38px; border-radius: 0; min-width:4px; transition:width 0.5s ease-out;"></div>
+                    </div>
+                    <span style="width:90px; text-align:right; flex-shrink:0; font-weight:900; font-size:26px; white-space:nowrap; ${isLocallyDisabled ? 'text-decoration:line-through; color:#bbb;' : 'color:var(--text);'}">%${realPctStr}</span>
+                </div>
+
+                <div style="width:80px; text-align:right; flex-shrink:0;">
+                    ${s > 0 && !isLocallyDisabled
+                        ? `<span style="font-size:32px; font-weight:900; color:${color}; letter-spacing:-1px;">${s}</span>`
+                        : (isLocallyDisabled ? `<span style="font-size:13px; color:#bbb; font-weight:bold;">pasif</span>` : ``)}
+                </div>
+            </div>
+        `;
+    });
+    
+    $('doUnifiedList').innerHTML = listHtml;
+    $('doShowAllBtn').style.display = hasHidden ? 'flex' : 'none';
+}
+
+window.toggleLocalEditButtons = function() {
+    showLocalToggleButtons = !showLocalToggleButtons;
+    const btn = $('localEditToggleBtn');
+    if (showLocalToggleButtons) {
+        btn.style.background = 'var(--orange)';
+        btn.style.color = 'white';
+        btn.style.borderColor = 'var(--orange)';
+    } else {
+        btn.style.background = 'var(--surface)';
+        btn.style.color = 'var(--text-secondary)';
+        btn.style.borderColor = 'var(--border)';
+    }
+    if ($('districtOverlay').style.display === 'block') renderDistrictOverlay();
+};
+
+// --- ÖZEL İNCELEME (ARA SEÇİM) FONKSİYONLARI ---
+function toggleSelectionMode() {
+    isSelectionModeActive = !isSelectionModeActive;
+    const btn = $('selectionModeToggleBtn');
+    const panel = $('selectionPanel');
+    
+    if (isSelectionModeActive) {
+        btn.innerHTML = '<span style="font-size:18px;">🎯</span> Özel İnceleme: AÇIK';
+        btn.style.borderColor = 'var(--purple)';
+        btn.style.color = 'var(--purple)';
+        btn.style.background = '#f3e5f5';
+        panel.style.display = 'flex';
+    } else {
+        btn.innerHTML = '<span style="font-size:18px;">🖱️</span> Özel İnceleme';
+        btn.style.borderColor = 'var(--border)';
+        btn.style.color = 'var(--text)';
+        btn.style.background = 'var(--surface)';
+        panel.style.display = 'none';
+        selectedDistricts.clear();
+    }
+    updateSelectionUI();
+}
+
+function toggleDistrictSelection(dName) {
+    if (dName.includes('Milli Bakiye')) return; // Milli Bakiye hariç tutulur
+    if (selectedDistricts.has(dName)) {
+        selectedDistricts.delete(dName);
+    } else {
+        selectedDistricts.add(dName);
+    }
+    updateSelectionUI();
+}
+
+function updateSelectionUI() {
+    // 1. Paneli Güncelle
+    $('selCount').innerText = selectedDistricts.size;
+    const body = $('selectionPanelBody');
+    
+    if (selectedDistricts.size === 0) {
+        let totalVotes = 0, totalSeats = 0, partyVotes = {}, partySeats = {};
+        for (const d in globalResults) {
+            const res = globalResults[d];
+            if (res.isMilliBakiye) continue;
+            totalVotes += res.totalVotes;
+            totalSeats += res.seats;
+            const dd = getDisplayData(res);
+            Object.entries(dd.rawVotes).forEach(([p, v]) => { partyVotes[p] = (partyVotes[p] || 0) + v; });
+            Object.entries(dd.mvs).forEach(([p, s]) => { partySeats[p] = (partySeats[p] || 0) + s; });
+        }
+        const sorted = Object.keys(partyVotes).sort((a, b) => partyVotes[b] - partyVotes[a]);
+        let html = `<div style="font-size:11px; color:var(--text-secondary); margin-bottom:8px; text-align:center; border-bottom:1px solid var(--border); padding-bottom:8px;">🇹🇷 Türkiye Geneli | Koltuk: <b style="color:var(--text);">${totalSeats}</b></div>`;
+        sorted.forEach(p => {
+            const v = partyVotes[p];
+            if (v < 10) return;
+            const pct = totalVotes > 0 ? ((v / totalVotes) * 100).toFixed(2) : '0.00';
+            const s = partySeats[p] || 0;
+            const color = getPartyColor(p);
+            html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:8px 12px; border-radius: 0; border-left:4px solid ${color};">
+                <span style="font-weight:bold; font-size:13px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text);" title="${p}">${p}</span>
+                <div style="text-align:right; display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                        <span style="font-weight:bold; font-size:13px; color:var(--text);">%${pct}</span>
+                    </div>
+                    ${s > 0 ? `<span style="font-size:11px; background:${color}; color:white; padding:4px 6px; border-radius: 0; font-weight:bold; min-width:40px; text-align:center;">${s} Mv</span>` : `<span style="width:40px;"></span>`}
+                </div>
+            </div>`;
+        });
+        body.innerHTML = Object.keys(globalResults).length > 0 ? html : '<div style="font-size:12px; color:var(--text-secondary); text-align:center; padding: 20px 0;">Haritadan veya yandaki kartlardan<br>incelemek istediğiniz çevreleri seçin.</div>';
+    } else {
+        let totalVotes = 0;
+        let totalSeats = 0;
+        let partyVotes = {};
+        let partySeats = {};
+        
+        selectedDistricts.forEach(d => {
+            const res = globalResults[d];
+            if (res) {
+                totalVotes += res.totalVotes;
+                totalSeats += res.seats;
+                
+                const displayData = getDisplayData(res);
+                Object.entries(displayData.rawVotes).forEach(([p, v]) => {
+                    partyVotes[p] = (partyVotes[p] || 0) + v;
+                });
+                Object.entries(displayData.mvs).forEach(([p, s]) => {
+                    partySeats[p] = (partySeats[p] || 0) + s;
+                });
+            }
+        });
+        
+        const sortedParties = Object.keys(partyVotes).sort((a,b) => partyVotes[b] - partyVotes[a]);
+        
+        let html = `<div style="font-size:11px; color:var(--text-secondary); margin-bottom:8px; text-align:center; border-bottom:1px solid var(--border); padding-bottom:8px;">Toplam Geçerli Oy: <b style="color:var(--text);">${Math.round(totalVotes).toLocaleString('tr-TR')}</b> | Koltuk: <b style="color:var(--text);">${totalSeats}</b></div>`;
+        
+        sortedParties.forEach(p => {
+            const v = partyVotes[p];
+            const s = partySeats[p] || 0;
+            if (v < 10) return;
+            
+            const pct = totalVotes > 0 ? ((v / totalVotes) * 100).toFixed(2) : '0.00';
+            const color = getPartyColor(p);
+            
+            html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:8px 12px; border-radius: 0; border-left:4px solid ${color};">
+                <span style="font-weight:bold; font-size:13px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text);" title="${p}">${p}</span>
+                <div style="text-align:right; display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                        <span style="font-weight:bold; font-size:13px; color:var(--text);">%${pct}</span>
+                        <span style="font-size:10px; color:var(--text-secondary);">${Math.round(v).toLocaleString('tr-TR')} oy</span>
+                    </div>
+                    ${s > 0 ? `<span style="font-size:11px; background:${color}; color:white; padding:4px 6px; border-radius: 0; font-weight:bold; min-width:40px; text-align:center;">${s} Mv</span>` : `<span style="width:40px;"></span>`}
+                </div>
+            </div>`;
+        });
+        
+        body.innerHTML = html;
+    }
+
+    // 2. Kartları Görsel Olarak Vurgula
+    document.querySelectorAll('.dist-card').forEach(card => {
+        const dName = card.getAttribute('data-district');
+        if (isSelectionModeActive && selectedDistricts.size > 0) {
+            if (selectedDistricts.has(dName)) {
+                card.style.boxShadow = '0 0 0 4px var(--purple)';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(-2px)';
+            } else {
+                card.style.boxShadow = 'var(--shadow)';
+                card.style.opacity = '0.35';
+                card.style.transform = 'none';
+            }
+        } else {
+            card.style.boxShadow = 'var(--shadow)';
+            card.style.opacity = '1';
+            card.style.transform = 'none';
+        }
+    });
+    
+    // 3. Haritayı Görsel Olarak Vurgula
+    const svg = document.querySelector('#svgMapWrapper svg');
+    if (svg) {
+        const paths = svg.querySelectorAll('path, g, polygon, polyline, rect');
+        paths.forEach(el => {
+            const dName = el.getAttribute('data-district-name');
+            if (dName && globalResults[dName]) {
+                if (isSelectionModeActive && selectedDistricts.size > 0) {
+                    if (selectedDistricts.has(dName)) el.style.opacity = '1';
+                    else el.style.opacity = '0.2';
+                } else {
+                    el.style.opacity = '1';
+                }
+            }
+        });
+        
+        const dotLayer = svg.querySelector('#mp-dots-layer');
+        if (dotLayer) {
+            dotLayer.childNodes.forEach(g => {
+                const dName = g.getAttribute('data-district');
+                if (isSelectionModeActive && selectedDistricts.size > 0) {
+                    if (selectedDistricts.has(dName)) g.style.opacity = '1';
+                    else g.style.opacity = '0.2';
+                } else {
+                    g.style.opacity = '1';
+                }
+            });
+        }
+    }
+}
+
+function toggleSelectionPanelBody() {
+    const body = $('selectionPanelBody');
+    isSelectionPanelCollapsed = !isSelectionPanelCollapsed;
+    if (isSelectionPanelCollapsed) {
+        body.style.display = 'none';
+        $('selPanelIcon').style.transform = 'rotate(-90deg)';
+    } else {
+        body.style.display = 'flex';
+        $('selPanelIcon').style.transform = 'rotate(0deg)';
+    }
+}
+
+// ─── EXPERIMENTAL: Genel / Gelişmiş Mod ──────────────────────────────────────
+let currentUIMode = 'genel';
+
+function setUIMode(mode) {
+    currentUIMode = mode;
+    const isGelismis = mode === 'gelismis';
+
+    // Buton görünümleri
+    $('modeBtnGenel').style.background    = isGelismis ? '#f5f6f7' : 'var(--primary)';
+    $('modeBtnGenel').style.color         = isGelismis ? 'var(--text-secondary)' : 'white';
+    $('modeBtnGenel').style.border        = isGelismis ? '1px solid var(--border)' : 'none';
+    $('modeBtnGelismis').style.background = isGelismis ? 'var(--primary)' : '#f5f6f7';
+    $('modeBtnGelismis').style.color      = isGelismis ? 'white' : 'var(--text-secondary)';
+    $('modeBtnGelismis').style.border     = isGelismis ? 'none' : '1px solid var(--border)';
+
+    const hide = el => { if (el) el.style.display = 'none'; };
+    const show = (el, disp) => { if (el) el.style.display = disp || 'block'; };
+
+    // Seçim Verisi Yükle kartı
+    isGelismis ? show($('cardVeriYukle')) : hide($('cardVeriYukle'));
+
+    // Koltuk Verisi kartı
+    isGelismis ? show($('cardKoltukVerisi')) : hide($('cardKoltukVerisi'));
+
+    // Harita Verisi — manuel yükleme + vekil konum
+    isGelismis ? show($('haritaManuelYukle'), 'flex') : hide($('haritaManuelYukle'));
+    isGelismis ? show($('haritaVekilKonumYukle')) : hide($('haritaVekilKonumYukle'));
+
+    // Seçim Ayarları — matematiksel model + ittifak dağılımı
+    isGelismis ? show($('settingMathMethod')) : hide($('settingMathMethod'));
+    isGelismis ? show($('settingCalcMethod'), 'flex') : hide($('settingCalcMethod'));
+    isGelismis ? show($('editModeSection'), 'flex') : hide($('editModeSection'));
+}
+
+// Sayfa yüklenince Genel modu uygula
+document.addEventListener('DOMContentLoaded', () => setUIMode('genel'));
+
+// ─── EXPERIMENTAL: Ekran Görüntüsü ───────────────────────────────────────────
+async function takeScreenshot() {
+    const btn = $('screenshotBtn');
+    const origHTML = btn.innerHTML;
+    btn.innerHTML = '⏳';
+    btn.disabled = true;
+
+    const overlay = $('districtOverlay');
+    const overlayOpen = overlay && overlay.style.display !== 'none' && overlay.style.display !== '';
+
+    try {
+        if (overlayOpen) {
+            await captureDistrictPanel();
+        } else {
+            await captureMapPng();
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Ekran görüntüsü alınamadı: ' + err.message);
+    } finally {
+        btn.innerHTML = origHTML;
+        btn.disabled = false;
+    }
+}
+
+async function captureMapPng() {
+    const svgEl = document.querySelector('#svgMapWrapper svg');
+    if (!svgEl) { alert('Harita henüz yüklenmedi!'); return; }
+
+    const W = 1920, H = 1080;
+    const bgColor = '#e9eaef';
+
+    const svgClone = svgEl.cloneNode(true);
+    svgClone.setAttribute('width', W);
+    svgClone.setAttribute('height', H);
+    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+    const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bgRect.setAttribute('width', '100%');
+    bgRect.setAttribute('height', '100%');
+    bgRect.setAttribute('fill', bgColor);
+    svgClone.insertBefore(bgRect, svgClone.firstChild);
+
+    const svgStr = new XMLSerializer().serializeToString(svgClone);
+    const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, W, H);
+
+    await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => { ctx.drawImage(img, 0, 0, W, H); URL.revokeObjectURL(url); resolve(); };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('SVG render başarısız')); };
+        img.src = url;
+    });
+
+    const link = document.createElement('a');
+    link.download = 'harita_' + new Date().toISOString().slice(0, 10) + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+}
+
+async function ensureHtml2Canvas() {
+    if (window.html2canvas) return;
+    await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.crossOrigin = 'anonymous';
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('html2canvas yüklenemedi — internet bağlantısını kontrol edin'));
+        document.head.appendChild(s);
+    });
+}
+
+async function captureDistrictPanel() {
+    if (!currentOverlayData) return;
+
+    try {
+        await ensureHtml2Canvas();
+        const el = $('doMainContent');
+        if (!el) return;
+        const dName = currentOverlayData.name;
+        const canvas = await html2canvas(el, {
+            scale: 2,
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            logging: false,
+            allowTaint: false
+        });
+        const link = document.createElement('a');
+        link.download = dName.replace('🌟 ', '') + '_' + new Date().toISOString().slice(0, 10) + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    } catch(e) {
+        console.warn('html2canvas başarısız, SVG yedek kullanılıyor:', e);
+        await captureDistrictPanelFallback();
+    }
+}
+
+async function captureDistrictPanelFallback() {
+    if (!currentOverlayData) return;
+
+    const dName = currentOverlayData.name;
+    const itemRaw = currentOverlayData.data;
+    const displayData = getDisplayData(itemRaw);
+
+    const sortRef = itemRaw.preDisableVotes || displayData.rawVotes;
+    const parties = Object.keys(displayData.rawVotes)
+        .sort((a,b) => (sortRef[b]||0) - (sortRef[a]||0))
+        .filter(p => {
+            const s = displayData.mvs[p] || 0;
+            const v = displayData.rawVotes[p] || 0;
+            const pct = displayData.totalVotes > 0 ? v / displayData.totalVotes * 100 : 0;
+            return s > 0 || pct >= 1.0;
+        });
+
+    // Winner + colors (same logic as renderDistrictOverlay)
+    let winnerParty = null, maxMvs = -1, maxVotes = -1;
+    Object.entries(displayData.mvs).forEach(([p,s]) => {
+        const v = displayData.rawVotes[p] || 0;
+        if (s > maxMvs || (s === maxMvs && v > maxVotes)) { maxMvs=s; maxVotes=v; winnerParty=p; }
+    });
+    const wColor = winnerParty ? getPartyColor(winnerParty) : '#888888';
+    const domRatio = (parseFloat($('dominantWhiteInp').value) || 20) / 100;
+    const pluRatio = (parseFloat($('pluralityWhiteInp').value) || 40) / 100;
+    const isDominant = winnerParty && ((displayData.mvs[winnerParty]||0) > displayData.seats / 2);
+    const borderCol = winnerParty ? blendWithWhite(wColor, isDominant ? domRatio : pluRatio) : '#cccccc';
+
+    // Layout constants
+    const W = 960, PAD = 36, ROW_H = 58;
+    const MAP_SIZE = 160, HEADER_H = MAP_SIZE + PAD * 2;
+    const H = HEADER_H + parties.length * ROW_H + PAD;
+
+    // Mini map: extract viewBox + inner paths from getMiniMapSvg output
+    const miniSvgStr = getMiniMapSvg(dName, borderCol);
+    let mapViewBox = '0 0 100 100', mapInner = '';
+    if (miniSvgStr) {
+        const vbM = miniSvgStr.match(/viewBox="([^"]+)"/);
+        if (vbM) mapViewBox = vbM[1];
+        mapInner = miniSvgStr.replace(/<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+    }
+
+    const xt = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    const parts = [];
+
+    // Background + top border
+    parts.push(`<rect width="${W}" height="${H}" fill="#ffffff"/>`);
+    parts.push(`<rect width="${W}" height="8" fill="${borderCol}"/>`);
+
+    // Mini map
+    if (mapInner) {
+        parts.push(`<svg x="${PAD}" y="${PAD + 8}" width="${MAP_SIZE}" height="${MAP_SIZE}" viewBox="${mapViewBox}" xmlns="http://www.w3.org/2000/svg">${mapInner}</svg>`);
+    }
+
+    // District name
+    const nameX = PAD + MAP_SIZE + 28;
+    const headerMidY = PAD + 8 + MAP_SIZE / 2;
+    const dispName = dName.replace('🌟 ', '');
+    parts.push(`<text x="${nameX}" y="${headerMidY - 18}" font-family="Segoe UI,Arial,sans-serif" font-weight="900" font-size="40" fill="#1a1a2e" dominant-baseline="middle">${xt(dispName)}</text>`);
+
+    // Winner tag
+    if (winnerParty) {
+        const tagLabel = xt(winnerParty);
+        const tagW = Math.max(winnerParty.length * 14 + 32, 80);
+        const tagH = 38, tagY = headerMidY + 12;
+        parts.push(`<rect x="${nameX}" y="${tagY}" width="${tagW}" height="${tagH}" rx="8" fill="${wColor}"/>`);
+        parts.push(`<text x="${nameX + tagW/2}" y="${tagY + tagH/2}" font-family="Segoe UI,Arial,sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${tagLabel}</text>`);
+    }
+
+    // Seat count (right side of header)
+    parts.push(`<text x="${W - PAD}" y="${headerMidY}" font-family="Segoe UI,Arial,sans-serif" font-weight="900" font-size="56" fill="${borderCol}" text-anchor="end" dominant-baseline="middle">${displayData.seats}</text>`);
+
+    // Party rows
+    const NAME_W = 210, BAR_MARGIN = 20, PCT_W = 110, SEAT_W = 70;
+    const BAR_AREA_W = W - PAD*2 - NAME_W - BAR_MARGIN*2 - PCT_W - SEAT_W;
+
+    const preTotal = Object.values(itemRaw.preDisableVotes || {}).reduce((a,b)=>a+b,0) || displayData.totalVotes || 1;
+    const maxPct = Math.max(...parties.map(p => {
+        const rv = (itemRaw.preDisableVotes||{})[p] ?? displayData.rawVotes[p] ?? 0;
+        return rv / preTotal * 100;
+    }), 1);
+
+    parties.forEach((p, i) => {
+        const color = getPartyColor(p);
+        const s = displayData.mvs[p] || 0;
+        const rv = (itemRaw.preDisableVotes||{})[p] ?? displayData.rawVotes[p] ?? 0;
+        const pct = rv / preTotal * 100;
+        const pctStr = '%' + pct.toFixed(2).replace('.', ',');
+        const isDisabled = !!(localDisabledParties[dName] && localDisabledParties[dName].has(p));
+        const rowY = HEADER_H + i * ROW_H;
+
+        parts.push(`<rect x="0" y="${rowY}" width="${W}" height="${ROW_H}" fill="${i%2===0?'#f9f9f9':'#ffffff'}"/>`);
+
+        // Name
+        const nameOp = isDisabled ? '0.4' : '1';
+        parts.push(`<text x="${PAD + NAME_W}" y="${rowY + ROW_H/2}" font-family="Segoe UI,Arial,sans-serif" font-weight="800" font-size="22" fill="#1a1a2e" text-anchor="end" dominant-baseline="middle" opacity="${nameOp}">${xt(p)}</text>`);
+
+        // Bar
+        const barX = PAD + NAME_W + BAR_MARGIN;
+        const barW = Math.max(4, (pct / maxPct) * BAR_AREA_W);
+        const barH = 30, barY = rowY + (ROW_H - barH) / 2;
+        parts.push(`<rect x="${barX}" y="${barY}" width="${barW}" height="${barH}" rx="4" fill="${isDisabled?'#dddddd':color}" opacity="${nameOp}"/>`);
+
+        // Percentage
+        const pctX = barX + BAR_AREA_W + BAR_MARGIN;
+        parts.push(`<text x="${pctX + PCT_W - 4}" y="${rowY + ROW_H/2}" font-family="Segoe UI,Arial,sans-serif" font-weight="800" font-size="22" fill="#1a1a2e" text-anchor="end" dominant-baseline="middle" opacity="${nameOp}">${xt(pctStr)}</text>`);
+
+        // Seat count
+        if (s > 0 && !isDisabled) {
+            const seatX = pctX + PCT_W;
+            parts.push(`<text x="${seatX + SEAT_W - PAD/2}" y="${rowY + ROW_H/2}" font-family="Segoe UI,Arial,sans-serif" font-weight="900" font-size="28" fill="${color}" text-anchor="end" dominant-baseline="middle">${s}</text>`);
+        }
+    });
+
+    const svgStr = `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${parts.join('')}</svg>`;
+
+    const scale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = W * scale; canvas.height = H * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+
+    const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => { ctx.drawImage(img, 0, 0, W, H); URL.revokeObjectURL(url); resolve(); };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Panel render başarısız')); };
+        img.src = url;
+    });
+
+    const link = document.createElement('a');
+    link.download = dName.replace('🌟 ','') + '_' + new Date().toISOString().slice(0,10) + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── EXPERIMENTAL: Lean Kaydet / Yükle ───────────────────────────────────────
+// Seçim verileri (txt içerikleri) sunucudan zaten çekildiği için
+// kaydedilen JSON'da sadece dosya adı ve katsayı tutulur.
+
+function saveProject() {
+    const projectData = {
+        meta: { version: "10.0-lean", date: new Date().toISOString() },
+        datasets: datasets.map(ds => ({ name: ds.name, w: ds.w })),
+        extraParties, coalitions, electoralAlliances, customSeatOverrides, customDotPositions,
+        localDisabledParties: (() => {
+            let obj = {};
+            for (let k in localDisabledParties) obj[k] = Array.from(localDisabledParties[k]);
+            return obj;
+        })(),
+        settings: {
+            threshold: parseFloat($('thresholdInp').value) || 7,
+            calcMethod: $('calcMethodInp').value || 'classic',
+            mathMethod: $('mathMethodInp').value || 'dhondt',
+            mbEnabled: $('mbEnabledInp').checked,
+            mbCalcMethod: $('mbCalcMethodInp').value || 'classic',
+            mbSeats: parseInt($('mbSeatsInp').value) || 0,
+            dominantWhite: parseFloat($('dominantWhiteInp').value) || 20,
+            pluralityWhite: parseFloat($('pluralityWhiteInp').value) || 40
+        }
+    };
+    const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'secim_projesi_' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+}
+
+// Lean JSON yüklendiğinde eksik dataset'leri sunucudan yeniden çek
+document.getElementById('projectLoader').onchange = async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+        const data = JSON.parse(await file.text());
+
+        if (data.datasets && data.datasets.some(ds => !ds.data)) {
+            const refetched = [];
+            for (const ds of data.datasets) {
+                if (ds.data) {
+                    refetched.push(ds);
+                } else {
+                    try {
+                        const res = await fetch(ds.name);
+                        if (res.ok) {
+                            const text = await res.text();
+                            const parsed = parseTxt(text);
+                            const nat = calcNat(parsed);
+                            refetched.push({ id: Date.now() + Math.random(), name: ds.name, data: parsed, nat, w: ds.w });
+                        }
+                    } catch (err) {
+                        console.warn('Dataset yeniden çekilemedi:', ds.name);
+                    }
+                }
+            }
+            data.datasets = refetched;
+        }
+
+        applyProjectData(data);
+        e.target.value = '';
+        if (datasets.length > 0) runProjection();
+    } catch (err) {
+        alert('Proje yüklenemedi: ' + err.message);
+    }
+};
+// ─────────────────────────────────────────────────────────────────────────────
+</script>
+</body>
+</html>
