@@ -504,11 +504,6 @@
             </div>
         </div>
         
-        <div id="filterBanner" style="display:none; color: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; align-items: center; justify-content: space-between; font-weight: bold; box-shadow: var(--shadow); gap: 10px;">
-            <span id="filterBannerText" style="font-size: 1.05rem; flex:1;"></span>
-            <button id="filterSortBtn" onclick="toggleFilterSort()" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; white-space:nowrap;">Sırala: 🏆 MV</button>
-            <button onclick="togglePartyFilter(activePartyFilter)" style="background: rgba(255,255,255,0.25); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: bold;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.25)'">Filtreyi Temizle ✖</button>
-        </div>
 
         <div id="results">
             <div class="empty-state">
@@ -2379,19 +2374,16 @@ window.applySorting = function() {
 
 window.togglePartyFilter = function(party) {
     if (activePartyFilter === party) {
-        activePartyFilter = null;
-        filterSortMode = 'mv';
+        if (filterSortMode === 'pct_desc') {
+            filterSortMode = 'pct_asc';
+        } else {
+            activePartyFilter = null;
+            filterSortMode = 'pct_desc';
+        }
     } else {
         activePartyFilter = party;
-        filterSortMode = 'mv';
+        filterSortMode = 'pct_desc';
     }
-    renderResults(globalResults);
-};
-
-window.toggleFilterSort = function() {
-    filterSortMode = filterSortMode === 'mv' ? 'pct' : 'mv';
-    const btn = $('filterSortBtn');
-    if (btn) btn.textContent = filterSortMode === 'mv' ? 'Sırala: 🏆 MV' : 'Sırala: 📊 Oy %';
     renderResults(globalResults);
 };
 
@@ -2577,20 +2569,36 @@ function runProjection() {
         });
 
         // Fermuar liste oy aktarımı: yarışmayan üyelerin oyları yarışanlara orantılı dağılır
+        // Birden fazla liste aynı partiyi etkileyebileceğinden orijinal skorlar baz alınır;
+        // böylece bir listenin sıfırladığı partiyi başka bir liste yanlışlıkla doldurmuyor.
+        const originalScoreSnapshot = {...scoreMap};
+        const fermuarZeroed = new Set();
+
         fermuarListes.forEach(fl => {
             if (fl.isEnabled === false) return;
-            const competing = fl.members.filter(m => scoreMap[m] !== undefined && (fl.districtMap[m] || []).includes(dName));
-            const notCompeting = fl.members.filter(m => scoreMap[m] !== undefined && !(fl.districtMap[m] || []).includes(dName));
+            // Önceki liste tarafından sıfırlanmış partiler bu listenin competing'ine giremez
+            const competing = fl.members.filter(m =>
+                originalScoreSnapshot[m] !== undefined &&
+                !fermuarZeroed.has(m) &&
+                (fl.districtMap[m] || []).includes(dName)
+            );
+            const notCompeting = fl.members.filter(m =>
+                originalScoreSnapshot[m] !== undefined &&
+                !(fl.districtMap[m] || []).includes(dName)
+            );
             if (competing.length === 0 || notCompeting.length === 0) return;
-            const redistributeSum = notCompeting.reduce((s, m) => s + scoreMap[m], 0);
-            const competingTotal = competing.reduce((s, m) => s + scoreMap[m], 0);
-            notCompeting.forEach(m => { scoreMap[m] = 0; });
+            const redistributeSum = notCompeting.reduce((s, m) => s + originalScoreSnapshot[m], 0);
+            const competingTotal = competing.reduce((s, m) => s + originalScoreSnapshot[m], 0);
+            notCompeting.forEach(m => { scoreMap[m] = 0; fermuarZeroed.add(m); });
             if (competingTotal > 0) {
-                competing.forEach(m => { scoreMap[m] += (scoreMap[m] / competingTotal) * redistributeSum; });
+                competing.forEach(m => { scoreMap[m] += (originalScoreSnapshot[m] / competingTotal) * redistributeSum; });
             } else {
                 competing.forEach(m => { scoreMap[m] += redistributeSum / competing.length; });
             }
         });
+
+        // Kayan nokta artığı temizleme: sıfırlanmış partilerde epsilon kalmasın
+        fermuarZeroed.forEach(m => { scoreMap[m] = 0; });
 
         const totalScore = Object.values(scoreMap).reduce((a,b)=>a+b,0);
         const finalVotes = {};
@@ -2926,40 +2934,43 @@ function renderResults(res){
 
     let sortedNames = Object.keys(res);
 
-    if (activePartyFilter) {
-        $('filterBanner').style.display = 'flex';
-        $('filterBanner').style.background = getPartyColor(activePartyFilter);
-
-        const btn = $('filterSortBtn');
-        if (btn) btn.textContent = filterSortMode === 'mv' ? 'Sırala: 🏆 MV' : 'Sırala: 📊 Oy %';
-
-        if (filterSortMode === 'mv') {
-            $('filterBannerText').innerHTML = `🎯 <b>${activePartyFilter}</b> — milletvekili çıkardığı çevreler, alfabetik`;
-            sortedNames = sortedNames.filter(d => {
-                let dData = getDisplayData(res[d]);
-                return dData.mvs && dData.mvs[activePartyFilter] > 0;
-            });
-        } else {
-            $('filterBannerText').innerHTML = `📊 <b>${activePartyFilter}</b> — tüm çevreler, oy oranına göre`;
-            sortedNames = sortedNames.filter(d => {
-                let dData = getDisplayData(res[d]);
-                return (dData.rawVotes && dData.rawVotes[activePartyFilter] > 0);
-            });
-            sortedNames.sort((a, b) => {
-                let da = getDisplayData(res[a]), db = getDisplayData(res[b]);
-                let pctA = da.totalVotes > 0 ? (da.rawVotes[activePartyFilter] || 0) / da.totalVotes : 0;
-                let pctB = db.totalVotes > 0 ? (db.rawVotes[activePartyFilter] || 0) / db.totalVotes : 0;
-                return pctB - pctA;
-            });
+    // Sadece Diğer gruplama uygular, ittifak birleştirmesi yapmaz (filtre ve tablo satırlarında kullanılır)
+    function getPartyModeData(item) {
+        const ptk = {};
+        if (digerDisplayEnabled) {
+            digerGroups.forEach(dg => { if (dg.isEnabled !== false) dg.members.forEach(m => { ptk[m] = dg.name; }); });
         }
-    } else {
-        $('filterBanner').style.display = 'none';
+        if (Object.keys(ptk).length === 0) {
+            return { rawVotes: {...(item.rawVotes||{})}, mvs: {...(item.mvs||{})}, totalVotes: item.totalVotes, passed: item.passed||[], seats: item.seats, isMilliBakiye: item.isMilliBakiye };
+        }
+        const gV = {}, gM = {}, gP = new Set(), pSet = new Set(item.passed || []);
+        Object.entries(item.rawVotes || {}).forEach(([p, v]) => { const k=ptk[p]||p; gV[k]=(gV[k]||0)+v; if(pSet.has(p)) gP.add(k); });
+        Object.entries(item.mvs || {}).forEach(([p, s]) => { const k=ptk[p]||p; gM[k]=(gM[k]||0)+s; });
+        return { rawVotes: gV, mvs: gM, totalVotes: item.totalVotes, passed: [...gP], seats: item.seats, isMilliBakiye: item.isMilliBakiye };
+    }
+
+    if (activePartyFilter) {
+
+        sortedNames = sortedNames.filter(d => {
+            if (res[d].isMilliBakiye) return false;
+            const dd = getPartyModeData(res[d]);
+            return (dd.rawVotes[activePartyFilter] || 0) > 0;
+        });
+        sortedNames.sort((a, b) => {
+            const da = getPartyModeData(res[a]);
+            const db = getPartyModeData(res[b]);
+            const pctA = da.totalVotes > 0 ? (da.rawVotes[activePartyFilter] || 0) / da.totalVotes : 0;
+            const pctB = db.totalVotes > 0 ? (db.rawVotes[activePartyFilter] || 0) / db.totalVotes : 0;
+            return filterSortMode === 'pct_desc' ? pctB - pctA : pctA - pctB;
+        });
     }
 
     const mbKey = '🌟 Milli Bakiye (Türkiye Geneli)';
     let normalNames = sortedNames.filter(n => n !== mbKey);
-    
-    normalNames.sort((a,b) => a.localeCompare(b, 'tr')); 
+
+    if (!activePartyFilter) {
+        normalNames.sort((a,b) => a.localeCompare(b, 'tr'));
+    }
 
     if(sortedNames.includes(mbKey)) normalNames.unshift(mbKey);
     sortedNames = normalNames;
@@ -2974,23 +2985,6 @@ function renderResults(res){
 
     const domRatio = (parseFloat($('dominantWhiteInp').value) || 20) / 100;
     const pluRatio = (parseFloat($('pluralityWhiteInp').value) || 40) / 100;
-
-    // ── Yardımcı: sadece Diğer gruplama uygular, ittifak birleştirmesi yapmaz ──
-    function getPartyModeData(item) {
-        const partyToKey = {};
-        if (digerDisplayEnabled) {
-            digerGroups.forEach(dg => { if (dg.isEnabled !== false) dg.members.forEach(m => { partyToKey[m] = dg.name; }); });
-        }
-        if (Object.keys(partyToKey).length === 0) {
-            return { rawVotes: {...(item.rawVotes||{})}, mvs: {...(item.mvs||{})}, totalVotes: item.totalVotes, passed: item.passed||[], seats: item.seats, isMilliBakiye: item.isMilliBakiye };
-        }
-        const gVotes = {}, gMvs = {};
-        const gPassed = new Set();
-        const passedSet = new Set(item.passed || []);
-        Object.entries(item.rawVotes || {}).forEach(([p, v]) => { const k = partyToKey[p]||p; gVotes[k]=(gVotes[k]||0)+v; if(passedSet.has(p)) gPassed.add(k); });
-        Object.entries(item.mvs || {}).forEach(([p, s]) => { const k = partyToKey[p]||p; gMvs[k]=(gMvs[k]||0)+s; });
-        return { rawVotes: gVotes, mvs: gMvs, totalVotes: item.totalVotes, passed: [...gPassed], seats: item.seats, isMilliBakiye: item.isMilliBakiye };
-    }
 
     // ── Sütunlar: ülke geneli %1+ varlıklar, Diğer gruplama uygulanmış ──
     const partyToDisplayKey = {};
@@ -3010,11 +3004,12 @@ function renderResults(res){
         .map(([entity, nat]) => ({ entity, nat, color: getPartyColor(entity) }));
 
     // ── İttifak başlık gruplaması ──
+    // Diğer grubuna maplenen partiler ittifak başlığına dahil edilmez
     const entityToAlliance = {};
     electoralAlliances.forEach(a => {
         if (a.isEnabled !== false) a.members.forEach(m => {
-            const dk = partyToDisplayKey[m] || m;
-            if (!entityToAlliance[dk]) entityToAlliance[dk] = { name: a.name, color: a.color || '#888' };
+            if (partyToDisplayKey[m]) return; // Diğer grubuna gidiyor, atla
+            if (!entityToAlliance[m]) entityToAlliance[m] = { name: a.name, color: a.color || '#888' };
         });
     });
     const allianceOrder = [];
@@ -3030,20 +3025,27 @@ function renderResults(res){
     });
 
     // ── Tablo HTML ──
-    const ths = `padding:7px 5px; text-align:center; font-size:11px; white-space:nowrap; border:1px solid var(--border);`;
-    const tds = `padding:5px 4px; text-align:center; font-size:12px; white-space:nowrap; border-right:1px solid var(--border);`;
+    // Başlık sırasına göre düzleştirilmiş sütun listesi — satır verisi bu sırayla yazılacak
+    const orderedColumns = [];
+    allianceOrder.forEach(key => allianceGroupMap[key].cols.forEach(col => orderedColumns.push(col)));
+
+    const ths = `padding:7px 5px; text-align:center; font-size:12px; white-space:nowrap; border:1px solid var(--border);`;
+    const tds = `padding:5px 4px; text-align:center; font-size:13px; white-space:nowrap; border-right:1px solid var(--border);`;
 
     let allianceHeaderHtml = `<th rowspan="2" style="${ths} text-align:left; min-width:110px; max-width:160px; position:sticky; left:0; background:#f0f4ff; z-index:2; font-size:12px; border-right:2px solid var(--border); font-weight:800; color:var(--primary); vertical-align:middle;">Seçim Çevresi</th>`;
     let partyHeaderHtml = '';
     allianceOrder.forEach(key => {
         const g = allianceGroupMap[key];
         if (g.name) {
-            allianceHeaderHtml += `<th colspan="${g.cols.length}" style="${ths} border-bottom:3px solid ${g.color}; color:${g.color}; font-weight:900; font-size:11px; letter-spacing:0.3px;">${g.name.toUpperCase()}</th>`;
+            allianceHeaderHtml += `<th colspan="${g.cols.length}" style="${ths} border-bottom:3px solid ${g.color}; color:${g.color}; font-weight:900; font-size:13px; letter-spacing:0.3px;">${g.name}</th>`;
         } else {
             allianceHeaderHtml += `<th colspan="${g.cols.length}" style="${ths} border-bottom:3px solid var(--border);"></th>`;
         }
         g.cols.forEach(col => {
-            partyHeaderHtml += `<th style="${ths} border-bottom:3px solid ${col.color}; font-weight:700; font-size:10.5px; color:var(--text); padding:5px 4px;" title="${col.entity} — Ülke geneli: %${col.nat.toFixed(1)}">${col.entity}</th>`;
+            const isActive = activePartyFilter === col.entity;
+            const arrow = isActive ? (filterSortMode === 'pct_desc' ? ' ▼' : ' ▲') : '';
+            const activeStyle = isActive ? `background:${col.color}22; outline:2px solid ${col.color};` : '';
+            partyHeaderHtml += `<th onclick="togglePartyFilter('${escapeStr(col.entity)}')" style="${ths} border-bottom:3px solid ${col.color}; font-weight:700; color:${isActive ? col.color : 'var(--text)'}; padding:5px 4px; cursor:pointer; ${activeStyle}">${col.entity}${arrow}</th>`;
         });
     });
 
@@ -3064,7 +3066,7 @@ function renderResults(res){
         const isMB = !!dd.isMilliBakiye;
         const hasSpecial = localDisabledParties[d] && localDisabledParties[d].size > 0;
 
-        const seatsBadge = dd.seats > 0 ? `<span style="font-size:10px;color:var(--text-secondary);font-weight:500;margin-left:3px;">(${dd.seats})</span>` : '';
+        const seatsBadge = dd.seats > 0 ? `<span style="font-size:10px;color:var(--text-secondary);font-weight:500;margin-left:3px;">[${dd.seats}]</span>` : '';
         const specialBadge = hasSpecial ? `<span title="Özel ayar var" style="font-size:9px;background:#fff3cd;color:#856404;padding:1px 4px;border-radius:3px;margin-left:4px;">🛠️</span>` : '';
         const distCellStyle = `${tds} text-align:left; font-weight:700; font-size:12px; color:${isMB ? 'var(--purple)' : 'var(--primary)'}; position:sticky; left:0; background:${rowBaseBg}; z-index:1; border-right:2px solid var(--border); padding:5px 8px;`;
 
@@ -3073,7 +3075,7 @@ function renderResults(res){
             onmouseover="this.style.filter='brightness(0.95)'" onmouseout="this.style.filter=''">
             <td style="${distCellStyle}">${d.replace('🌟 ', '')}${seatsBadge}${specialBadge}</td>`;
 
-        columns.forEach(col => {
+        orderedColumns.forEach(col => {
             const v = dd.rawVotes[col.entity] || 0;
             const seats = dd.mvs[col.entity] || 0;
             const pct = v / totalV * 100;
@@ -3088,7 +3090,7 @@ function renderResults(res){
             let cellHtml = '';
             if (pct >= 0.05) {
                 const pctStr = '%' + pct.toFixed(1).replace('.', ',');
-                const seatsHtml = seats > 0 ? ` <b style="color:${col.color};font-size:11px;">[${seats}]</b>` : '';
+                const seatsHtml = seats > 0 ? ` <b style="color:var(--text);font-size:11px;">[${seats}]</b>` : '';
                 cellHtml = `<span style="font-weight:${isWinner?'800':'400'};color:${isWinner?'var(--text)':'var(--text-secondary)'};">${pctStr}</span>${seatsHtml}`;
             }
             rowHtml += `<td style="${tds} background:${cellBg};">${cellHtml}</td>`;
