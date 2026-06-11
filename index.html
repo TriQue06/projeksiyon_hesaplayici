@@ -507,7 +507,7 @@
             <!-- ANA İÇERİK -->
             <div id="doMainContent" style="flex:1; min-width:0;">
                 <!-- Başlık: mini harita | ad | birinci parti — tek satırda yan yana -->
-                <div style="display:flex; align-items:center; gap:24px; margin-bottom:14px; border-bottom:2px solid #f0f2f5; padding-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:24px; margin-bottom:8px; border-bottom:2px solid #f0f2f5; padding-bottom:8px;">
                     <span id="doTitleMapIcon" style="flex-shrink:0;"></span>
                     <div id="doTitleName" style="font-size:2.8rem; font-weight:900; color:var(--text); line-height:1; letter-spacing:-0.5px; flex-shrink:0;"></div>
                     <div id="doTitleWinner"></div>
@@ -668,7 +668,7 @@ function hasEntityPassed(entityName, passedSet) {
 
 function toggleMapMode() {
     if (mapMode === 'party') mapMode = 'alliance';
-    else if (mapMode === 'alliance') mapMode = digerGroups.length > 0 ? 'diger' : 'party';
+    else if (mapMode === 'alliance') mapMode = 'diger';
     else mapMode = 'party';
     activePartyFilter = null;
 
@@ -1467,10 +1467,22 @@ svgWrapper.addEventListener('click', (e) => {
 function escapeStr(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
 
 function updateTotalTracker() {
-    let total = 0;
+    const natMap = {};
     extraParties.forEach(ep => {
-        if(ep.isEnabled !== false) total += parseFloat(ep.nat) || 0;
+        if(ep.isEnabled !== false) natMap[ep.name] = parseFloat(ep.nat) || 0;
     });
+    // Diğer grup ölçeklemeyi tracker'a yansıt
+    digerGroups.forEach(dg => {
+        if (dg.isEnabled === false) return;
+        const targetPct = parseFloat(dg.targetPct);
+        if (!targetPct || targetPct <= 0) return;
+        let currentSum = 0;
+        dg.members.forEach(m => { if (natMap[m] !== undefined) currentSum += natMap[m]; });
+        if (currentSum <= 0) return;
+        const scale = targetPct / currentSum;
+        dg.members.forEach(m => { if (natMap[m] !== undefined) natMap[m] *= scale; });
+    });
+    let total = Object.values(natMap).reduce((a, b) => a + b, 0);
     total = Math.round(total * 100) / 100;
     let remaining = Math.round((100 - total) * 100) / 100;
 
@@ -1810,7 +1822,7 @@ function renderAlliances(){
 function addDiger(){
     const name = $('digerName').value.trim();
     if(!name) return;
-    digerGroups.push({ name, members:[], isOpen: true, isEnabled: true, color: '#888888' });
+    digerGroups.push({ name, members:[], isOpen: true, isEnabled: true, color: '#888888', targetPct: '' });
     $('digerName').value = '';
     renderDiger();
 }
@@ -1820,26 +1832,33 @@ function renderDiger(){
     const all = extraParties.map(e=>e.name).sort((a,b) => a.localeCompare(b, 'tr'));
     $('digerArea').innerHTML = digerGroups.map((d, idx) => `
         <div class="data-row" style="border-left-color: var(--danger);" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'diger', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'diger', ${idx})">
-            <div class="flex-row" style="margin-bottom:0;">
+            <div class="flex-row" style="margin-bottom:${d.isOpen ? '8px' : '0'};">
                 <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
 
                 <button class="toggle-btn" onclick="digerGroups[${idx}].isOpen=!digerGroups[${idx}].isOpen;renderDiger()">${d.isOpen ? '▲' : '▼'}</button>
 
-                <button class="status-btn ${d.isEnabled !== false ? 'active' : ''}" style="background:${d.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${d.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${d.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="digerGroups[${idx}].isEnabled=!(digerGroups[${idx}].isEnabled!==false);renderDiger()" title="${d.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${d.isEnabled !== false ? 'A' : 'P'}</button>
+                <button class="status-btn ${d.isEnabled !== false ? 'active' : ''}" style="background:${d.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${d.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${d.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="digerGroups[${idx}].isEnabled=!(digerGroups[${idx}].isEnabled!==false);renderDiger();if(Object.keys(globalResults).length>0)runProjection();" title="${d.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${d.isEnabled !== false ? 'A' : 'P'}</button>
 
                 <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius:6px; background:${d.color || '#888888'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('diger', ${idx})"></div>
 
                 <input type="text" class="editable-name" value="${escapeStr(d.name)}" onchange="renameDiger(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
 
-                <button class="danger" onclick="digerGroups.splice(${idx},1);renderDiger();">✖</button>
+                <button class="danger" onclick="digerGroups.splice(${idx},1);renderDiger();if(Object.keys(globalResults).length>0)runProjection();">✖</button>
             </div>
-            <div style="margin-top:10px; display: ${d.isOpen ? 'grid' : 'none'}; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; border-top: 1px dashed var(--border); padding-top:10px;">
-                ${all.map(p => `
-                    <label class="coal-sim-box ${d.members.includes(p)?'active':''}" style="${d.members.includes(p)?'background:var(--danger);border-color:var(--danger);':''}" title="${escapeStr(p)}">
-                        <input type="checkbox" style="display:none;" ${d.members.includes(p)?'checked':''} onchange="const m=digerGroups[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : digerGroups[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderDiger();">
-                        <span>${p}</span>
-                    </label>
-                `).join('')}
+            <div style="display: ${d.isOpen ? 'block' : 'none'};">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; padding:6px 8px; background:#fff8f8; border-radius:6px; border:1px solid #ffd0d0;">
+                    <span style="font-size:11px; font-weight:bold; color:var(--danger); white-space:nowrap;">Toplam Oy %</span>
+                    <input type="number" step="0.1" min="0" max="100" placeholder="— (isteğe bağlı)" value="${d.targetPct || ''}" style="flex:1; margin:0; padding:4px 6px; font-size:12px; font-weight:bold; color:var(--danger);" onchange="digerGroups[${idx}].targetPct=this.value; updateTotalTracker(); if(Object.keys(globalResults).length>0)runProjection();" oninput="digerGroups[${idx}].targetPct=this.value; updateTotalTracker();">
+                    <span style="font-size:10px; color:var(--text-secondary); white-space:nowrap;">Üye partilerin oyları orantılı ölçeklenir</span>
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; border-top: 1px dashed var(--border); padding-top:8px;">
+                    ${all.map(p => `
+                        <label class="coal-sim-box ${d.members.includes(p)?'active':''}" style="${d.members.includes(p)?'background:var(--danger);border-color:var(--danger);':''}" title="${escapeStr(p)}">
+                            <input type="checkbox" style="display:none;" ${d.members.includes(p)?'checked':''} onchange="const m=digerGroups[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : digerGroups[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderDiger(); if(Object.keys(globalResults).length>0)runProjection();">
+                            <span>${p}</span>
+                        </label>
+                    `).join('')}
+                </div>
             </div>
         </div>
     `).join('');
@@ -2138,6 +2157,18 @@ function runProjection() {
     const baseTargetNat = {};
     extraParties.forEach(ep => {
         if(ep.isEnabled !== false) baseTargetNat[ep.name] = parseFloat(ep.nat)||0;
+    });
+
+    // Diğer grup oy ölçekleme: targetPct varsa üye partilerin oylarını orantılı ayarla
+    digerGroups.forEach(dg => {
+        if (dg.isEnabled === false) return;
+        const targetPct = parseFloat(dg.targetPct);
+        if (!targetPct || targetPct <= 0) return;
+        let currentSum = 0;
+        dg.members.forEach(m => { if (baseTargetNat[m] !== undefined) currentSum += baseTargetNat[m]; });
+        if (currentSum <= 0) return;
+        const scale = targetPct / currentSum;
+        dg.members.forEach(m => { if (baseTargetNat[m] !== undefined) baseTargetNat[m] *= scale; });
     });
 
     let resolvedNat = { ...baseTargetNat };
@@ -2955,7 +2986,7 @@ function getMiniMapSvg(dName, fillColor) {
     let vbW = (maxX - minX) + padding * 2;
     let vbH = (maxY - minY) + padding * 2;
 
-    return `<svg viewBox="${vbX} ${vbY} ${vbW} ${vbH}" style="width: 160px; height: 160px; display: inline-block; vertical-align: middle; flex-shrink:0;">${clonedNodes.join('')}</svg>`;
+    return `<svg viewBox="${vbX} ${vbY} ${vbW} ${vbH}" style="width: 200px; height: 200px; display: inline-block; vertical-align: middle; flex-shrink:0;">${clonedNodes.join('')}</svg>`;
 }
 
 window.openDistrictOverlay = function(dName) {
@@ -3110,22 +3141,22 @@ function renderDistrictOverlay() {
             : ``;
 
         listHtml += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 20px; background: #ffffff; opacity: ${isLocallyDisabled ? '0.55' : '1'};">
-                <div style="width:${showLocalToggleButtons ? '220px' : '200px'}; display:flex; align-items:center; flex-shrink:0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding: 11px 20px; background: #ffffff; opacity: ${isLocallyDisabled ? '0.55' : '1'};">
+                <div style="width:${showLocalToggleButtons ? '210px' : '185px'}; display:flex; align-items:center; flex-shrink:0;">
                     ${toggleBtn}
-                    <div style="font-weight:900; font-size:26px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.3px; ${isLocallyDisabled ? 'text-decoration:line-through; color:var(--text-secondary);' : ''}">${p}</div>
+                    <div style="font-weight:900; font-size:28px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.3px; ${isLocallyDisabled ? 'text-decoration:line-through; color:var(--text-secondary);' : ''}">${p}</div>
                 </div>
 
                 <div style="flex:1; display:flex; align-items:center; margin: 0 20px; gap:14px;">
                     <div style="flex:1; min-width:0;">
-                        <div style="width:${normalizedBarWidth}%; background:${isLocallyDisabled ? '#ddd' : color}; height:38px; border-radius:6px; min-width:4px; transition:width 0.5s ease-out;"></div>
+                        <div style="width:${normalizedBarWidth}%; background:${isLocallyDisabled ? '#ddd' : color}; height:42px; border-radius:6px; min-width:4px; transition:width 0.5s ease-out;"></div>
                     </div>
-                    <span style="width:90px; text-align:right; flex-shrink:0; font-weight:900; font-size:26px; white-space:nowrap; ${isLocallyDisabled ? 'text-decoration:line-through; color:#bbb;' : 'color:var(--text);'}">%${realPctStr}</span>
+                    <span style="width:90px; text-align:right; flex-shrink:0; font-weight:900; font-size:28px; white-space:nowrap; ${isLocallyDisabled ? 'text-decoration:line-through; color:#bbb;' : 'color:var(--text);'}">%${realPctStr}</span>
                 </div>
 
                 <div style="width:80px; text-align:right; flex-shrink:0;">
                     ${s > 0 && !isLocallyDisabled
-                        ? `<span style="font-size:32px; font-weight:900; color:${color}; letter-spacing:-1px;">${s}</span>`
+                        ? `<span style="font-size:34px; font-weight:900; color:${color}; letter-spacing:-1px;">${s}</span>`
                         : (isLocallyDisabled ? `<span style="font-size:13px; color:#bbb; font-weight:bold;">pasif</span>` : ``)}
                 </div>
             </div>
