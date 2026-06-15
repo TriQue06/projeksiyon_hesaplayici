@@ -306,8 +306,8 @@
         .infographic-card > span { color: #fce4ec !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
         /* STATİK HARİTA STİLLERİ + İNTERAKTİF HOVER EFEKTLERİ */
-        #parliamentChartArea { display: flex; align-items: center; justify-content: center; min-height: 240px; }
-        #parliamentChartArea svg { max-height: 240px; width: 100%; height: auto; }
+        #parliamentChartArea { display: flex; align-items: center; justify-content: center; min-height: 300px; }
+        #parliamentChartArea svg { max-height: 300px; width: 100%; height: auto; }
         #svgMapWrapper svg { width: 100%; height: auto; max-height: 600px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05)); display: block; margin: 0 auto; user-select: none; }
         #svgMapWrapper path, #svgMapWrapper g, #svgMapWrapper polygon, #svgMapWrapper polyline, #svgMapWrapper rect {
             stroke: var(--map-stroke) !important;
@@ -653,7 +653,7 @@
                     <div id="parliamentChartArea"></div>
                 </div>
                 <div style="flex:2; min-width:0;">
-                    <div id="parliamentSideList" style="overflow-y:auto; max-height:280px; display:flex; flex-direction:column; gap:5px;"></div>
+                    <div id="parliamentSideList" style="overflow-y:auto; max-height:340px; display:flex; flex-direction:column; gap:5px;"></div>
                 </div>
             </div>
         </div>
@@ -1753,7 +1753,11 @@ function calcNat(data){
 
 function getMasterDistricts() {
     const allDNames = new Set();
-    datasets.forEach(ds => Object.keys(ds.data).forEach(n => { if(ds.data[n].seats > 0) allDNames.add(n); }));
+    datasets.forEach(ds => Object.keys(ds.data).forEach(n => {
+        if (ds.data[n].seats > 0 || customSeatOverrides[n] !== undefined) {
+            allDNames.add(n);
+        }
+    }));
     const names = Array.from(allDNames);
     const parentsWithChildren = new Set();
     names.forEach(n => { if(n.includes('-')) parentsWithChildren.add(n.split('-')[0].trim()); });

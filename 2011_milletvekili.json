@@ -1,0 +1,569 @@
+{
+  "Adana": {
+    "votes": {
+      "CHP": 361547,
+      "MHP": 238140,
+      "AKP": 438321
+    }
+  },
+  "Adıyaman": {
+    "votes": {
+      "CHP": 50768,
+      "MHP": 14102,
+      "AKP": 205968
+    }
+  },
+  "Afyonkarahisar": {
+    "votes": {
+      "CHP": 70203,
+      "MHP": 79425,
+      "AKP": 257463
+    }
+  },
+  "Ağrı": {
+    "votes": {
+      "CHP": 4503,
+      "MHP": 4505,
+      "AKP": 96616
+    }
+  },
+  "Aksaray": {
+    "votes": {
+      "CHP": 23494,
+      "MHP": 36030,
+      "AKP": 132455
+    }
+  },
+  "Amasya": {
+    "votes": {
+      "CHP": 59066,
+      "MHP": 31801,
+      "AKP": 110459
+    }
+  },
+  "Ankara": {
+    "votes": {
+      "CHP": 935688,
+      "MHP": 436883,
+      "AKP": 1471871
+    }
+  },
+  "Antalya": {
+    "votes": {
+      "CHP": 391400,
+      "MHP": 245901,
+      "AKP": 462963
+    }
+  },
+  "Ardahan": {
+    "votes": {
+      "CHP": 17476,
+      "MHP": 5651,
+      "AKP": 22831
+    }
+  },
+  "Artvin": {
+    "votes": {
+      "CHP": 37180,
+      "MHP": 13970,
+      "AKP": 48769
+    }
+  },
+  "Aydın": {
+    "votes": {
+      "CHP": 241062,
+      "MHP": 115087,
+      "AKP": 224330
+    }
+  },
+  "Balıkesir": {
+    "votes": {
+      "CHP": 259104,
+      "MHP": 106663,
+      "AKP": 356649
+    }
+  },
+  "Bartın": {
+    "votes": {
+      "CHP": 34499,
+      "MHP": 19189,
+      "AKP": 57783
+    }
+  },
+  "Batman": {
+    "votes": {
+      "CHP": 14754,
+      "MHP": 1281,
+      "AKP": 81778
+    }
+  },
+  "Bayburt": {
+    "votes": {
+      "CHP": 1676,
+      "MHP": 10434,
+      "AKP": 27318
+    }
+  },
+  "Bilecik": {
+    "votes": {
+      "CHP": 32741,
+      "MHP": 35117,
+      "AKP": 54936
+    }
+  },
+  "Bingöl": {
+    "votes": {
+      "CHP": 3890,
+      "MHP": 1677,
+      "AKP": 84888
+    }
+  },
+  "Bitlis": {
+    "votes": {
+      "CHP": 2511,
+      "MHP": 4641,
+      "AKP": 74058
+    }
+  },
+  "Bolu": {
+    "votes": {
+      "CHP": 35611,
+      "MHP": 28591,
+      "AKP": 103908
+    }
+  },
+  "Burdur": {
+    "votes": {
+      "CHP": 42314,
+      "MHP": 31033,
+      "AKP": 81582
+    }
+  },
+  "Bursa": {
+    "votes": {
+      "CHP": 412887,
+      "MHP": 238137,
+      "AKP": 875380
+    }
+  },
+  "Çanakkale": {
+    "votes": {
+      "CHP": 129445,
+      "MHP": 47897,
+      "AKP": 136367
+    }
+  },
+  "Çankırı": {
+    "votes": {
+      "CHP": 6738,
+      "MHP": 25607,
+      "AKP": 72749
+    }
+  },
+  "Çorum": {
+    "votes": {
+      "CHP": 82264,
+      "MHP": 37120,
+      "AKP": 209764
+    }
+  },
+  "Denizli": {
+    "votes": {
+      "CHP": 187017,
+      "MHP": 101408,
+      "AKP": 279091
+    }
+  },
+  "Diyarbakır": {
+    "votes": {
+      "CHP": 15882,
+      "MHP": 5733,
+      "AKP": 218552
+    }
+  },
+  "Düzce": {
+    "votes": {
+      "CHP": 26578,
+      "MHP": 34776,
+      "AKP": 141181
+    }
+  },
+  "Edirne": {
+    "votes": {
+      "CHP": 136532,
+      "MHP": 35152,
+      "AKP": 80251
+    }
+  },
+  "Elazığ": {
+    "votes": {
+      "CHP": 41742,
+      "MHP": 45789,
+      "AKP": 213506
+    }
+  },
+  "Erzincan": {
+    "votes": {
+      "CHP": 38921,
+      "MHP": 11938,
+      "AKP": 73227
+    }
+  },
+  "Erzurum": {
+    "votes": {
+      "CHP": 19847,
+      "MHP": 54522,
+      "AKP": 283638
+    }
+  },
+  "Eskişehir": {
+    "votes": {
+      "CHP": 179072,
+      "MHP": 73609,
+      "AKP": 222254
+    }
+  },
+  "Gaziantep": {
+    "votes": {
+      "CHP": 159961,
+      "MHP": 77836,
+      "AKP": 510923
+    }
+  },
+  "Giresun": {
+    "votes": {
+      "CHP": 61579,
+      "MHP": 30966,
+      "AKP": 154385
+    }
+  },
+  "Gümüşhane": {
+    "votes": {
+      "CHP": 5401,
+      "MHP": 15004,
+      "AKP": 45203
+    }
+  },
+  "Hakkari": {
+    "votes": {
+      "CHP": 1068,
+      "MHP": 1226,
+      "AKP": 19537
+    }
+  },
+  "Hatay": {
+    "votes": {
+      "CHP": 306498,
+      "MHP": 100499,
+      "AKP": 353616
+    }
+  },
+  "Iğdır": {
+    "votes": {
+      "CHP": 1374,
+      "MHP": 27554,
+      "AKP": 22860
+    }
+  },
+  "Isparta": {
+    "votes": {
+      "CHP": 55594,
+      "MHP": 48412,
+      "AKP": 135435
+    }
+  },
+  "İstanbul": {
+    "votes": {
+      "CHP": 2492910,
+      "MHP": 747666,
+      "AKP": 3931210
+    }
+  },
+  "İzmir": {
+    "votes": {
+      "CHP": 1097886,
+      "MHP": 283590,
+      "AKP": 924281
+    }
+  },
+  "Kahramanmaraş": {
+    "votes": {
+      "CHP": 64584,
+      "MHP": 73151,
+      "AKP": 391986
+    }
+  },
+  "Karabük": {
+    "votes": {
+      "CHP": 26981,
+      "MHP": 22074,
+      "AKP": 82141
+    }
+  },
+  "Karaman": {
+    "votes": {
+      "CHP": 26511,
+      "MHP": 25642,
+      "AKP": 80455
+    }
+  },
+  "Kars": {
+    "votes": {
+      "CHP": 24009,
+      "MHP": 24744,
+      "AKP": 61196
+    }
+  },
+  "Kastamonu": {
+    "votes": {
+      "CHP": 34168,
+      "MHP": 53747,
+      "AKP": 130136
+    }
+  },
+  "Kayseri": {
+    "votes": {
+      "CHP": 89493,
+      "MHP": 132988,
+      "AKP": 478357
+    }
+  },
+  "Kırıkkale": {
+    "votes": {
+      "CHP": 25620,
+      "MHP": 31802,
+      "AKP": 105036
+    }
+  },
+  "Kırklareli": {
+    "votes": {
+      "CHP": 119598,
+      "MHP": 37638,
+      "AKP": 62445
+    }
+  },
+  "Kırşehir": {
+    "votes": {
+      "CHP": 29534,
+      "MHP": 28729,
+      "AKP": 65680
+    }
+  },
+  "Kilis": {
+    "votes": {
+      "CHP": 9948,
+      "MHP": 13708,
+      "AKP": 38967
+    }
+  },
+  "Kocaeli": {
+    "votes": {
+      "CHP": 235770,
+      "MHP": 114304,
+      "AKP": 504535
+    }
+  },
+  "Konya": {
+    "votes": {
+      "CHP": 118935,
+      "MHP": 152633,
+      "AKP": 810396
+    }
+  },
+  "Kütahya": {
+    "votes": {
+      "CHP": 46645,
+      "MHP": 59334,
+      "AKP": 242125
+    }
+  },
+  "Malatya": {
+    "votes": {
+      "CHP": 85646,
+      "MHP": 35293,
+      "AKP": 294645
+    }
+  },
+  "Manisa": {
+    "votes": {
+      "CHP": 249482,
+      "MHP": 146633,
+      "AKP": 407234
+    }
+  },
+  "Mardin": {
+    "votes": {
+      "CHP": 11953,
+      "MHP": 2041,
+      "AKP": 103402
+    }
+  },
+  "Mersin": {
+    "votes": {
+      "CHP": 310714,
+      "MHP": 224477,
+      "AKP": 311050
+    }
+  },
+  "Muğla": {
+    "votes": {
+      "CHP": 237488,
+      "MHP": 84462,
+      "AKP": 170223
+    }
+  },
+  "Muş": {
+    "votes": {
+      "CHP": 7115,
+      "MHP": 7517,
+      "AKP": 73431
+    }
+  },
+  "Nevşehir": {
+    "votes": {
+      "CHP": 27783,
+      "MHP": 31031,
+      "AKP": 102384
+    }
+  },
+  "Niğde": {
+    "votes": {
+      "CHP": 39774,
+      "MHP": 35369,
+      "AKP": 100380
+    }
+  },
+  "Ordu": {
+    "votes": {
+      "CHP": 94353,
+      "MHP": 48647,
+      "AKP": 251319
+    }
+  },
+  "Osmaniye": {
+    "votes": {
+      "CHP": 30877,
+      "MHP": 110708,
+      "AKP": 115785
+    }
+  },
+  "Rize": {
+    "votes": {
+      "CHP": 33408,
+      "MHP": 14929,
+      "AKP": 134549
+    }
+  },
+  "Sakarya": {
+    "votes": {
+      "CHP": 88043,
+      "MHP": 81515,
+      "AKP": 334823
+    }
+  },
+  "Samsun": {
+    "votes": {
+      "CHP": 162718,
+      "MHP": 84520,
+      "AKP": 462067
+    }
+  },
+  "Siirt": {
+    "votes": {
+      "CHP": 3520,
+      "MHP": 1433,
+      "AKP": 58623
+    }
+  },
+  "Sinop": {
+    "votes": {
+      "CHP": 39264,
+      "MHP": 10486,
+      "AKP": 69587
+    }
+  },
+  "Sivas": {
+    "votes": {
+      "CHP": 56534,
+      "MHP": 36836,
+      "AKP": 234505
+    }
+  },
+  "Şanlıurfa": {
+    "votes": {
+      "CHP": 21777,
+      "MHP": 22357,
+      "AKP": 430453
+    }
+  },
+  "Şırnak": {
+    "votes": {
+      "CHP": 5155,
+      "MHP": 2033,
+      "AKP": 35714
+    }
+  },
+  "Tekirdağ": {
+    "votes": {
+      "CHP": 226824,
+      "MHP": 68483,
+      "AKP": 183548
+    }
+  },
+  "Tokat": {
+    "votes": {
+      "CHP": 85149,
+      "MHP": 57257,
+      "AKP": 202481
+    }
+  },
+  "Trabzon": {
+    "votes": {
+      "CHP": 83198,
+      "MHP": 69500,
+      "AKP": 266605
+    }
+  },
+  "Tunceli": {
+    "votes": {
+      "CHP": 26804,
+      "MHP": 992,
+      "AKP": 7339
+    }
+  },
+  "Uşak": {
+    "votes": {
+      "CHP": 66387,
+      "MHP": 36394,
+      "AKP": 110931
+    }
+  },
+  "Van": {
+    "votes": {
+      "CHP": 16044,
+      "MHP": 12737,
+      "AKP": 171753
+    }
+  },
+  "Yalova": {
+    "votes": {
+      "CHP": 40975,
+      "MHP": 13112,
+      "AKP": 59175
+    }
+  },
+  "Yozgat": {
+    "votes": {
+      "CHP": 28166,
+      "MHP": 47062,
+      "AKP": 170919
+    }
+  },
+  "Zonguldak": {
+    "votes": {
+      "CHP": 146342,
+      "MHP": 24633,
+      "AKP": 184346
+    }
+  }
+}

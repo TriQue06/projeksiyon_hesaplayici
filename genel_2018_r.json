@@ -1,0 +1,830 @@
+{
+  "Adana": {
+    "votes": {
+      "AK Parti": 461191,
+      "CHP": 346425,
+      "MHP": 156257,
+      "HDP": 179742,
+      "IYI Parti": 161497
+    }
+  },
+  "Adıyaman": {
+    "votes": {
+      "AK Parti": 191079,
+      "CHP": 41796,
+      "MHP": 31716,
+      "HDP": 53444,
+      "IYI Parti": 18278
+    }
+  },
+  "Afyonkarahisar": {
+    "votes": {
+      "AK Parti": 255430,
+      "CHP": 66700,
+      "MHP": 64342,
+      "HDP": 5780,
+      "IYI Parti": 61684
+    }
+  },
+  "Ağrı": {
+    "votes": {
+      "AK Parti": 66624,
+      "CHP": 6729,
+      "MHP": 5800,
+      "HDP": 143885,
+      "IYI Parti": 3834
+    }
+  },
+  "Aksaray": {
+    "votes": {
+      "AK Parti": 131386,
+      "CHP": 23160,
+      "MHP": 48064,
+      "HDP": 3678,
+      "IYI Parti": 24660
+    }
+  },
+  "Amasya": {
+    "votes": {
+      "AK Parti": 106937,
+      "CHP": 56313,
+      "MHP": 28240,
+      "HDP": 5165,
+      "IYI Parti": 27555
+    }
+  },
+  "Ankara (toplam)": {
+    "votes": {
+      "AK Parti": 1434125,
+      "CHP": 925643,
+      "MHP": 464966,
+      "HDP": 227233,
+      "IYI Parti": 429241
+    }
+  },
+  "Ankara (I)": {
+    "votes": {
+      "AK Parti": 391457,
+      "CHP": 450818,
+      "MHP": 136050,
+      "HDP": 112080,
+      "IYI Parti": 156592
+    }
+  },
+  "Ankara (II)": {
+    "votes": {
+      "AK Parti": 547713,
+      "CHP": 187834,
+      "MHP": 160089,
+      "HDP": 45211,
+      "IYI Parti": 111787
+    }
+  },
+  "Ankara (III)": {
+    "votes": {
+      "AK Parti": 494955,
+      "CHP": 286991,
+      "MHP": 168827,
+      "HDP": 69942,
+      "IYI Parti": 160862
+    }
+  },
+  "Antalya": {
+    "votes": {
+      "AK Parti": 517530,
+      "CHP": 431675,
+      "MHP": 149777,
+      "HDP": 108479,
+      "IYI Parti": 250294
+    }
+  },
+  "Ardahan": {
+    "votes": {
+      "AK Parti": 21704,
+      "CHP": 15115,
+      "MHP": 3957,
+      "HDP": 13662,
+      "IYI Parti": 2994
+    }
+  },
+  "Artvin": {
+    "votes": {
+      "AK Parti": 46769,
+      "CHP": 36973,
+      "MHP": 11774,
+      "HDP": 5676,
+      "IYI Parti": 11825
+    }
+  },
+  "Aydın": {
+    "votes": {
+      "AK Parti": 237734,
+      "CHP": 248359,
+      "MHP": 59212,
+      "HDP": 68447,
+      "IYI Parti": 108144
+    }
+  },
+  "Balıkesir": {
+    "votes": {
+      "AK Parti": 357932,
+      "CHP": 262566,
+      "MHP": 65380,
+      "HDP": 36770,
+      "IYI Parti": 127213
+    }
+  },
+  "Bartın": {
+    "votes": {
+      "AK Parti": 59687,
+      "CHP": 32331,
+      "MHP": 21604,
+      "HDP": 2162,
+      "IYI Parti": 7411
+    }
+  },
+  "Batman": {
+    "votes": {
+      "AK Parti": 72948,
+      "CHP": 5357,
+      "MHP": 3561,
+      "HDP": 181841,
+      "IYI Parti": 3530
+    }
+  },
+  "Bayburt": {
+    "votes": {
+      "AK Parti": 28216,
+      "CHP": 2097,
+      "MHP": 13463,
+      "HDP": 593,
+      "IYI Parti": 3020
+    }
+  },
+  "Bilecik": {
+    "votes": {
+      "AK Parti": 61261,
+      "CHP": 39824,
+      "MHP": 13213,
+      "HDP": 4776,
+      "IYI Parti": 19960
+    }
+  },
+  "Bingöl": {
+    "votes": {
+      "AK Parti": 80022,
+      "CHP": 3312,
+      "MHP": 8502,
+      "HDP": 38803,
+      "IYI Parti": 5909
+    }
+  },
+  "Bitlis": {
+    "votes": {
+      "AK Parti": 73706,
+      "CHP": 4495,
+      "MHP": 6716,
+      "HDP": 69965,
+      "IYI Parti": 5397
+    }
+  },
+  "Bolu": {
+    "votes": {
+      "AK Parti": 105102,
+      "CHP": 40954,
+      "MHP": 30123,
+      "HDP": 4188,
+      "IYI Parti": 17235
+    }
+  },
+  "Burdur": {
+    "votes": {
+      "AK Parti": 76123,
+      "CHP": 35690,
+      "MHP": 22059,
+      "HDP": 3385,
+      "IYI Parti": 35155
+    }
+  },
+  "Bursa (toplam)": {
+    "votes": {
+      "AK Parti": 901530,
+      "CHP": 443393,
+      "MHP": 209461,
+      "HDP": 111030,
+      "IYI Parti": 243015
+    }
+  },
+  "Bursa (I)": {
+    "votes": {
+      "AK Parti": 433129,
+      "CHP": 258159,
+      "MHP": 99469,
+      "HDP": 47685,
+      "IYI Parti": 142512
+    }
+  },
+  "Bursa (II)": {
+    "votes": {
+      "AK Parti": 468401,
+      "CHP": 185234,
+      "MHP": 109992,
+      "HDP": 63345,
+      "IYI Parti": 100503
+    }
+  },
+  "Çanakkale": {
+    "votes": {
+      "AK Parti": 139798,
+      "CHP": 126498,
+      "MHP": 25938,
+      "HDP": 14014,
+      "IYI Parti": 62716
+    }
+  },
+  "Çankırı": {
+    "votes": {
+      "AK Parti": 70533,
+      "CHP": 7982,
+      "MHP": 23375,
+      "HDP": 1321,
+      "IYI Parti": 14143
+    }
+  },
+  "Çorum": {
+    "votes": {
+      "AK Parti": 186915,
+      "CHP": 72945,
+      "MHP": 50387,
+      "HDP": 13096,
+      "IYI Parti": 30215
+    }
+  },
+  "Denizli": {
+    "votes": {
+      "AK Parti": 278925,
+      "CHP": 192012,
+      "MHP": 63105,
+      "HDP": 27588,
+      "IYI Parti": 112713
+    }
+  },
+  "Diyarbakır": {
+    "votes": {
+      "AK Parti": 182763,
+      "CHP": 21306,
+      "MHP": 11981,
+      "HDP": 558061,
+      "IYI Parti": 23860
+    }
+  },
+  "Düzce": {
+    "votes": {
+      "AK Parti": 138507,
+      "CHP": 35925,
+      "MHP": 46227,
+      "HDP": 5103,
+      "IYI Parti": 16672
+    }
+  },
+  "Edirne": {
+    "votes": {
+      "AK Parti": 78982,
+      "CHP": 125476,
+      "MHP": 13958,
+      "HDP": 10181,
+      "IYI Parti": 43214
+    }
+  },
+  "Elazığ": {
+    "votes": {
+      "AK Parti": 191626,
+      "CHP": 37751,
+      "MHP": 47558,
+      "HDP": 35460,
+      "IYI Parti": 26987
+    }
+  },
+  "Erzincan": {
+    "votes": {
+      "AK Parti": 66465,
+      "CHP": 37865,
+      "MHP": 27652,
+      "HDP": 8387,
+      "IYI Parti": 6194
+    }
+  },
+  "Erzurum": {
+    "votes": {
+      "AK Parti": 238941,
+      "CHP": 19280,
+      "MHP": 80780,
+      "HDP": 52151,
+      "IYI Parti": 35504
+    }
+  },
+  "Eskişehir": {
+    "votes": {
+      "AK Parti": 225551,
+      "CHP": 187676,
+      "MHP": 57747,
+      "HDP": 24821,
+      "IYI Parti": 76784
+    }
+  },
+  "Gaziantep": {
+    "votes": {
+      "AK Parti": 540735,
+      "CHP": 158769,
+      "MHP": 133202,
+      "HDP": 124858,
+      "IYI Parti": 70179
+    }
+  },
+  "Giresun": {
+    "votes": {
+      "AK Parti": 156447,
+      "CHP": 51840,
+      "MHP": 31556,
+      "HDP": 4499,
+      "IYI Parti": 41997
+    }
+  },
+  "Gümüşhane": {
+    "votes": {
+      "AK Parti": 46224,
+      "CHP": 6057,
+      "MHP": 16712,
+      "HDP": 1077,
+      "IYI Parti": 9218
+    }
+  },
+  "Hakkâri": {
+    "votes": {
+      "AK Parti": 28048,
+      "CHP": 4833,
+      "MHP": 5167,
+      "HDP": 98064,
+      "IYI Parti": 1826
+    }
+  },
+  "Hatay": {
+    "votes": {
+      "AK Parti": 340122,
+      "CHP": 287438,
+      "MHP": 135667,
+      "HDP": 103530,
+      "IYI Parti": 61380
+    }
+  },
+  "Iğdır": {
+    "votes": {
+      "AK Parti": 19466,
+      "CHP": 2669,
+      "MHP": 22448,
+      "HDP": 41545,
+      "IYI Parti": 5518
+    }
+  },
+  "Isparta": {
+    "votes": {
+      "AK Parti": 133707,
+      "CHP": 46224,
+      "MHP": 36767,
+      "HDP": 5959,
+      "IYI Parti": 51509
+    }
+  },
+  "İstanbul (toplam)": {
+    "votes": {
+      "AK Parti": 4029418,
+      "CHP": 2498564,
+      "MHP": 779942,
+      "HDP": 1195523,
+      "IYI Parti": 755397
+    }
+  },
+  "İstanbul (I)": {
+    "votes": {
+      "AK Parti": 1432502,
+      "CHP": 997889,
+      "MHP": 283016,
+      "HDP": 390752,
+      "IYI Parti": 282001
+    }
+  },
+  "İstanbul (II)": {
+    "votes": {
+      "AK Parti": 1218889,
+      "CHP": 668333,
+      "MHP": 218727,
+      "HDP": 331407,
+      "IYI Parti": 204598
+    }
+  },
+  "İstanbul (III)": {
+    "votes": {
+      "AK Parti": 1378027,
+      "CHP": 832342,
+      "MHP": 278199,
+      "HDP": 473364,
+      "IYI Parti": 268798
+    }
+  },
+  "İzmir (toplam)": {
+    "votes": {
+      "AK Parti": 836581,
+      "CHP": 1204370,
+      "MHP": 183312,
+      "HDP": 334974,
+      "IYI Parti": 317092
+    }
+  },
+  "İzmir (I)": {
+    "votes": {
+      "AK Parti": 407119,
+      "CHP": 581342,
+      "MHP": 83005,
+      "HDP": 177358,
+      "IYI Parti": 148318
+    }
+  },
+  "İzmir (II)": {
+    "votes": {
+      "AK Parti": 429462,
+      "CHP": 623028,
+      "MHP": 100307,
+      "HDP": 157616,
+      "IYI Parti": 168774
+    }
+  },
+  "Kahramanmaraş": {
+    "votes": {
+      "AK Parti": 391098,
+      "CHP": 65348,
+      "MHP": 109216,
+      "HDP": 25730,
+      "IYI Parti": 64494
+    }
+  },
+  "Karabük": {
+    "votes": {
+      "AK Parti": 83252,
+      "CHP": 25772,
+      "MHP": 21007,
+      "HDP": 2290,
+      "IYI Parti": 18829
+    }
+  },
+  "Karaman": {
+    "votes": {
+      "AK Parti": 84410,
+      "CHP": 25615,
+      "MHP": 23620,
+      "HDP": 2491,
+      "IYI Parti": 18195
+    }
+  },
+  "Kars": {
+    "votes": {
+      "AK Parti": 55911,
+      "CHP": 21132,
+      "MHP": 10664,
+      "HDP": 47052,
+      "IYI Parti": 10853
+    }
+  },
+  "Kastamonu": {
+    "votes": {
+      "AK Parti": 130270,
+      "CHP": 38793,
+      "MHP": 50072,
+      "HDP": 2821,
+      "IYI Parti": 23251
+    }
+  },
+  "Kayseri": {
+    "votes": {
+      "AK Parti": 443015,
+      "CHP": 108268,
+      "MHP": 187936,
+      "HDP": 20742,
+      "IYI Parti": 96334
+    }
+  },
+  "Kırıkkale": {
+    "votes": {
+      "AK Parti": 76851,
+      "CHP": 26888,
+      "MHP": 42627,
+      "HDP": 2796,
+      "IYI Parti": 24021
+    }
+  },
+  "Kırklareli": {
+    "votes": {
+      "AK Parti": 66885,
+      "CHP": 118168,
+      "MHP": 12125,
+      "HDP": 8417,
+      "IYI Parti": 40604
+    }
+  },
+  "Kırşehir": {
+    "votes": {
+      "AK Parti": 59471,
+      "CHP": 36861,
+      "MHP": 24418,
+      "HDP": 6779,
+      "IYI Parti": 14602
+    }
+  },
+  "Kilis": {
+    "votes": {
+      "AK Parti": 38481,
+      "CHP": 11051,
+      "MHP": 15405,
+      "HDP": 1741,
+      "IYI Parti": 7690
+    }
+  },
+  "Kocaeli": {
+    "votes": {
+      "AK Parti": 585313,
+      "CHP": 243828,
+      "MHP": 137708,
+      "HDP": 89162,
+      "IYI Parti": 125118
+    }
+  },
+  "Konya": {
+    "votes": {
+      "AK Parti": 804146,
+      "CHP": 130962,
+      "MHP": 209722,
+      "HDP": 50266,
+      "IYI Parti": 121356
+    }
+  },
+  "Kütahya": {
+    "votes": {
+      "AK Parti": 213353,
+      "CHP": 49250,
+      "MHP": 71847,
+      "HDP": 4701,
+      "IYI Parti": 41281
+    }
+  },
+  "Malatya": {
+    "votes": {
+      "AK Parti": 265833,
+      "CHP": 82651,
+      "MHP": 79588,
+      "HDP": 34647,
+      "IYI Parti": 21056
+    }
+  },
+  "Manisa": {
+    "votes": {
+      "AK Parti": 385078,
+      "CHP": 252578,
+      "MHP": 109812,
+      "HDP": 67184,
+      "IYI Parti": 130009
+    }
+  },
+  "Mardin": {
+    "votes": {
+      "AK Parti": 120854,
+      "CHP": 13153,
+      "MHP": 10429,
+      "HDP": 235722,
+      "IYI Parti": 4483
+    }
+  },
+  "Mersin": {
+    "votes": {
+      "AK Parti": 325518,
+      "CHP": 304232,
+      "MHP": 145029,
+      "HDP": 192573,
+      "IYI Parti": 154145
+    }
+  },
+  "Muğla": {
+    "votes": {
+      "AK Parti": 182679,
+      "CHP": 264842,
+      "MHP": 42033,
+      "HDP": 43648,
+      "IYI Parti": 106862
+    }
+  },
+  "Muş": {
+    "votes": {
+      "AK Parti": 61197,
+      "CHP": 4667,
+      "MHP": 7047,
+      "HDP": 102725,
+      "IYI Parti": 8165
+    }
+  },
+  "Nevşehir": {
+    "votes": {
+      "AK Parti": 101552,
+      "CHP": 31705,
+      "MHP": 34118,
+      "HDP": 3329,
+      "IYI Parti": 17192
+    }
+  },
+  "Niğde": {
+    "votes": {
+      "AK Parti": 93223,
+      "CHP": 42974,
+      "MHP": 44131,
+      "HDP": 3530,
+      "IYI Parti": 25190
+    }
+  },
+  "Ordu": {
+    "votes": {
+      "AK Parti": 236392,
+      "CHP": 110237,
+      "MHP": 81680,
+      "HDP": 6789,
+      "IYI Parti": 41032
+    }
+  },
+  "Osmaniye": {
+    "votes": {
+      "AK Parti": 113323,
+      "CHP": 42321,
+      "MHP": 98996,
+      "HDP": 11210,
+      "IYI Parti": 41699
+    }
+  },
+  "Rize": {
+    "votes": {
+      "AK Parti": 145412,
+      "CHP": 29234,
+      "MHP": 27831,
+      "HDP": 3214,
+      "IYI Parti": 13479
+    }
+  },
+  "Sakarya": {
+    "votes": {
+      "AK Parti": 375397,
+      "CHP": 88486,
+      "MHP": 88022,
+      "HDP": 17403,
+      "IYI Parti": 60586
+    }
+  },
+  "Samsun": {
+    "votes": {
+      "AK Parti": 443537,
+      "CHP": 147454,
+      "MHP": 138480,
+      "HDP": 15082,
+      "IYI Parti": 92817
+    }
+  },
+  "Siirt": {
+    "votes": {
+      "AK Parti": 58760,
+      "CHP": 3841,
+      "MHP": 5314,
+      "HDP": 77009,
+      "IYI Parti": 2399
+    }
+  },
+  "Sinop": {
+    "votes": {
+      "AK Parti": 77085,
+      "CHP": 33789,
+      "MHP": 10064,
+      "HDP": 2790,
+      "IYI Parti": 12952
+    }
+  },
+  "Sivas": {
+    "votes": {
+      "AK Parti": 223575,
+      "CHP": 62345,
+      "MHP": 77772,
+      "HDP": 8991,
+      "IYI Parti": 27987
+    }
+  },
+  "Şanlıurfa": {
+    "votes": {
+      "AK Parti": 458246,
+      "CHP": 33791,
+      "MHP": 80810,
+      "HDP": 251779,
+      "IYI Parti": 16174
+    }
+  },
+  "Şırnak": {
+    "votes": {
+      "AK Parti": 42516,
+      "CHP": 6363,
+      "MHP": 9370,
+      "HDP": 164184,
+      "IYI Parti": 4629
+    }
+  },
+  "Tekirdağ": {
+    "votes": {
+      "AK Parti": 230731,
+      "CHP": 253708,
+      "MHP": 50255,
+      "HDP": 43729,
+      "IYI Parti": 78022
+    }
+  },
+  "Tokat": {
+    "votes": {
+      "AK Parti": 192946,
+      "CHP": 79873,
+      "MHP": 63390,
+      "HDP": 8009,
+      "IYI Parti": 36119
+    }
+  },
+  "Trabzon": {
+    "votes": {
+      "AK Parti": 287302,
+      "CHP": 77656,
+      "MHP": 69424,
+      "HDP": 6941,
+      "IYI Parti": 57325
+    }
+  },
+  "Tunceli": {
+    "votes": {
+      "AK Parti": 8216,
+      "CHP": 14704,
+      "MHP": 3203,
+      "HDP": 28510,
+      "IYI Parti": 920
+    }
+  },
+  "Uşak": {
+    "votes": {
+      "AK Parti": 105783,
+      "CHP": 68725,
+      "MHP": 25667,
+      "HDP": 7460,
+      "IYI Parti": 30984
+    }
+  },
+  "Van": {
+    "votes": {
+      "AK Parti": 167667,
+      "CHP": 13914,
+      "MHP": 16245,
+      "HDP": 313017,
+      "IYI Parti": 6720
+    }
+  },
+  "Yalova": {
+    "votes": {
+      "AK Parti": 69369,
+      "CHP": 44986,
+      "MHP": 12244,
+      "HDP": 12530,
+      "IYI Parti": 15386
+    }
+  },
+  "Yozgat": {
+    "votes": {
+      "AK Parti": 138261,
+      "CHP": 30138,
+      "MHP": 64026,
+      "HDP": 3447,
+      "IYI Parti": 19162
+    }
+  },
+  "Zonguldak": {
+    "votes": {
+      "AK Parti": 178995,
+      "CHP": 119800,
+      "MHP": 42316,
+      "HDP": 7406,
+      "IYI Parti": 30388
+    }
+  },
+  "Türkiye toplamı": {
+    "votes": {
+      "AK Parti": 21338693,
+      "CHP": 11354190,
+      "MHP": 5565331,
+      "HDP": 5867302,
+      "IYI Parti": 4993479
+    }
+  }
+}
