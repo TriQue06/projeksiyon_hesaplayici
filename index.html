@@ -308,7 +308,7 @@
         /* STATİK HARİTA STİLLERİ + İNTERAKTİF HOVER EFEKTLERİ */
         #parliamentChartArea { display: flex; align-items: center; justify-content: center; min-height: 240px; }
         #parliamentChartArea svg { max-height: 240px; width: 100%; height: auto; }
-        #svgMapWrapper svg { width: 100%; height: auto; max-height: 420px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05)); display: block; margin: 0 auto; user-select: none; }
+        #svgMapWrapper svg { width: 100%; height: auto; max-height: 600px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.05)); display: block; margin: 0 auto; user-select: none; }
         #svgMapWrapper path, #svgMapWrapper g, #svgMapWrapper polygon, #svgMapWrapper polyline, #svgMapWrapper rect {
             stroke: var(--map-stroke) !important;
             stroke-width: 1px !important;
@@ -443,7 +443,10 @@
     <!-- 2. Parti Paneli -->
     <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <label style="margin-bottom: 0;">Parti Paneli</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <label style="margin-bottom: 0;">Parti Paneli</label>
+                <button onclick="openClearModal()" title="Verileri temizle" style="background:none;border:1px solid var(--border);border-radius:6px;padding:2px 7px;cursor:pointer;font-size:13px;color:var(--text-secondary);line-height:1.4;" onmouseover="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">🗑️</button>
+            </div>
             <div id="voteTotalTracker" style="font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 4px; background: var(--highlight-bg); color: var(--primary); border: 1px solid var(--primary); transition: 0.3s;">
                 Toplam: %0.00 | Kalan: %100.00
             </div>
@@ -711,7 +714,7 @@
     
 </div>
 
-<div id="colorModalOverlay">
+<div id="colorModalOverlay" onkeydown="if(event.key==='Escape')closeColorModal()">
     <div class="modal-box">
         <h3>Renk Seçimi</h3>
         <div class="cp-preview" id="cpPreview"></div>
@@ -4697,6 +4700,56 @@ document.getElementById('projectLoader').onchange = async function(e) {
     }
 };
 // ─────────────────────────────────────────────────────────────────────────────
+
+function openClearModal() {
+    $('clearModal').style.display = 'flex';
+    $('clearModalConfirmBtn').focus();
+}
+function closeClearModal() {
+    $('clearModal').style.display = 'none';
+}
+function executeClear() {
+    const get = id => document.getElementById('clr-' + id)?.checked;
+    if (get('parties'))   { extraParties = []; renderExtraParties(); }
+    if (get('coalitions')){ coalitions = []; renderCoalitions(); }
+    if (get('alliances')) { electoralAlliances = []; renderAlliances(); }
+    if (get('diger'))     { digerGroups = []; digerDisplayEnabled = false; renderDiger(); }
+    if (get('fermuar'))   { fermuarListes = []; renderFermuar(); }
+    if (get('parlorder')) { parliamentOrderOverride = []; renderParlOrder(); }
+    closeClearModal();
+    if (Object.keys(globalResults).length > 0) renderResults(globalResults);
+}
 </script>
+
+<!-- Temizle Modal -->
+<div id="clearModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this)closeClearModal()">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,0.3);" onkeydown="if(event.key==='Enter')executeClear();if(event.key==='Escape')closeClearModal()">
+        <div style="font-size:15px;font-weight:900;color:var(--text);margin-bottom:16px;">🗑️ Temizlenecek Öğeler</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text);margin:0;">
+                <input type="checkbox" id="clr-parties" checked style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary);">Partiler
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text);margin:0;">
+                <input type="checkbox" id="clr-coalitions" checked style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary);">İttifaklar
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text);margin:0;">
+                <input type="checkbox" id="clr-alliances" checked style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary);">Ortak Listeler
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text);margin:0;">
+                <input type="checkbox" id="clr-diger" checked style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary);">Diğer Kategoriler
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text);margin:0;">
+                <input type="checkbox" id="clr-fermuar" checked style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary);">Fermuar Listeleri
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text);margin:0;">
+                <input type="checkbox" id="clr-parlorder" checked style="width:15px;height:15px;cursor:pointer;accent-color:var(--primary);">Parlamento Sıralaması
+            </label>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="closeClearModal()" style="padding:7px 16px;border-radius:7px;border:1px solid var(--border);background:var(--surface-alt);color:var(--text);cursor:pointer;font-size:13px;">İptal</button>
+            <button id="clearModalConfirmBtn" onclick="executeClear()" style="padding:7px 16px;border-radius:7px;border:none;background:var(--danger,#e53935);color:#fff;cursor:pointer;font-size:13px;font-weight:bold;">Temizle</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
