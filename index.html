@@ -421,8 +421,11 @@
         <button id="digerDisplayBtn" onclick="toggleDigerDisplay()" style="background:var(--danger); color:white; border-radius:6px; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--danger); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow); white-space:nowrap;" title="Diğer kategorileri görünümde göster/gizle">
             🗂️ Diğer
         </button>
-        <button id="localEditToggleBtn" onclick="toggleLocalEditButtons()" style="background:var(--surface); color:var(--text-secondary); border-radius:6px; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow);" title="İl bazlı aktif/pasif düzenlemeyi aç/kapat">
+        <button id="localEditToggleBtn" onclick="toggleLocalEditButtons()" style="background:var(--surface); color:var(--text-secondary); border-radius:6px; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow);" title="İl bazlı aktif/pasif ve oy oranı düzenlemeyi aç/kapat">
             🔧
+        </button>
+        <button id="autoComplete100Btn" onclick="toggleAutoComplete100()" style="background:var(--surface); color:var(--text-secondary); border-radius:6px; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow); white-space:nowrap;" title="Açıksa, bir partinin oy oranını değiştirdiğinizde diğerleri otomatik olarak toplamı %100'e tamamlar">
+            🧮 %100 Tamamla
         </button>
         <button id="parliamentStyleBtn" onclick="toggleParliamentStyle()" style="background:var(--surface); color:var(--text-secondary); border-radius:6px; font-size:12px; font-weight:bold; padding:8px 10px; border:1px solid var(--border); display:flex; align-items:center; gap:6px; cursor:pointer; transition:0.2s; box-shadow:var(--shadow); white-space:nowrap;" title="Parlamento diyagram stilini değiştir">
             🏛️ Arch
@@ -454,13 +457,13 @@
         <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:-8px; margin-bottom:10px;">Simülasyona girecek partileri tanımlayın. Sol kısımdan <b>sürükleyerek</b> sıralarını değiştirebilirsiniz. Partinin <b>isminin üstüne tıklayarak</b> adını düzenleyebilirsiniz.</span>
         <div class="flex-row">
             <input id="newPName" placeholder="Parti Adı">
-            <input id="newPNat" type="number" step="0.01" placeholder="Oy (%)" style="width:80px">
+            <input id="newPNat" type="text" inputmode="decimal" placeholder="Oy (%)" style="width:80px">
             <button onclick="addExtraParty()" style="width:40px; font-size: 16px;">+</button>
         </div>
         <div id="extraPartiesArea"></div>
         <div class="flex-row" style="margin-top:8px;">
             <input id="newPName2" placeholder="Parti Adı">
-            <input id="newPNat2" type="number" step="0.01" placeholder="Oy (%)" style="width:80px">
+            <input id="newPNat2" type="text" inputmode="decimal" placeholder="Oy (%)" style="width:80px">
             <button onclick="addExtraPartyBottom()" style="width:40px; font-size: 16px;">+</button>
         </div>
     </div>
@@ -523,7 +526,7 @@
             </div>
             <div style="flex: 1;">
                 <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">Ülke Barajı (%)</span>
-                <input type="number" id="thresholdInp" value="7" step="0.1" style="width:100%; font-weight:bold; color:var(--primary);">
+                <input type="text" inputmode="decimal" id="thresholdInp" value="7" style="width:100%; font-weight:bold; color:var(--primary);" onchange="this.value=fmtPctInput(parsePctInputOrZero(this.value))">
             </div>
         </div>
         <div id="settingCalcMethod" class="flex-row" style="gap: 12px; margin-bottom:0;">
@@ -697,6 +700,7 @@
                     <div id="doTitleWinner"></div>
                 </div>
 
+                <div id="doPctTracker" style="display:none; font-size:12px; font-weight:bold; padding:4px 8px; border-radius:4px; background:var(--highlight-bg); color:var(--primary); border:1px solid var(--primary); margin-bottom:8px; width:fit-content;"></div>
                 <div id="doUnifiedList" style="display:flex; flex-direction:column; gap:0; margin-bottom:0; border-radius:8px; overflow:hidden;"></div>
             </div>
 
@@ -750,6 +754,8 @@ let customSeatOverrides = {};
 let globalResults = {};
 let parliamentOrderOverride = [];
 let localDisabledParties = {}; // YENİ: İl bazlı parti iptallerini tutar
+let districtVoteOverrides = {}; // İl bazlı manuel oy oranı müdahaleleri: { [ilAdi]: { [parti]: yuzde } }
+let autoComplete100 = false; // Oy oranı girildikçe diğerlerini otomatik %100'e tamamla
 
 let dragCtx = { type: null, idx: null };
 let activePartyFilter = null;
@@ -1151,8 +1157,10 @@ function updateMapColors() {
     
     const showDots = $('showMVDotsInp') && $('showMVDotsInp').checked;
     
-    const domRatio = (parseFloat($('dominantWhiteInp').value) || 20) / 100;
-    const pluRatio = (parseFloat($('pluralityWhiteInp').value) || 40) / 100;
+    const domRatioRaw = parseFloat($('dominantWhiteInp').value);
+    const pluRatioRaw = parseFloat($('pluralityWhiteInp').value);
+    const domRatio = (isNaN(domRatioRaw) ? 20 : domRatioRaw) / 100;
+    const pluRatio = (isNaN(pluRatioRaw) ? 40 : pluRatioRaw) / 100;
 
     const partyRanks = {};
     extraParties.forEach(ep => partyRanks[ep.name] = parseFloat(ep.nat) || 0);
@@ -1652,7 +1660,33 @@ svgWrapper.addEventListener('click', (e) => {
     }
 });
 
-function escapeStr(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+function escapeStr(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, "\\'");
+}
+
+// Yüzde girdilerini tarayıcı/klavye ayarından bağımsız, sabit virgül ondalık ayracıyla ayrıştırır.
+function parsePctInput(str) {
+    if (str === null || str === undefined || str === '') return null;
+    const cleaned = String(str).trim().replace(',', '.').replace(/[^0-9.\-]/g, '');
+    const v = parseFloat(cleaned);
+    return isNaN(v) ? null : v;
+}
+// parsePctInput ile aynı ama boş/geçersiz girdide 0 döner (zorunlu alanlar için).
+function parsePctInputOrZero(str) {
+    const v = parsePctInput(str);
+    return v === null ? 0 : v;
+}
+// Sayıyı arayüzde göstermek için virgüllü ondalık string'e çevirir (gereksiz sıfırları kırpar).
+function fmtPctInput(num) {
+    if (num === null || num === undefined || isNaN(num)) return '';
+    const rounded = Math.round(num * 100) / 100;
+    return String(rounded).replace('.', ',');
+}
 
 function updateTotalTracker() {
     const natMap = {};
@@ -1766,8 +1800,12 @@ function getMasterDistricts() {
 
 function getDistrictDataWithPatch(dataset, targetName) {
     if(dataset.data[targetName]) return dataset.data[targetName];
-    const root = targetName.split('-')[0].trim();
-    if(dataset.data[root]) return dataset.data[root];
+    // Çok seviyeli tire içeren adlarda (örn "İl-1-A") en yakın üst seviyeden başlayarak dene.
+    const parts = targetName.split('-').map(p => p.trim());
+    for (let i = parts.length - 1; i > 0; i--) {
+        const candidate = parts.slice(0, i).join('-');
+        if (dataset.data[candidate]) return dataset.data[candidate];
+    }
     return null;
 }
 
@@ -1822,15 +1860,25 @@ window.renameParty = function(idx, newName) {
     extraParties[idx].name = newName;
     coalitions.forEach(c => { const mIdx = c.members.indexOf(oldName); if(mIdx > -1) c.members[mIdx] = newName; });
     electoralAlliances.forEach(a => { const mIdx = a.members.indexOf(oldName); if(mIdx > -1) a.members[mIdx] = newName; });
-    
+
     for(let d in localDisabledParties) {
         if(localDisabledParties[d].has(oldName)) {
             localDisabledParties[d].delete(oldName);
             localDisabledParties[d].add(newName);
         }
     }
-    
-    renderExtraParties(); renderCoalitions(); renderAlliances();
+
+    for(let d in districtVoteOverrides) {
+        if(districtVoteOverrides[d][oldName] !== undefined) {
+            districtVoteOverrides[d][newName] = districtVoteOverrides[d][oldName];
+            delete districtVoteOverrides[d][oldName];
+        }
+    }
+
+    const ordIdx = parliamentOrderOverride.indexOf(oldName);
+    if (ordIdx > -1) parliamentOrderOverride[ordIdx] = newName;
+
+    renderExtraParties(); renderCoalitions(); renderAlliances(); renderParlOrder();
 };
 
 window.renameCoalition = function(idx, newName) {
@@ -1869,7 +1917,7 @@ window.renameAlliance = function(idx, newName) {
 
 function addExtraParty(){
     const name = $('newPName').value.trim();
-    const nat = parseFloat($('newPNat').value)||0;
+    const nat = parsePctInputOrZero($('newPNat').value);
     if(!name) return;
     takeSnapshot();
     extraParties.push({ name, nat, similarity:{}, isOpen: true, isEnabled: true, color: '#000000' });
@@ -1879,13 +1927,47 @@ function addExtraParty(){
 
 function addExtraPartyBottom(){
     const name = $('newPName2').value.trim();
-    const nat = parseFloat($('newPNat2').value)||0;
+    const nat = parsePctInputOrZero($('newPNat2').value);
     if(!name) return;
     takeSnapshot();
     extraParties.push({ name, nat, similarity:{}, isOpen: true, isEnabled: true, color: '#000000' });
     $('newPName2').value = ''; $('newPNat2').value = '';
     renderExtraParties(); renderCoalitions(); renderAlliances();
 }
+
+// Etkinse, bir partinin oy oranı değiştiğinde diğer aktif partilerin oranlarını
+// mevcut oranlarıyla orantılı biçimde toplam %100'ü koruyacak şekilde günceller.
+function autoBalanceNat(changedName) {
+    if (!autoComplete100) return;
+    const enabled = extraParties.filter(ep => ep.isEnabled !== false);
+    const changed = enabled.find(ep => ep.name === changedName);
+    if (!changed || enabled.length < 2) return;
+    const others = enabled.filter(ep => ep.name !== changedName);
+    const changedVal = Math.max(0, Math.min(100, parseFloat(changed.nat) || 0));
+    changed.nat = Math.round(changedVal * 10) / 10;
+    const othersSum = others.reduce((s, ep) => s + Math.max(0, parseFloat(ep.nat) || 0), 0);
+    const remaining = Math.max(0, 100 - changed.nat);
+    if (othersSum > 0) {
+        others.forEach(ep => { ep.nat = Math.round(((Math.max(0, parseFloat(ep.nat) || 0) / othersSum) * remaining) * 10) / 10; });
+    } else {
+        const each = Math.round((remaining / others.length) * 10) / 10;
+        others.forEach(ep => { ep.nat = each; });
+    }
+}
+
+window.toggleAutoComplete100 = function() {
+    autoComplete100 = !autoComplete100;
+    const btn = $('autoComplete100Btn');
+    if (autoComplete100) {
+        btn.style.background = 'var(--primary)';
+        btn.style.color = 'white';
+        btn.style.borderColor = 'var(--primary)';
+    } else {
+        btn.style.background = 'var(--surface)';
+        btn.style.color = 'var(--text-secondary)';
+        btn.style.borderColor = 'var(--border)';
+    }
+};
 
 // ── Color Picker ──────────────────────────────────────────────────────────────
 function cpHsvToRgb(h,s,v){s/=100;v/=100;let f=(n,k=(n+h/60)%6)=>v-v*s*Math.max(Math.min(k,4-k,1),0);return{r:Math.round(f(5)*255),g:Math.round(f(3)*255),b:Math.round(f(1)*255)};}
@@ -2008,15 +2090,15 @@ function renderExtraParties(){
                 
                 <input type="text" class="editable-name" value="${escapeStr(ep.name)}" onchange="renameParty(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
                 
-                <input type="number" step="0.01" value="${ep.nat}" style="width:65px; margin:0; font-weight:bold; color:var(--primary); flex-shrink:0;" oninput="extraParties[${idx}].nat=parseFloat(this.value)||0; updateTotalTracker();">
+                <input type="text" inputmode="decimal" value="${fmtPctInput(ep.nat)}" style="width:65px; margin:0; font-weight:bold; color:var(--primary); flex-shrink:0;" oninput="extraParties[${idx}].nat=parsePctInputOrZero(this.value); updateTotalTracker();" onchange="if(autoComplete100){autoBalanceNat(extraParties[${idx}].name); renderExtraParties(); if(Object.keys(globalResults).length>0) runProjection();} updateTotalTracker();">
                 <span style="font-weight:bold; color:var(--text-secondary); flex-shrink:0;">%</span>
-                <button class="danger" onclick="takeSnapshot();extraParties.splice(${idx},1);renderExtraParties();renderCoalitions();renderAlliances();">✖</button>
+                <button class="danger" onclick="takeSnapshot();extraParties.splice(${idx},1);$('thresholdInp').value=7;renderExtraParties();renderCoalitions();renderAlliances();">✖</button>
             </div>
             <div class="similarity-grid" style="display: ${ep.isOpen ? 'grid' : 'none'}">
                 ${sortedGlobal.map(p => `
                     <div class="sim-input-box">
                         <span title="${escapeStr(p)}">${p}</span>
-                        <input type="number" placeholder="%" value="${(ep.similarity[p]||0)*100}" onchange="extraParties[${idx}].similarity['${escapeStr(p)}']=parseFloat(this.value)/100">
+                        <input type="text" inputmode="decimal" placeholder="%" value="${fmtPctInput((ep.similarity[p]||0)*100)}" onchange="extraParties[${idx}].similarity['${escapeStr(p)}']=parsePctInputOrZero(this.value)/100">
                     </div>
                 `).join('')}
             </div>
@@ -2130,7 +2212,7 @@ function renderDiger(){
             <div style="display: ${d.isOpen ? 'block' : 'none'};">
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; padding:6px 8px; background:rgba(228,30,63,0.08); border-radius:6px; border:1px solid rgba(228,30,63,0.25);">
                     <span style="font-size:11px; font-weight:bold; color:var(--danger); white-space:nowrap;">Toplam Oy %</span>
-                    <input type="number" step="0.1" min="0" max="100" placeholder="— (isteğe bağlı)" value="${d.targetPct || ''}" style="flex:1; margin:0; padding:4px 6px; font-size:12px; font-weight:bold; color:var(--danger);" onchange="digerGroups[${idx}].targetPct=this.value; updateTotalTracker(); if(Object.keys(globalResults).length>0)runProjection();" oninput="digerGroups[${idx}].targetPct=this.value; updateTotalTracker();">
+                    <input type="text" inputmode="decimal" placeholder="— (isteğe bağlı)" value="${d.targetPct ? fmtPctInput(d.targetPct) : ''}" style="flex:1; margin:0; padding:4px 6px; font-size:12px; font-weight:bold; color:var(--danger);" onchange="digerGroups[${idx}].targetPct=parsePctInput(this.value); updateTotalTracker(); if(Object.keys(globalResults).length>0)runProjection();" oninput="digerGroups[${idx}].targetPct=parsePctInput(this.value); updateTotalTracker();">
                     <span style="font-size:10px; color:var(--text-secondary); white-space:nowrap;">Üye partilerin oyları orantılı ölçeklenir</span>
                 </div>
                 <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; border-top: 1px dashed var(--border); padding-top:8px;">
@@ -2371,13 +2453,14 @@ function saveProject() {
     const projectData = {
         meta: { version: "10.1", date: new Date().toISOString() },
         datasets, extraParties, coalitions, electoralAlliances, fermuarListes, digerGroups, digerDisplayEnabled, customSeatOverrides, customDotPositions, parliamentOrderOverride,
+        districtVoteOverrides, autoComplete100,
         localDisabledParties: (() => {
             let obj = {};
             for(let k in localDisabledParties) obj[k] = Array.from(localDisabledParties[k]);
             return obj;
         })(),
         settings: {
-            threshold: parseFloat($('thresholdInp').value),
+            threshold: parsePctInputOrZero($('thresholdInp').value),
             calcMethod: $('calcMethodInp').value,
             mathMethod: $('mathMethodInp').value,
             mbEnabled: $('mbEnabledInp').checked,
@@ -2524,10 +2607,21 @@ function applyProjectData(data) {
             localDisabledParties[k] = new Set(data.localDisabledParties[k]);
         }
     }
-    
+
+    districtVoteOverrides = data.districtVoteOverrides || {};
+    autoComplete100 = !!data.autoComplete100;
+    if ($('autoComplete100Btn')) {
+        const btn = $('autoComplete100Btn');
+        if (autoComplete100) {
+            btn.style.background = 'var(--primary)'; btn.style.color = 'white'; btn.style.borderColor = 'var(--primary)';
+        } else {
+            btn.style.background = 'var(--surface)'; btn.style.color = 'var(--text-secondary)'; btn.style.borderColor = 'var(--border)';
+        }
+    }
+
     if(data.settings) {
         const s = data.settings;
-        if(s.threshold !== undefined && !isNaN(s.threshold)) $('thresholdInp').value = s.threshold;
+        if(s.threshold !== undefined && !isNaN(s.threshold)) $('thresholdInp').value = fmtPctInput(s.threshold);
         if(s.calcMethod)    $('calcMethodInp').value = s.calcMethod;
         if(s.mathMethod)    $('mathMethodInp').value = s.mathMethod;
         if(s.mbEnabled !== undefined) {
@@ -2638,8 +2732,12 @@ function runDhondt(v, s){
         }
         if(winP) { res[winP]++; lastQ = maxQ; }
     }
+    // Artık oy: her partinin kendi bir sonraki (kazanamadığı) bölümü, yani v[p]/(res[p]+1).
+    // Tek bir global "son bölüm" değerine göre hesaplamak partiler arasında haksız biçimde
+    // sandalye sayısına bağlı sapma yaratıyordu (çok sandalyeli parti hep az, az sandalyeli
+    // parti hep çok artık gösteriyordu); bu yöntem her parti için kendi bölümüne dayanır.
     const remainders = {};
-    for(let p in v) remainders[p] = Math.max(0, v[p] - (res[p] * lastQ));
+    for(let p in v) remainders[p] = v[p] / (res[p] + 1);
     return { seats: res, remainders, lastQ };
 }
 
@@ -2703,7 +2801,7 @@ function runProjection() {
         if(ds) ds.w = parseFloat(inp.value) || 0;
     });
 
-    const threshold = parseFloat($('thresholdInp').value) || 0;
+    const threshold = parsePctInputOrZero($('thresholdInp').value);
     const calcMethod = $('calcMethodInp').value;
     const mbEnabled = $('mbEnabledInp').checked;
     const mbCalcMethod = $('mbCalcMethodInp').value;
@@ -2839,6 +2937,33 @@ function runProjection() {
         const finalVotes = {};
         for(let p in scoreMap) finalVotes[p] = (scoreMap[p]/(totalScore||1)) * districtTotalVotes;
 
+        // --- İL BAZLI MANUEL OY ORANI MÜDAHALESİ ---
+        // Kullanıcı bir partinin/listenin bu ildeki oy oranını doğrudan sabitleyebilir;
+        // sabitlenmeyen partiler, kalan yüzdeyi kendi aralarındaki orana göre paylaşır.
+        const distOv = districtVoteOverrides[dName];
+        if (distOv) {
+            const overriddenSet = new Set();
+            let overriddenPctSum = 0;
+            Object.keys(distOv).forEach(p => {
+                if (finalVotes[p] !== undefined && distOv[p] !== undefined && distOv[p] !== null) {
+                    overriddenSet.add(p);
+                    overriddenPctSum += Math.max(0, parseFloat(distOv[p]) || 0);
+                }
+            });
+            if (overriddenSet.size > 0) {
+                let remainderCurrentSum = 0;
+                Object.keys(finalVotes).forEach(p => { if(!overriddenSet.has(p)) remainderCurrentSum += finalVotes[p]; });
+                const remainderTargetVotes = Math.max(0, districtTotalVotes - (overriddenPctSum / 100) * districtTotalVotes);
+                overriddenSet.forEach(p => { finalVotes[p] = (Math.max(0, parseFloat(distOv[p]) || 0) / 100) * districtTotalVotes; });
+                const nonOverridden = Object.keys(finalVotes).filter(p => !overriddenSet.has(p));
+                nonOverridden.forEach(p => {
+                    finalVotes[p] = remainderCurrentSum > 0
+                        ? (finalVotes[p] / remainderCurrentSum) * remainderTargetVotes
+                        : (nonOverridden.length > 0 ? remainderTargetVotes / nonOverridden.length : 0);
+                });
+            }
+        }
+
         // --- İL BAZLI PARTİ İPTALLERİNİ (PASİF DURUMLARI) UYGULA ---
         const locallyDisabled = localDisabledParties[dName] || new Set();
         let effectivelyDisabled = new Set(locallyDisabled);
@@ -2922,8 +3047,10 @@ function runProjection() {
                         }
                     });
                     
+                    const internalCount = Object.keys(internalVotes).length;
                     Object.keys(internalVotes).forEach(m => {
-                        let proportion = totalInternal > 0 ? (internalVotes[m] / totalInternal) : 0;
+                        // totalInternal=0 olsa bile (tüm üyeler pasif/oysuz) artık oy kaybolmasın, eşit paylaşılsın.
+                        let proportion = totalInternal > 0 ? (internalVotes[m] / totalInternal) : (internalCount > 0 ? 1 / internalCount : 0);
                         mbPartyPool[m] = (mbPartyPool[m] || 0) + Math.max(0, rem * proportion);
                     });
 
@@ -3330,8 +3457,10 @@ function renderResults(res){
         return;
     }
 
-    const domRatio = (parseFloat($('dominantWhiteInp').value) || 20) / 100;
-    const pluRatio = (parseFloat($('pluralityWhiteInp').value) || 40) / 100;
+    const domRatioRaw = parseFloat($('dominantWhiteInp').value);
+    const pluRatioRaw = parseFloat($('pluralityWhiteInp').value);
+    const domRatio = (isNaN(domRatioRaw) ? 20 : domRatioRaw) / 100;
+    const pluRatio = (isNaN(pluRatioRaw) ? 40 : pluRatioRaw) / 100;
 
     // ── Sütunlar: ülke geneli %1+ varlıklar, Diğer gruplama uygulanmış ──
     const partyToDisplayKey = {};
@@ -3732,6 +3861,51 @@ window.toggleLocalParty = function(dName, partyName) {
     runProjection(); // Değişikliği anında hesapla ve görünümleri güncelle
 };
 
+// Bir ildeki bir partinin/listenin oy oranını kullanıcı elle sabitler.
+window.updateDistrictVoteOverride = function(dName, partyName, val) {
+    const v = parsePctInput(val);
+    if (v === null) {
+        if (districtVoteOverrides[dName]) {
+            delete districtVoteOverrides[dName][partyName];
+            if (Object.keys(districtVoteOverrides[dName]).length === 0) delete districtVoteOverrides[dName];
+        }
+    } else {
+        if (!districtVoteOverrides[dName]) districtVoteOverrides[dName] = {};
+        districtVoteOverrides[dName][partyName] = Math.max(0, Math.min(100, v));
+        if (autoComplete100) autoBalanceDistrict(dName, partyName);
+    }
+    runProjection();
+    if (currentOverlayData && $('districtOverlay').style.display === 'block') renderDistrictOverlay();
+};
+
+// Etkinse, bir ildeki bir partinin oy oranı değiştiğinde o ildeki diğer partilerin
+// oranlarını, mevcut oranlarıyla orantılı biçimde toplam %100'ü koruyacak şekilde günceller.
+function autoBalanceDistrict(dName, changedParty) {
+    const data = globalResults[dName];
+    if (!data) return;
+    const displayData = getDisplayData(data);
+    const allParties = Object.keys(displayData.rawVotes).filter(p => p !== changedParty);
+    if (allParties.length === 0) return;
+    const totalVotes = displayData.totalVotes || 1;
+    const ov = districtVoteOverrides[dName] || {};
+    const changedVal = Math.max(0, Math.min(100, ov[changedParty] || 0));
+
+    const others = allParties.map(p => ({
+        p,
+        val: ov[p] !== undefined ? Math.max(0, parseFloat(ov[p]) || 0) : Math.max(0, (displayData.rawVotes[p] || 0) / totalVotes * 100)
+    }));
+    const othersSum = others.reduce((s, o) => s + o.val, 0);
+    const remaining = Math.max(0, 100 - changedVal);
+
+    if (!districtVoteOverrides[dName]) districtVoteOverrides[dName] = {};
+    if (othersSum > 0) {
+        others.forEach(o => { districtVoteOverrides[dName][o.p] = Math.round((o.val / othersSum) * remaining * 10) / 10; });
+    } else {
+        const each = Math.round((remaining / others.length) * 10) / 10;
+        others.forEach(o => { districtVoteOverrides[dName][o.p] = each; });
+    }
+}
+
 function renderDistrictOverlay() {
     if(!currentOverlayData) return;
     const dName = currentOverlayData.name;
@@ -3778,8 +3952,10 @@ function renderDistrictOverlay() {
     let borderCol = 'var(--border)'; 
     let wColor = 'var(--border)';
     
-    const domRatio = (parseFloat($('dominantWhiteInp').value) || 20) / 100;
-    const pluRatio = (parseFloat($('pluralityWhiteInp').value) || 40) / 100;
+    const domRatioRaw = parseFloat($('dominantWhiteInp').value);
+    const pluRatioRaw = parseFloat($('pluralityWhiteInp').value);
+    const domRatio = (isNaN(domRatioRaw) ? 20 : domRatioRaw) / 100;
+    const pluRatio = (isNaN(pluRatioRaw) ? 40 : pluRatioRaw) / 100;
 
     if (displayData.isMilliBakiye) {
         borderCol = 'var(--purple)';
@@ -3846,6 +4022,16 @@ function renderDistrictOverlay() {
             ? `<button onclick="toggleLocalParty('${escapeStr(dName)}', '${escapeStr(p)}')" class="status-btn ${!isLocallyDisabled ? 'active' : ''}" style="width:34px; height:34px; background:${!isLocallyDisabled ? 'var(--success)' : 'var(--surface-alt)'}; color:${!isLocallyDisabled ? '#fff' : 'var(--text-secondary)'}; border:1px solid ${!isLocallyDisabled ? 'var(--success)' : 'var(--border)'}; margin-right:14px; flex-shrink:0; cursor:pointer; font-size:13px; font-weight:bold; box-shadow:0 1px 2px rgba(0,0,0,0.1); transition:0.2s;" title="${!isLocallyDisabled ? 'Pasife al' : 'Aktif et'}">${!isLocallyDisabled ? 'A' : 'P'}</button>`
             : ``;
 
+        const districtOverrideVal = (districtVoteOverrides[dName] && districtVoteOverrides[dName][p] !== undefined) ? districtVoteOverrides[dName][p] : null;
+        const pctEditorHtml = (showLocalToggleButtons && !displayData.isMilliBakiye)
+            ? `<div style="display:flex; align-items:center; gap:3px; flex-shrink:0; margin-left:10px;">
+                    <input type="text" inputmode="decimal" class="do-pct-input" data-party="${escapeStr(p)}" value="${districtOverrideVal !== null ? fmtPctInput(districtOverrideVal) : fmtPctInput(realPct)}" style="width:56px; text-align:right; font-weight:bold; color:var(--primary); border:1px solid var(--border); border-radius:4px; padding:4px; font-size:13px;"
+                        oninput="updateDoPctTrackerUI()"
+                        onchange="updateDistrictVoteOverride('${escapeStr(dName)}', '${escapeStr(p)}', this.value)">
+                    <span style="font-size:11px; color:var(--text-secondary); font-weight:bold;">%</span>
+               </div>`
+            : ``;
+
         const pctInside = normalizedBarWidth >= 28;
         const barAreaHtml = pctInside
             ? `<div style="position:relative; width:${normalizedBarWidth}%; height:42px; border-radius:6px; min-width:32px; background:${isLocallyDisabled ? 'var(--disabled-bar)' : color}; transition:width 0.5s ease-out;">
@@ -3868,6 +4054,8 @@ function renderDistrictOverlay() {
                     </div>
                 </div>
 
+                ${pctEditorHtml}
+
                 <div style="width:80px; text-align:right; flex-shrink:0;">
                     ${s > 0 && !isLocallyDisabled
                         ? `<span style="font-size:34px; font-weight:900; color:${color}; letter-spacing:-1px;">${s}</span>`
@@ -3876,9 +4064,29 @@ function renderDistrictOverlay() {
             </div>
         `;
     });
-    
+
     $('doUnifiedList').innerHTML = listHtml;
     $('doShowAllBtn').style.display = hasHidden ? 'flex' : 'none';
+
+    const tracker = $('doPctTracker');
+    if (showLocalToggleButtons && !displayData.isMilliBakiye) {
+        tracker.style.display = 'block';
+        updateDoPctTrackerUI();
+    } else {
+        tracker.style.display = 'none';
+    }
+}
+
+// İl detay ekranındaki manuel oy oranı girdilerinin anlık toplamını gösterir (%100'e ne kadar kaldığını takip için).
+function updateDoPctTrackerUI() {
+    const tracker = $('doPctTracker');
+    if (!tracker || tracker.style.display === 'none') return;
+    const inputs = document.querySelectorAll('#doUnifiedList .do-pct-input');
+    let total = 0;
+    inputs.forEach(inp => { total += parsePctInputOrZero(inp.value); });
+    const remaining = 100 - total;
+    const remColor = Math.abs(remaining) < 0.05 ? 'var(--success)' : 'var(--danger)';
+    tracker.innerHTML = `Toplam: %${total.toFixed(1).replace('.', ',')} | Kalan: <span style="color:${remColor}; font-weight:900;">%${remaining.toFixed(1).replace('.', ',')}</span>`;
 }
 
 window.toggleLocalEditButtons = function() {
@@ -4338,7 +4546,7 @@ async function exportInfographic() {
         const mathLabel = { dhondt: "D'Hondt", hare: 'Hare Kotası', wta: 'Winner Takes All' }[mathVal] || mathVal;
         const calcVal = $('calcMethodInp') ? $('calcMethodInp').value : 'classic';
         const calcLabel = calcVal === 'alliance' ? 'İttifak İçi Dağıtım' : 'Klasik';
-        const thresholdVal = parseFloat($('thresholdInp').value) || 7;
+        const thresholdVal = parsePctInputOrZero($('thresholdInp').value) || 7;
         const now = new Date();
         const dateStr = now.toLocaleDateString('tr-TR', {year:'numeric', month:'long'});
 
@@ -4515,8 +4723,10 @@ async function captureDistrictPanelFallback() {
         if (s > maxMvs || (s === maxMvs && v > maxVotes)) { maxMvs=s; maxVotes=v; winnerParty=p; }
     });
     const wColor = winnerParty ? getPartyColor(winnerParty) : '#888888';
-    const domRatio = (parseFloat($('dominantWhiteInp').value) || 20) / 100;
-    const pluRatio = (parseFloat($('pluralityWhiteInp').value) || 40) / 100;
+    const domRatioRaw = parseFloat($('dominantWhiteInp').value);
+    const pluRatioRaw = parseFloat($('pluralityWhiteInp').value);
+    const domRatio = (isNaN(domRatioRaw) ? 20 : domRatioRaw) / 100;
+    const pluRatio = (isNaN(pluRatioRaw) ? 40 : pluRatioRaw) / 100;
     const isDominant = winnerParty && ((displayData.mvs[winnerParty]||0) > displayData.seats / 2);
     const borderCol = winnerParty ? blendWithWhite(wColor, isDominant ? domRatio : pluRatio) : (getComputedStyle(document.documentElement).getPropertyValue('--map-default').trim() || '#cccccc');
 
@@ -4642,13 +4852,14 @@ function saveProject() {
         meta: { version: "10.1-lean", date: new Date().toISOString() },
         datasets: datasets.map(ds => ({ name: ds.name, w: ds.w })),
         extraParties, coalitions, electoralAlliances, fermuarListes, digerGroups, digerDisplayEnabled, customSeatOverrides, customDotPositions, parliamentOrderOverride,
+        districtVoteOverrides, autoComplete100,
         localDisabledParties: (() => {
             let obj = {};
             for (let k in localDisabledParties) obj[k] = Array.from(localDisabledParties[k]);
             return obj;
         })(),
         settings: {
-            threshold: parseFloat($('thresholdInp').value),
+            threshold: parsePctInputOrZero($('thresholdInp').value),
             calcMethod: $('calcMethodInp').value,
             mathMethod: $('mathMethodInp').value,
             mbEnabled: $('mbEnabledInp').checked,
