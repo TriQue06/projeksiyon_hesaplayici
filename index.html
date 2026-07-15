@@ -365,6 +365,7 @@
         #uiModeToggle {
             display: flex; margin-bottom: 12px; border: 1px solid var(--border);
             border-radius: 8px; overflow: hidden; box-shadow: var(--shadow);
+            flex-shrink: 0; /* .left-panel dikey flex: overflow:hidden ile birlikte eleman 0'a ezilebiliyor */
         }
         #uiModeToggle button {
             flex: 1; padding: 9px; background: var(--surface); color: var(--text-secondary);
