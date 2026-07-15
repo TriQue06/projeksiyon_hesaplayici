@@ -461,7 +461,6 @@
                     <option value="">-- Arşivden Seç --</option>
                     <option value="temmuz1_2026.json" selected>Temmuz #1</option>
                     <option value="haziran3_2026.json">Haziran #3</option>
-                    <option value="haziran2_2026.json">Haziran 2026 #2</option>
                 </select>
                 <button onclick="loadFromArchive()" class="purple" style="flex:1;">Buluttan Getir ☁️</button>
             </div>
@@ -4042,7 +4041,18 @@ function renderDistrictOverlay() {
         return (itemRaw.preDisableVotes||{})[entityName] || (displayData.rawVotes[entityName] || 0);
     }
     const preDisTotal = Object.values(itemRaw.preDisableVotes || {}).reduce((a,b)=>a+b,0) || displayData.totalVotes || 1;
-    const sortedParties = Object.keys(displayData.rawVotes).sort((a,b) => preVotesOf(b) - preVotesOf(a));
+
+    // Fermuar listesindeki bir üye bu seçim çevresinde yarışmıyorsa (oyu diğer üyelere devredildi),
+    // burada %0,00 olarak listelenmemeli — o çevrede zaten aday değil, "show all" ile bile görünmemeli.
+    const isFermuarNonCompeting = (p) => fermuarListes.some(fl =>
+        fl.isEnabled !== false &&
+        fl.members.includes(p) &&
+        !(fl.districtMap[p] || []).includes(dName)
+    );
+
+    const sortedParties = Object.keys(displayData.rawVotes)
+        .filter(p => !isFermuarNonCompeting(p))
+        .sort((a,b) => preVotesOf(b) - preVotesOf(a));
     // Lider partinin oy yüzdesi: bar normalizasyonu için sabit referans (pasif yapılsa bile değişmez)
     const leaderPct = Math.max(...sortedParties.map(p => preVotesOf(p) / preDisTotal * 100), 0.01);
     
