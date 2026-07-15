@@ -345,15 +345,32 @@
         }
         #mapModeToggleBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.2); }
 
-        /* Panel Aç/Kapa (collapse) — başlığın kendisine tıklanır, ayrı bir ikon yok */
+        /* Panel Aç/Kapa (collapse) — başlığın kendisine tıklanır; sağda küçük yön oku */
         .card-header-row {
             display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
             margin-bottom: 10px;
         }
         .card-header-row label { margin: 0; cursor: pointer; }
+        .card-header-row::after {
+            content: '▾'; margin-left: auto; font-size: 11px; color: var(--text-secondary);
+            transition: transform 0.15s ease; flex-shrink: 0;
+        }
+        .card-header-row:has(#voteTotalTracker)::after { margin-left: 8px; }
+        .card.collapsed .card-header-row::after { transform: rotate(-90deg); }
         .card.collapsed .card-header-row { margin-bottom: 0; }
         .card.collapsed .card-body { display: none !important; }
         .card.collapsed { padding-bottom: 14px; }
+
+        /* Temel / Gelişmiş mod seçici */
+        #uiModeToggle {
+            display: flex; margin-bottom: 12px; border: 1px solid var(--border);
+            border-radius: 8px; overflow: hidden; box-shadow: var(--shadow);
+        }
+        #uiModeToggle button {
+            flex: 1; padding: 9px; background: var(--surface); color: var(--text-secondary);
+            border: none; font-size: 13px; font-weight: 800; cursor: pointer; transition: 0.15s;
+        }
+        #uiModeToggle button.active { background: var(--primary); color: #fff; }
 
         /* Ayarlar Paneli (artık diğer panellerle aynı açılır/kapanır kart) */
         .settings-section { margin-top: 18px; }
@@ -424,16 +441,20 @@
         </button>
     </div>
 
+    <div id="uiModeToggle">
+        <button id="modeBtnTemel" class="active" onclick="setUIMode('temel')">Temel</button>
+        <button id="modeBtnGelismis" onclick="setUIMode('gelismis')">Gelişmiş</button>
+    </div>
+
     <button id="selectionModeToggleBtn" onclick="toggleSelectionMode()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:11px 14px; margin-bottom:12px; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:8px; font-size:13px; font-weight:800; cursor:pointer; box-shadow:var(--shadow); transition:0.2s;">
         <span>🎯</span> Özel İnceleme Modu
     </button>
 
     <div class="card archive-card">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
-            <label>☁️ Arşivden Proje Getir</label>
+            <label>Arşivden Proje Getir</label>
         </div>
         <div class="card-body">
-            <span style="font-size: 11px; margin-bottom: 8px; display:block;">Arşivlenmiş seçim projeksiyon verilerini görüntüleyin. Seçildiğinde harita dosyaları otomatik yüklenir.</span>
             <div style="display:flex; gap:8px; margin-bottom:0;">
                 <select id="archiveSelector" style="flex:2; font-weight: bold; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <option value="">-- Arşivden Seç --</option>
@@ -446,10 +467,9 @@
 
     <div class="card infographic-card">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
-            <label>🖼️ İnfografik</label>
+            <label>İnfografik</label>
         </div>
         <div class="card-body">
-            <span style="font-size:11px; margin-bottom:10px; display:block;">3840×2160 çözünürlükte PNG infografik oluşturur ve indirir.</span>
             <button id="exportInfographicBtn" onclick="exportInfographic()" style="background:rgba(255,255,255,0.95); color:#880e4f; font-weight:900; border:none; padding:9px 16px; border-radius:6px; cursor:pointer; width:100%; font-size:13px; letter-spacing:0.2px;">🖼️ İnfografik İndir (PNG)</button>
         </div>
     </div>
@@ -457,19 +477,18 @@
     <!-- Ayarlar Paneli -->
     <div class="card collapsed" id="cardAyarlar">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
-            <label>⚙️ Ayarlar</label>
+            <label>Ayarlar</label>
         </div>
         <div class="card-body">
 
             <div class="settings-section" style="margin-top:0;">
-                <div class="settings-section-title">🖱️ Görünüm Modları</div>
+                <div class="settings-section-title">Görünüm</div>
 
                 <div class="settings-row">
                     <div class="settings-row-info">
-                        <div class="settings-row-icon">🔄</div>
                         <div>
                             <div class="settings-row-title">Harita Görünüm Modu</div>
-                            <div class="settings-row-desc">Haritanın partilere göre mi, yoksa ittifaklara göre mi renklendirileceğini belirler.</div>
+                            <div class="settings-row-desc">Harita partilere göre mi, ittifaklara göre mi boyansın?</div>
                         </div>
                     </div>
                     <button id="mapModeToggleBtn" class="settings-toggle-btn" onclick="toggleMapMode()">🔄 Görünüm: Partiler</button>
@@ -477,10 +496,9 @@
 
                 <div class="settings-row">
                     <div class="settings-row-info">
-                        <div class="settings-row-icon">🗂️</div>
                         <div>
-                            <div class="settings-row-title">Diğer Kategorilerini Göster</div>
-                            <div class="settings-row-desc">"Diğer Kategoriler" altında gruplanan partilerin harita ve tablo görünümünde ayrı gösterilip gösterilmeyeceğini ayarlar.</div>
+                            <div class="settings-row-title">"Diğer" Grubunu Göster</div>
+                            <div class="settings-row-desc">Diğer'de gruplanan partiler harita ve tabloda tek kalem olarak gösterilir.</div>
                         </div>
                     </div>
                     <button id="digerDisplayBtn" class="settings-toggle-btn" onclick="toggleDigerDisplay()" style="background:var(--danger); color:white; border-color:var(--danger);">🗂️ Diğer</button>
@@ -488,53 +506,34 @@
 
                 <div class="settings-row">
                     <div class="settings-row-info">
-                        <div class="settings-row-icon">🏛️</div>
                         <div>
                             <div class="settings-row-title">Parlamento Diyagramı Stili</div>
-                            <div class="settings-row-desc">Sonuç ekranındaki milletvekili diyagramını yarım daire (Arch) veya halka (Donut) şeklinde çizer.</div>
+                            <div class="settings-row-desc">Yarım daire (Arch) veya halka (Donut).</div>
                         </div>
                     </div>
                     <button id="parliamentStyleBtn" class="settings-toggle-btn" onclick="toggleParliamentStyle()">🏛️ Arch</button>
                 </div>
 
-            </div>
-
-            <div class="settings-section">
-                <div class="settings-section-title">🔧 İl Bazlı Düzenleme</div>
-
                 <div class="settings-row">
                     <div class="settings-row-info">
-                        <div class="settings-row-icon">🔧</div>
                         <div>
-                            <div class="settings-row-title">İl Düzenleme Modu</div>
-                            <div class="settings-row-desc">Açıkken il detay ekranında her parti için aktif/pasif düğmesi ve o ile özel oy oranı girişi belirir.</div>
+                            <div class="settings-row-title">Haritada Milletvekili Noktaları</div>
+                            <div class="settings-row-desc">Vekil dağılımı harita üzerinde nokta olarak gösterilir.</div>
                         </div>
                     </div>
-                    <button id="localEditToggleBtn" class="settings-toggle-btn" onclick="toggleLocalEditButtons()">🔧 Kapalı</button>
-                </div>
-
-                <div class="settings-row">
-                    <div class="settings-row-info">
-                        <div class="settings-row-icon">🧮</div>
-                        <div>
-                            <div class="settings-row-title">%100'e Tamamla</div>
-                            <div class="settings-row-desc">Parti Paneli'ndeki (veya açıksa il düzenleme ekranındaki) mevcut oy oranlarını, aralarındaki oranı koruyarak anında toplamı %100'e tamamlar.</div>
-                        </div>
-                    </div>
-                    <button id="autoComplete100Btn" class="settings-toggle-btn" onclick="completeTo100()" style="background:var(--primary); color:white; border-color:var(--primary);">🧮 Tamamla</button>
+                    <input type="checkbox" id="showMVDotsInp" onchange="updateMapColors()" style="width:20px; height:20px; flex-shrink:0;" checked>
                 </div>
 
             </div>
 
             <div class="settings-section">
-                <div class="settings-section-title">🎨 Harita Renklendirme</div>
+                <div class="settings-section-title">Harita Renklendirme</div>
 
                 <div class="settings-row">
                     <div class="settings-row-info">
-                        <div class="settings-row-icon">⬛</div>
                         <div>
                             <div class="settings-row-title">Baskın Durum Beyaz Oranı (%50+)</div>
-                            <div class="settings-row-desc">Bir partinin sandalyelerin yarısından fazlasını aldığı illerde, harita rengine karıştırılacak beyaz oranı. 0 = beyaz karıştırılmaz.</div>
+                            <div class="settings-row-desc">Bir parti sandalyelerin yarısından fazlasını aldığında renge karıştırılacak beyaz. 0 = saf renk.</div>
                         </div>
                     </div>
                     <div class="settings-field" style="width:90px; display:flex; align-items:center; gap:4px;">
@@ -545,10 +544,9 @@
 
                 <div class="settings-row">
                     <div class="settings-row-info">
-                        <div class="settings-row-icon">◽</div>
                         <div>
                             <div class="settings-row-title">Sadece 1. Parti Beyaz Oranı</div>
-                            <div class="settings-row-desc">Hiçbir partinin çoğunluğu olmadığı, sadece en önde olduğu illerde karıştırılacak beyaz oranı. 0 = beyaz karıştırılmaz.</div>
+                            <div class="settings-row-desc">Çoğunluk yokken, sadece önde olan partinin rengine karıştırılacak beyaz. 0 = saf renk.</div>
                         </div>
                     </div>
                     <div class="settings-field" style="width:90px; display:flex; align-items:center; gap:4px;">
@@ -559,16 +557,30 @@
 
             </div>
 
+            <div class="settings-section" id="advCevreMudahale" style="display:none;">
+                <div class="settings-section-title">Gelişmiş</div>
+
+                <div class="settings-row">
+                    <div class="settings-row-info">
+                        <div>
+                            <div class="settings-row-title">Seçim Çevrelerine Müdahale</div>
+                            <div class="settings-row-desc">Açıkken il detay ekranında parti bazlı aktif/pasif ve oy oranı girişi belirir.</div>
+                        </div>
+                    </div>
+                    <button id="localEditToggleBtn" class="settings-toggle-btn" onclick="toggleLocalEditButtons()">🔧 Kapalı</button>
+                </div>
+
+            </div>
+
         </div>
     </div>
 
-    <!-- 1. Seçim Veri Setleri -->
-    <div class="card collapsed" id="cardVeriYukle">
+    <!-- 1. Seçim Veri Setleri (gelişmiş mod) -->
+    <div class="card collapsed" id="cardVeriYukle" style="display:none;">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
             <label>Seçim Veri Setleri</label>
         </div>
         <div class="card-body">
-            <span style="font-size: 11px; margin-bottom: 8px; color: var(--text-secondary); display:block;">Bilgisayarınızdan yerel seçim sonuçlarını (.json dosyası) aktarın.</span>
             <input type="file" id="fileInp" accept=".json,.txt" multiple style="width: 100%; margin-bottom: 12px;">
             <div id="datasetsList" class="scroll-area"></div>
         </div>
@@ -578,15 +590,11 @@
     <div class="card">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
             <label>Parti Paneli</label>
+            <div id="voteTotalTracker" onclick="event.stopPropagation()" style="margin-left:auto; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 4px; background: var(--highlight-bg); color: var(--primary); border: 1px solid var(--primary); transition: 0.3s; cursor:default;">
+                Toplam: %0.00 | Kalan: %100.00
+            </div>
         </div>
         <div class="card-body">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <button onclick="event.stopPropagation();openClearModal()" title="Projeksiyonu sıfırla" style="background:none;border:1px solid var(--border);border-radius:6px;padding:2px 7px;cursor:pointer;font-size:13px;color:var(--text-secondary);line-height:1.4;" onmouseover="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">🗑️ Sıfırla</button>
-                <div id="voteTotalTracker" style="font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 4px; background: var(--highlight-bg); color: var(--primary); border: 1px solid var(--primary); transition: 0.3s;">
-                    Toplam: %0.00 | Kalan: %100.00
-                </div>
-            </div>
-            <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:0; margin-bottom:10px;">Simülasyona girecek partileri tanımlayın. Sol kısımdan <b>sürükleyerek</b> sıralarını değiştirebilirsiniz. Partinin <b>isminin üstüne tıklayarak</b> adını düzenleyebilirsiniz.</span>
             <div class="flex-row">
                 <input id="newPName" placeholder="Parti Adı">
                 <input id="newPNat" type="text" inputmode="decimal" placeholder="Oy (%)" style="width:80px">
@@ -601,17 +609,12 @@
         </div>
     </div>
 
-    <!-- 3. Diğer Kategoriler -->
+    <!-- 3. Diğer Grubu (sabit tek öge) -->
     <div class="card collapsed">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
-            <label>Diğer Kategoriler</label>
+            <label>Diğer</label>
         </div>
         <div class="card-body">
-            <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:0; margin-bottom:10px;">Partileri görsel olarak gruplandırır. Hesaplama değişmez; her parti kendi başına milletvekili çıkarır. Bir parti aynı anda ittifakta, ortak listede ve Diğer'de olabilir.</span>
-            <div class="flex-row">
-                <input id="digerName" placeholder="Kategori Adı (Örn: Bağımsızlar)">
-                <button onclick="addDiger()" class="danger" style="width:40px; font-size: 16px;">+</button>
-            </div>
             <div id="digerArea" class="scroll-area"></div>
         </div>
     </div>
@@ -622,7 +625,6 @@
             <label>İttifaklar</label>
         </div>
         <div class="card-body">
-            <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:0; margin-bottom:10px;">Partiler ayrı girer, barajı beraber geçerler. Sürüklenebilir ve rengi değiştirilebilir.</span>
             <div class="flex-row">
                 <input id="allianceName" placeholder="İttifak Adı (Örn: Cumhur İttifakı)">
                 <button onclick="addAlliance()" class="teal" style="width:40px; font-size: 16px;">+</button>
@@ -637,7 +639,6 @@
             <label>Fermuar Liste</label>
         </div>
         <div class="card-body">
-            <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:0; margin-bottom:10px;">Aynı çatı altındaki partilerin seçim çevresi paylaşımı. Bir çevrede yarışmayan üyelerin oyları, o çevredeki yarışan üyelere orantılı aktarılır.</span>
             <div class="flex-row">
                 <input id="fermuarName" placeholder="Liste Adı (Örn: Sol Federasyon)">
                 <button onclick="addFermuar()" class="blue" style="width:40px; font-size: 16px;">+</button>
@@ -652,7 +653,6 @@
             <label>Ortak Liste</label>
         </div>
         <div class="card-body">
-            <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:0; margin-bottom:10px;">Partiler seçime tek bir çatı altında girer. Sürükleyerek sırasını, üstüne tıklayarak adını ve renk kutusundan rengini değiştirebilirsiniz.</span>
             <div class="flex-row">
                 <input id="coalName" placeholder="Liste Adı (Örn: CHP Listesi)">
                 <button onclick="addCoalition()" class="purple" style="width:40px; font-size: 16px;">+</button>
@@ -664,7 +664,7 @@
     <!-- 7. Seçim Ayarları -->
     <div class="card collapsed">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
-            <label>⚖️ Seçim Ayarları</label>
+            <label>Seçim Ayarları</label>
         </div>
         <div class="card-body">
             <div class="flex-row" style="gap: 12px; margin-bottom:12px;">
@@ -690,36 +690,84 @@
                     </select>
                 </div>
             </div>
-            <div class="flex-row" style="gap: 12px; margin-bottom:0; margin-top:12px; border-top:1px dashed var(--border); padding-top:12px;">
-                <div style="flex: 1; display:flex; align-items:center; gap:8px;">
-                    <input type="checkbox" id="mbEnabledInp" style="flex:none; width:16px; height:16px;" onchange="document.getElementById('mbSettingsWrapper').style.display = this.checked ? 'flex' : 'none'">
-                    <span style="font-size:12px; font-weight:bold; color:var(--text-secondary);">Milli Bakiye Ekle</span>
+        </div>
+    </div>
+
+    <!-- 8. Milli Bakiye (gelişmiş mod) -->
+    <div class="card collapsed" id="cardMilliBakiye" style="display:none;">
+        <div class="card-header-row" onclick="toggleCardCollapse(this)">
+            <label>Milli Bakiye</label>
+        </div>
+        <div class="card-body">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                <input type="checkbox" id="mbEnabledInp" style="flex:none; width:18px; height:18px;" onchange="document.getElementById('mbSettingsWrapper').style.display = this.checked ? 'flex' : 'none'">
+                <span style="font-size:13px; font-weight:bold; color:var(--text);">Milli Bakiye Havuzunu Etkinleştir</span>
+            </div>
+            <div id="mbSettingsWrapper" style="display:none; gap:12px;">
+                <div style="flex:1;">
+                    <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">Dağıtım Modeli</span>
+                    <select id="mbCalcMethodInp" style="width:100%; font-weight:bold; padding: 7px; color:var(--purple);">
+                        <option value="classic">Klasik (2022)</option>
+                        <option value="alliance">İttifaklı (2018)</option>
+                    </select>
                 </div>
-                <div id="mbSettingsWrapper" style="flex: 2; display:none; gap:12px;">
-                    <div style="flex:1;">
-                        <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">MB D'Hondt Modeli</span>
-                        <select id="mbCalcMethodInp" style="width:100%; font-weight:bold; padding: 7px; color:var(--purple);">
-                            <option value="classic">Klasik (2022)</option>
-                            <option value="alliance">İttifaklı (2018)</option>
-                        </select>
-                    </div>
-                    <div style="flex:1;">
-                        <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">MB Koltuk Sayısı</span>
-                        <input type="number" id="mbSeatsInp" value="50" min="1" style="width:100%; font-weight:bold; color:var(--purple);">
-                    </div>
+                <div style="flex:1;">
+                    <span style="font-size:11px; font-weight:bold; color:var(--text-secondary);">Koltuk Sayısı</span>
+                    <input type="number" id="mbSeatsInp" value="50" min="1" style="width:100%; font-weight:bold; color:var(--purple);">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 8. Harita Verisi -->
+    <!-- 9. Vekil Nokta Konumları -->
     <div class="card collapsed">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
-            <label>Harita Verisi</label>
+            <label>Vekil Nokta Konumları</label>
         </div>
         <div class="card-body">
-            <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:0; margin-bottom:10px;">Sonuçları sağ paneldeki haritada boyamak için SVG haritanızı ve şehir eşleştirme sözlüğünüzü tanımlayın.</span>
+            <button id="toggleEditModeBtn" onclick="toggleEditMode()" style="width:100%; background:var(--surface); color:var(--text); border-radius:6px; font-size:12px; padding:9px 10px; border:1px solid var(--border); cursor:pointer; font-weight:bold; margin-bottom:10px;">✏️ Konum Düzenleme Modu: KAPALI</button>
+            <div style="display:flex; gap:8px;">
+                <button id="downloadPositionsBtn" onclick="downloadDotPositions()" class="blue" style="flex:1;">📥 Konumları İndir (.JSON)</button>
+                <button onclick="document.getElementById('dotPositionsLoader').click()" class="orange" style="flex:1;">📤 Konum Dosyası Yükle (.JSON)</button>
+                <input type="file" id="dotPositionsLoader" accept=".json" style="display:none" onchange="loadCustomDotPositions(this)">
+            </div>
+        </div>
+    </div>
 
+    <!-- 10. Milletvekili Sayıları (gelişmiş mod) -->
+    <div class="card collapsed" id="cardKoltukVerisi" style="display:none;">
+        <div class="card-header-row" onclick="toggleCardCollapse(this)">
+            <label>Milletvekili Sayıları</label>
+        </div>
+        <div class="card-body">
+            <div style="display:flex; gap:8px;">
+                <button onclick="downloadSeatData()" class="blue" style="flex:1;">📥 Koltukları İndir (.JSON)</button>
+                <button onclick="document.getElementById('seatDataLoader').click()" class="orange" style="flex:1;">📤 Koltuk Verisi Yükle (.JSON)</button>
+                <input type="file" id="seatDataLoader" accept=".json" style="display:none" onchange="loadSeatData(this)">
+            </div>
+        </div>
+    </div>
+
+    <!-- 11. Parlamento Sıralaması -->
+    <div class="card collapsed">
+        <div class="card-header-row" onclick="toggleCardCollapse(this)">
+            <label>Parlamento Sıralaması</label>
+        </div>
+        <div class="card-body">
+            <div id="parlOrderList" style="display:flex; flex-direction:column; gap:4px; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:6px;">
+                <select id="parlOrderSelect" style="flex:1; font-size:12px; padding:4px; background:var(--input-bg); color:var(--text); border:1px solid var(--border); border-radius:4px;"></select>
+                <button onclick="addParlOrderEntry()" style="background:var(--primary); color:#fff; border:none; border-radius:4px; padding:4px 12px; cursor:pointer; font-size:12px; font-weight:bold;">+ Ekle</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 12. Geliştirici Modu (en altta) -->
+    <div class="card collapsed" id="cardGelistirici">
+        <div class="card-header-row" onclick="toggleCardCollapse(this)">
+            <label>Geliştirici Modu</label>
+        </div>
+        <div class="card-body">
             <div id="haritaManuelYukle" class="flex-row" style="gap:12px; align-items: flex-end;">
                 <div style="flex:1;">
                     <span style="font-size: 11px; font-weight: bold; color: var(--text-secondary); display:block; margin-bottom:4px;">Manuel SVG Harita:</span>
@@ -729,49 +777,6 @@
                     <span style="font-size: 11px; font-weight: bold; color: var(--text-secondary); display:block; margin-bottom:4px;">Manuel Sözlük (.json):</span>
                     <input type="file" accept=".json" onchange="loadMappingJson(this)" style="width:100%; padding: 6px;">
                 </div>
-            </div>
-
-            <div style="margin-top: 12px; border-top: 1px dashed var(--border-dashed); padding-top: 12px;">
-                <label style="display:flex; align-items:center; gap:8px; cursor: pointer; margin:0;">
-                    <input type="checkbox" id="showMVDotsInp" onchange="updateMapColors()" style="width:18px; height:18px; flex:none;" checked>
-                    <span style="font-size: 13px; font-weight: bold; color: var(--purple);">🟣 Harita Üzerinde Milletvekillerini Göster</span>
-                </label>
-                <span style="font-size:10.5px; color:var(--text-secondary); display:block; margin-top:6px; margin-left:26px;">Vekil sayıları seçilen konuma geniş veya hafif dikey (20+ vekil için) olacak şekilde dizilir. Çarpışma önleyici fizik algoritması aktiftir.</span>
-
-                <div id="haritaVekilKonumYukle" style="margin-left:26px; margin-top: 12px; border-top: 1px dashed var(--border-dashed); padding-top: 12px;">
-                    <span style="font-size: 11px; font-weight: bold; color: var(--text-secondary); display:block; margin-bottom:4px;">Vekil Konum Dosyası Yükle (.json):</span>
-                    <input type="file" accept=".json" onchange="loadCustomDotPositions(this)" style="width:100%; padding: 6px;">
-                </div>
-            </div>
-
-            <div id="editModeSection" style="margin-top: 12px; border-top: 1px dashed var(--border-dashed); padding-top: 12px; display:none; gap:8px;">
-                <button id="toggleEditModeBtn" onclick="toggleEditMode()" style="flex:1; background:var(--text); color:white; border-radius:6px; font-size:12px; padding:8px 10px; border:1px solid rgba(0,0,0,0.1); cursor:pointer; font-weight:bold;">✏️ Düzenleme Modu: KAPALI</button>
-                <button id="downloadPositionsBtn" onclick="downloadDotPositions()" style="display:none; background:var(--purple); color:white; border-radius:6px; font-size:12px; padding:8px 10px; border:none; cursor:pointer; font-weight:bold;">💾 Konumları İndir</button>
-            </div>
-
-            <div style="margin-top: 12px; border-top: 1px dashed var(--border-dashed); padding-top: 12px;">
-                <label style="font-size:11px; font-weight:bold; color:var(--text-secondary); display:block; margin-bottom:4px;">📊 Parlamento Diyagramı Sıralama</label>
-                <span style="font-size:10px; color:var(--text-secondary); display:block; margin-bottom:8px;">Eklenen partiler bu sırayla diyagramda görünür. Eklenmeyen partiler koltuk sayısına göre sıralanır.</span>
-                <div id="parlOrderList" style="display:flex; flex-direction:column; gap:4px; margin-bottom:8px;"></div>
-                <div style="display:flex; gap:6px;">
-                    <select id="parlOrderSelect" style="flex:1; font-size:12px; padding:4px; background:var(--input-bg); color:var(--text); border:1px solid var(--border); border-radius:4px;"></select>
-                    <button onclick="addParlOrderEntry()" style="background:var(--primary); color:#fff; border:none; border-radius:4px; padding:4px 12px; cursor:pointer; font-size:12px; font-weight:bold;">+ Ekle</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 9. Çevre Koltuk Verisi -->
-    <div class="card collapsed" id="cardKoltukVerisi">
-        <div class="card-header-row" onclick="toggleCardCollapse(this)">
-            <label>Çevre Koltuk Verisi</label>
-        </div>
-        <div class="card-body">
-            <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:0; margin-bottom:10px;">Tüm illerin koltuk sayılarını topluca değiştirmek için .JSON formatında veri yükleyebilir veya mevcut dağılımı indirebilirsiniz. Eklenen veriler ana dosyadaki sayıları ezer.</span>
-            <div style="display:flex; gap:8px;">
-                <button onclick="downloadSeatData()" class="blue" style="flex:1;">📥 Koltukları İndir (.JSON)</button>
-                <button onclick="document.getElementById('seatDataLoader').click()" class="orange" style="flex:1;">📤 Koltuk Verisi Yükle (.JSON)</button>
-                <input type="file" id="seatDataLoader" accept=".json" style="display:none" onchange="loadSeatData(this)">
             </div>
         </div>
     </div>
@@ -783,15 +788,17 @@
             <button onclick="document.getElementById('projectLoader').click()" class="teal" style="flex:1;">📂 Yükle (.JSON)</button>
         </div>
         <input type="file" id="projectLoader" accept=".json" style="display:none" onchange="loadProject(this)">
-        <button id="downloadDatasetBtn" onclick="downloadDataset()" class="blue" style="width:100%;">📊 Veri Seti Olarak İndir (.JSON)</button>
+        <button id="downloadDatasetBtn" onclick="downloadDataset()" class="blue" style="width:100%; display:none; margin-bottom:8px;">📊 Veri Seti Olarak İndir (.JSON)</button>
+        <button onclick="openClearModal()" style="width:100%; background:none; border:1px solid var(--border); border-radius:6px; padding:8px; cursor:pointer; font-size:12px; font-weight:bold; color:var(--text-secondary); transition:0.2s;" onmouseover="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">🗑️ Projeksiyonu Temizle</button>
     </div>
 </div>
 
 <div class="right-panel">
 
     <div id="mainContentWrapper">
-        <div id="parliamentContainer" class="card" style="display:none; margin-bottom: 24px; padding: 12px 24px;">
-            <div style="display:flex; gap:20px; align-items:center;">
+        <div id="parliamentContainer" class="card" style="display:none; margin-bottom: 24px; padding: 12px 24px; position: relative;">
+            <button id="parliamentScreenshotBtn" onclick="captureParliamentPanel(this)" title="Ekran Görüntüsü Al" style="position:absolute; top:10px; right:10px; z-index:5; background: var(--surface); color: var(--text); border-radius: 8px; font-size: 16px; padding: 6px 10px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: 0.2s; line-height:1;">📸</button>
+            <div id="parliamentPanelCapture" style="display:flex; gap:20px; align-items:center;">
                 <div style="flex:3; min-width:0; text-align:center;">
                     <div id="parliamentChartLabel" style="display:none;"></div>
                     <div id="parliamentChartArea"></div>
@@ -1607,19 +1614,18 @@ let dragOffset = {x: 0, y: 0};
 function toggleEditMode() {
     isEditModeActive = !isEditModeActive;
     const btn = $('toggleEditModeBtn');
-    const dBtn = $('downloadPositionsBtn');
     if (isEditModeActive) {
-        btn.innerHTML = "✏️ Düzenleme Modu: AÇIK";
+        btn.innerHTML = "✏️ Konum Düzenleme Modu: AÇIK";
         btn.style.background = "var(--success)";
         btn.style.borderColor = "var(--success)";
-        dBtn.style.display = "block";
+        btn.style.color = "#fff";
     } else {
-        btn.innerHTML = "✏️ Düzenleme Modu: KAPALI";
-        btn.style.background = "var(--text)";
-        btn.style.borderColor = "rgba(0,0,0,0.1)";
-        dBtn.style.display = "none";
+        btn.innerHTML = "✏️ Konum Düzenleme Modu: KAPALI";
+        btn.style.background = "var(--surface)";
+        btn.style.borderColor = "var(--border)";
+        btn.style.color = "var(--text)";
     }
-    updateMapColors(); 
+    updateMapColors();
 }
 
 function getSvgMousePosition(evt) {
@@ -2065,7 +2071,7 @@ function addExtraParty(){
     takeSnapshot();
     extraParties.push({ name, nat, similarity:{}, isOpen: true, isEnabled: true, color: '#000000' });
     $('newPName').value = ''; $('newPNat').value = '';
-    renderExtraParties(); renderCoalitions(); renderAlliances();
+    refreshPartyDependentViews();
 }
 
 function addExtraPartyBottom(){
@@ -2075,49 +2081,31 @@ function addExtraPartyBottom(){
     takeSnapshot();
     extraParties.push({ name, nat, similarity:{}, isOpen: true, isEnabled: true, color: '#000000' });
     $('newPName2').value = ''; $('newPNat2').value = '';
-    renderExtraParties(); renderCoalitions(); renderAlliances();
+    refreshPartyDependentViews();
 }
 
-// "%100'e Tamamla" butonu: kullanıcı kafasına göre değerler girip bu butona basınca,
-// mevcut oranların birbirine göre oranını koruyarak toplamı anında tam %100'e ölçekler.
-// İl düzenleme ekranı açıksa o ildeki oy oranı girişlerini, değilse Parti Paneli'ndeki
-// ulusal oy oranlarını hedef alır.
-window.completeTo100 = function() {
-    const overlayOpen = $('districtOverlay').style.display === 'block';
+// Parti listesinden türetilen tüm görünümleri tek yerden tazeler; parti ekleme/silme
+// sonrası Diğer, Fermuar ve Parlamento Sıralaması seçim kutusunun güncel kalmasını sağlar.
+function refreshPartyDependentViews() {
+    renderExtraParties();
+    renderCoalitions();
+    renderAlliances();
+    renderDiger();
+    renderFermuar();
+    renderParlOrder();
+}
 
-    if (overlayOpen && showLocalToggleButtons && currentOverlayData) {
-        const dName = currentOverlayData.name;
-        const inputs = document.querySelectorAll('#doUnifiedList .do-pct-input');
-        if (inputs.length === 0) return;
-        const values = Array.from(inputs).map(inp => ({ party: inp.dataset.party, val: Math.max(0, parsePctInputOrZero(inp.value)) }));
-        const sum = values.reduce((s, v) => s + v.val, 0);
-        if (sum > 0) {
-            values.forEach(v => { v.val = Math.round((v.val / sum) * 100 * 10) / 10; });
-        } else {
-            const each = Math.round((100 / values.length) * 10) / 10;
-            values.forEach(v => { v.val = each; });
-        }
-        if (!districtVoteOverrides[dName]) districtVoteOverrides[dName] = {};
-        values.forEach(v => {
-            const baseline = (districtBaselineShares[dName] && districtBaselineShares[dName][v.party]) || 0;
-            districtVoteOverrides[dName][v.party] = baseline > 0.001 ? { ratio: v.val / baseline } : { abs: v.val };
-        });
-        runProjection();
-        renderDistrictOverlay();
-    } else {
-        const enabled = extraParties.filter(ep => ep.isEnabled !== false);
-        if (enabled.length === 0) return;
-        const sum = enabled.reduce((s, ep) => s + Math.max(0, parseFloat(ep.nat) || 0), 0);
-        if (sum > 0) {
-            enabled.forEach(ep => { ep.nat = Math.round((Math.max(0, parseFloat(ep.nat) || 0) / sum) * 100 * 10) / 10; });
-        } else {
-            const each = Math.round((100 / enabled.length) * 10) / 10;
-            enabled.forEach(ep => { ep.nat = each; });
-        }
-        renderExtraParties();
-        updateTotalTracker();
-        if (Object.keys(globalResults).length > 0) runProjection();
-    }
+window.deleteParty = function(idx) {
+    takeSnapshot();
+    const name = extraParties[idx].name;
+    extraParties.splice(idx, 1);
+    parliamentOrderOverride = parliamentOrderOverride.filter(p => p !== name);
+    coalitions.forEach(c => { c.members = c.members.filter(m => m !== name); });
+    electoralAlliances.forEach(a => { a.members = a.members.filter(m => m !== name); });
+    digerGroups.forEach(d => { d.members = d.members.filter(m => m !== name); });
+    fermuarListes.forEach(fl => { fl.members = fl.members.filter(m => m !== name); delete fl.districtMap[name]; });
+    $('thresholdInp').value = 7;
+    refreshPartyDependentViews();
 };
 
 // ── Color Picker ──────────────────────────────────────────────────────────────
@@ -2217,7 +2205,7 @@ window.closeColorModal = function() { $('colorModalOverlay').style.display = 'no
 window.saveColorModal = function() {
     takeSnapshot();
     const val = cpGetHex();
-    if(activeColorTarget.type === 'party')    { extraParties[activeColorTarget.idx].color = val; renderExtraParties(); }
+    if(activeColorTarget.type === 'party')    { extraParties[activeColorTarget.idx].color = val; renderExtraParties(); renderParlOrder(); }
     else if(activeColorTarget.type === 'coal')     { coalitions[activeColorTarget.idx].color = val; renderCoalitions(); }
     else if(activeColorTarget.type === 'alliance') { electoralAlliances[activeColorTarget.idx].color = val; renderAlliances(); }
     else if(activeColorTarget.type === 'diger')    { digerGroups[activeColorTarget.idx].color = val; renderDiger(); }
@@ -2235,7 +2223,7 @@ function renderExtraParties(){
                 
                 <button class="toggle-btn" onclick="extraParties[${idx}].isOpen=!extraParties[${idx}].isOpen;renderExtraParties()">${ep.isOpen ? '▲' : '▼'}</button>
                 
-                <button class="status-btn ${ep.isEnabled !== false ? 'active' : ''}" style="background:${ep.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${ep.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${ep.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="extraParties[${idx}].isEnabled=!(extraParties[${idx}].isEnabled!==false); updateTotalTracker(); renderExtraParties();" title="${ep.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${ep.isEnabled !== false ? 'A' : 'P'}</button>
+                <button class="status-btn ${ep.isEnabled !== false ? 'active' : ''}" style="background:${ep.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${ep.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${ep.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="extraParties[${idx}].isEnabled=!(extraParties[${idx}].isEnabled!==false); updateTotalTracker(); renderExtraParties(); renderParlOrder();" title="${ep.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${ep.isEnabled !== false ? 'A' : 'P'}</button>
                 
                 <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius:6px; background:${ep.color || '#000000'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('party', ${idx})"></div>
                 
@@ -2243,7 +2231,7 @@ function renderExtraParties(){
                 
                 <input type="text" inputmode="decimal" value="${fmtPctInput(ep.nat)}" style="width:65px; margin:0; font-weight:bold; color:var(--primary); flex-shrink:0;" oninput="extraParties[${idx}].nat=parsePctInputOrZero(this.value); updateTotalTracker();">
                 <span style="font-weight:bold; color:var(--text-secondary); flex-shrink:0;">%</span>
-                <button class="danger" onclick="takeSnapshot();extraParties.splice(${idx},1);$('thresholdInp').value=7;renderExtraParties();renderCoalitions();renderAlliances();">✖</button>
+                <button class="danger" onclick="deleteParty(${idx})">✖</button>
             </div>
             <div class="similarity-grid" style="display: ${ep.isOpen ? 'grid' : 'none'}">
                 ${sortedGlobal.map(p => `
@@ -2333,32 +2321,28 @@ function renderAlliances(){
     `).join('');
 }
 
-function addDiger(){
-    const name = $('digerName').value.trim();
-    if(!name) return;
-    takeSnapshot();
-    digerGroups.push({ name, members:[], isOpen: true, isEnabled: true, color: '#888888', targetPct: '' });
-    $('digerName').value = '';
-    renderDiger();
+// "Diğer" artık sabit tek bir gruptur: eklenemez, silinemez, adı değişmez.
+// Kullanıcı yalnızca aktif/pasif durumunu, rengini, hedef oy yüzdesini ve üyelerini düzenler.
+function ensureDigerGroup() {
+    if (digerGroups.length === 0) {
+        digerGroups.push({ name: 'Diğer', members: [], isOpen: true, isEnabled: true, color: '#888888', targetPct: '' });
+    }
 }
 
 function renderDiger(){
     if(!$('digerArea')) return;
+    ensureDigerGroup();
     const all = extraParties.map(e=>e.name).sort((a,b) => a.localeCompare(b, 'tr'));
     $('digerArea').innerHTML = digerGroups.map((d, idx) => `
-        <div class="data-row" style="border-left-color: var(--danger);" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'diger', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'diger', ${idx})">
+        <div class="data-row" style="border-left-color: var(--danger);">
             <div class="flex-row" style="margin-bottom:${d.isOpen ? '8px' : '0'};">
-                <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
-
                 <button class="toggle-btn" onclick="digerGroups[${idx}].isOpen=!digerGroups[${idx}].isOpen;renderDiger()">${d.isOpen ? '▲' : '▼'}</button>
 
                 <button class="status-btn ${d.isEnabled !== false ? 'active' : ''}" style="background:${d.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${d.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${d.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="digerGroups[${idx}].isEnabled=!(digerGroups[${idx}].isEnabled!==false);renderDiger();if(Object.keys(globalResults).length>0)runProjection();" title="${d.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${d.isEnabled !== false ? 'A' : 'P'}</button>
 
                 <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius:6px; background:${d.color || '#888888'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('diger', ${idx})"></div>
 
-                <input type="text" class="editable-name" value="${escapeStr(d.name)}" onchange="renameDiger(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
-
-                <button class="danger" onclick="takeSnapshot();digerGroups.splice(${idx},1);renderDiger();if(Object.keys(globalResults).length>0)runProjection();">✖</button>
+                <span style="flex:1; font-weight:bold; color:var(--text); font-size:14px;">${escapeStr(d.name)}</span>
             </div>
             <div style="display: ${d.isOpen ? 'block' : 'none'};">
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; padding:6px 8px; background:rgba(228,30,63,0.08); border-radius:6px; border:1px solid rgba(228,30,63,0.25);">
@@ -2378,13 +2362,6 @@ function renderDiger(){
         </div>
     `).join('');
 }
-
-window.renameDiger = function(idx, newName) {
-    newName = newName.trim();
-    if(!newName) { renderDiger(); return; }
-    digerGroups[idx].name = newName;
-    renderDiger();
-};
 
 function addFermuar() {
     const name = $('fermuarName').value.trim();
@@ -2737,6 +2714,7 @@ function applyProjectData(data) {
         isEnabled: d.isEnabled!==false,
         color: d.color || '#888888'
     }));
+    ensureDigerGroup();
 
     if (data.digerDisplayEnabled !== undefined) {
         digerDisplayEnabled = data.digerDisplayEnabled;
@@ -4506,8 +4484,32 @@ document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) { e.preventDefault(); redo(); }
 });
 
-// Sayfa yüklenince color picker'ı başlat (Genel/Gelişmiş ayrımı kaldırıldı, arayüz artık her zaman tam özellikli)
-document.addEventListener('DOMContentLoaded', () => { $('editModeSection').style.display = 'flex'; cpInit(); applyTheme(localStorage.getItem('theme') || 'system'); });
+// ── Temel / Gelişmiş Mod ─────────────────────────────────────────────────────
+// Gelişmiş modda ekstra görünenler: Seçim Veri Setleri, Milli Bakiye,
+// Milletvekili Sayıları, "Seçim Çevrelerine Müdahale" ayarı ve veri seti indirme.
+let currentUIMode = 'temel';
+
+function setUIMode(mode) {
+    currentUIMode = mode;
+    const adv = mode === 'gelismis';
+    $('modeBtnTemel').classList.toggle('active', !adv);
+    $('modeBtnGelismis').classList.toggle('active', adv);
+    ['cardVeriYukle', 'cardMilliBakiye', 'cardKoltukVerisi'].forEach(id => {
+        const el = $(id); if (el) el.style.display = adv ? 'block' : 'none';
+    });
+    const advSection = $('advCevreMudahale');
+    if (advSection) advSection.style.display = adv ? 'block' : 'none';
+    const dl = $('downloadDatasetBtn');
+    if (dl) dl.style.display = adv ? 'block' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setUIMode('temel');
+    ensureDigerGroup();
+    renderDiger();
+    cpInit();
+    applyTheme(localStorage.getItem('theme') || 'system');
+});
 
 const THEMES = [
     { key: 'system',     icon: '🔄', label: 'Sistem' },
@@ -4762,6 +4764,44 @@ async function captureMapPng() {
     link.download = 'harita_' + new Date().toISOString().slice(0, 10) + '.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
+}
+
+async function captureParliamentPanel(triggerBtn) {
+    const el = $('parliamentPanelCapture');
+    if (!el) return;
+    const btn = triggerBtn || $('parliamentScreenshotBtn');
+    const origHTML = btn.innerHTML;
+    btn.innerHTML = '⏳';
+    btn.disabled = true;
+
+    const sideList = $('parliamentSideList');
+    const prevMaxHeight = sideList.style.maxHeight;
+    const prevOverflow = sideList.style.overflowY;
+    sideList.style.maxHeight = 'none';
+    sideList.style.overflowY = 'visible';
+
+    try {
+        await ensureHtml2Canvas();
+        const canvas = await html2canvas(el, {
+            scale: 2,
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            logging: false,
+            allowTaint: false
+        });
+        const link = document.createElement('a');
+        link.download = 'parlamento_' + new Date().toISOString().slice(0, 10) + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    } catch (err) {
+        console.error(err);
+        alert('Ekran görüntüsü alınamadı: ' + err.message);
+    } finally {
+        sideList.style.maxHeight = prevMaxHeight;
+        sideList.style.overflowY = prevOverflow;
+        btn.innerHTML = origHTML;
+        btn.disabled = false;
+    }
 }
 
 async function ensureHtml2Canvas() {
@@ -5033,50 +5073,24 @@ function closeClearModal() {
 
 // Projeksiyonu tamamen sıfırlar: yüklenen seçim veri setleri (datasets) ve harita/sözlük hariç
 // partiler, gruplamalar, il bazlı müdahaleler ve tüm seçim sistemi ayarları varsayılana döner.
+// Projeksiyonu temizler: yalnızca partiler, gruplamalar (ittifak/ortak liste/fermuar/Diğer üyeleri)
+// ve bunlara bağlı il müdahaleleri silinir. Veri setleri, harita, sözlük/eşleştirme, vekil konumları,
+// koltuk verisi ve tüm ayarlar (baraj, model, renklendirme, görünüm modları) olduğu gibi kalır.
 function executeClear() {
     takeSnapshot();
 
     extraParties = [];
     coalitions = [];
     electoralAlliances = [];
-    digerGroups = [];
     fermuarListes = [];
+    digerGroups = [];
+    ensureDigerGroup();
     parliamentOrderOverride = [];
-    customSeatOverrides = {};
     localDisabledParties = {};
     districtVoteOverrides = {};
-    // customDotPositions ve mapDictionary bilinçli olarak silinmiyor: bunlar harita/eşleştirme
-    // verisi (yüklenen/kalibre edilmiş veri), simülasyon parametresi değil.
-
-    digerDisplayEnabled = true;
-    mapMode = 'party';
-    parliamentStyle = 'arch';
-    showLocalToggleButtons = false;
-    isSelectionModeActive = false;
-    selectedDistricts.clear();
     activePartyFilter = null;
     filterSortMode = 'mv';
-
-    $('thresholdInp').value = '7';
-    $('mathMethodInp').value = 'dhondt';
-    $('calcMethodInp').value = 'classic';
-    $('mbEnabledInp').checked = false;
-    $('mbSettingsWrapper').style.display = 'none';
-    $('mbCalcMethodInp').value = 'classic';
-    $('mbSeatsInp').value = '50';
-    $('dominantWhiteInp').value = '20';
-    $('pluralityWhiteInp').value = '40';
-
-    const btnD = $('digerDisplayBtn');
-    if (btnD) { btnD.style.background = 'var(--danger)'; btnD.style.color = 'white'; btnD.style.borderColor = 'var(--danger)'; btnD.innerHTML = '🗂️ Diğer'; }
-    const btnM = $('mapModeToggleBtn');
-    if (btnM) { btnM.innerHTML = '🔄 Görünüm: Partiler'; btnM.style.background = 'var(--surface)'; btnM.style.color = 'var(--text)'; btnM.style.borderColor = 'var(--primary)'; }
-    const btnP = $('parliamentStyleBtn');
-    if (btnP) btnP.innerHTML = '🏛️ Arch';
-    const btnL = $('localEditToggleBtn');
-    if (btnL) { btnL.style.background = 'var(--surface)'; btnL.style.color = 'var(--text-secondary)'; btnL.style.borderColor = 'var(--border)'; btnL.innerHTML = '🔧 Kapalı'; }
-    const btnS = $('selectionModeToggleBtn');
-    if (btnS) { btnS.style.background = 'var(--surface)'; btnS.style.color = 'var(--text)'; btnS.style.borderColor = 'var(--border)'; btnS.innerHTML = '<span>🎯</span> Özel İnceleme Modu'; }
+    selectedDistricts.clear();
 
     globalResults = {};
     if ($('districtOverlay').style.display === 'block') closeDistrictOverlay();
@@ -5093,12 +5107,7 @@ function executeClear() {
         </div>`;
     if (document.querySelector('#svgMapWrapper svg')) updateMapColors();
 
-    renderExtraParties();
-    renderCoalitions();
-    renderAlliances();
-    renderDiger();
-    renderFermuar();
-    renderParlOrder();
+    refreshPartyDependentViews();
     updateTotalTracker();
     updateGlobalParties();
 
@@ -5109,10 +5118,10 @@ function executeClear() {
 <!-- Temizle Modal -->
 <div id="clearModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this)closeClearModal()">
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,0.3);" onkeydown="if(event.key==='Enter')executeClear();if(event.key==='Escape')closeClearModal()">
-        <div style="font-size:15px;font-weight:900;color:var(--text);margin-bottom:10px;">🗑️ Projeksiyonu Sıfırla</div>
+        <div style="font-size:15px;font-weight:900;color:var(--text);margin-bottom:10px;">🗑️ Projeksiyonu Temizle</div>
         <div style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;line-height:1.5;max-width:320px;">
-            Partiler, gruplamalar (ittifak/ortak liste/fermuar/diğer), il bazlı müdahaleler, parlamento sıralaması ve tüm seçim sistemi ayarları (baraj, matematiksel model, milli bakiye vb.) varsayılana döner.
-            <br><br><b>Yüklenen seçim veri setleri ve harita dosyası silinmez.</b> Bu işlem geri alınamaz.
+            Partiler, ittifaklar, ortak/fermuar listeleri, Diğer grubunun üyeleri, il müdahaleleri ve parlamento sıralaması silinir.
+            <br><br><b>Veri setleri, harita, sözlük/eşleştirme ve tüm ayarlar korunur.</b> (Ctrl+Z ile geri alınabilir.)
         </div>
         <div style="display:flex;gap:10px;justify-content:flex-end;">
             <button onclick="closeClearModal()" style="padding:7px 16px;border-radius:7px;border:1px solid var(--border);background:var(--surface-alt);color:var(--text);cursor:pointer;font-size:13px;">İptal</button>
