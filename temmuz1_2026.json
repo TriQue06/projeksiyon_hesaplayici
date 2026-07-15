@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "10.1-lean",
-    "date": "2026-07-15T21:39:27.208Z"
+    "date": "2026-07-15T20:49:09.171Z"
   },
   "datasets": [
     {
@@ -20,7 +20,7 @@
   "extraParties": [
     {
       "name": "AK Parti",
-      "nat": 27.92,
+      "nat": 27.87,
       "similarity": {
         "AKP": 0.95,
         "MHP": 0.025,
@@ -36,10 +36,10 @@
     },
     {
       "name": "Yeni Parti",
-      "nat": 27.35,
+      "nat": 27.3,
       "similarity": {
         "ZP": 0,
-        "İYİ": 0.2,
+        "İYİ": 0.175,
         "MHP": 0.025,
         "AKP": 0.025,
         "TİP": 0.005,
@@ -49,7 +49,7 @@
         "MP": 0.005,
         "GENÇ": 0.005,
         "AP": 0.005,
-        "CHP": 0.675
+        "CHP": 0.7
       },
       "isOpen": false,
       "isEnabled": true,
@@ -57,7 +57,7 @@
     },
     {
       "name": "DEM Parti",
-      "nat": 8.05,
+      "nat": 8.07,
       "similarity": {
         "DEM": 0.985,
         "AKP": 0,
@@ -71,7 +71,7 @@
     },
     {
       "name": "MHP",
-      "nat": 7.23,
+      "nat": 7.28,
       "similarity": {
         "MHP": 0.99,
         "AKP": 0.005,
@@ -83,7 +83,7 @@
     },
     {
       "name": "İYİ Parti",
-      "nat": 5.97,
+      "nat": 5.93,
       "similarity": {
         "İYİ": 0.91,
         "MHP": 0.025,
@@ -99,7 +99,7 @@
     },
     {
       "name": "CHP",
-      "nat": 4.68,
+      "nat": 5.57,
       "similarity": {
         "AKP": 0.025,
         "MHP": 0.025,
@@ -119,7 +119,7 @@
     },
     {
       "name": "A Parti",
-      "nat": 4.37,
+      "nat": 4.36,
       "similarity": {
         "AKP": 0.41,
         "BBP": 0.075,
@@ -137,7 +137,7 @@
     },
     {
       "name": "Yeniden Refah",
-      "nat": 4.06,
+      "nat": 4.04,
       "similarity": {
         "YRP": 0.755,
         "AKP": 0.175,
@@ -152,7 +152,7 @@
     },
     {
       "name": "Zafer Partisi",
-      "nat": 3.71,
+      "nat": 3.49,
       "similarity": {
         "ZP": 0.6,
         "İYİ": 0.2,
@@ -167,7 +167,7 @@
     },
     {
       "name": "TİP",
-      "nat": 1.53,
+      "nat": 1.23,
       "similarity": {
         "TİP": 0.645,
         "CHP": 0.2,
@@ -181,7 +181,7 @@
     },
     {
       "name": "Saadet",
-      "nat": 1.22,
+      "nat": 1.04,
       "similarity": {
         "YRP": 0.295,
         "SP": 0.2,
@@ -198,7 +198,7 @@
     },
     {
       "name": "Büyük Birlik",
-      "nat": 1.04,
+      "nat": 1.02,
       "similarity": {
         "BBP": 0.925,
         "AKP": 0.025,
@@ -223,7 +223,7 @@
     },
     {
       "name": "BTP",
-      "nat": 0.52,
+      "nat": 0.48,
       "similarity": {
         "BTP": 0.05,
         "AKP": 0.075,
@@ -240,7 +240,7 @@
     },
     {
       "name": "DEVA Partisi",
-      "nat": 0.22,
+      "nat": 0.19,
       "similarity": {
         "DEVA": 0.05,
         "AKP": 0.765,
@@ -954,7 +954,10 @@
           "Kütahya"
         ]
       },
-      "openParties": {},
+      "openParties": {
+        "İYİ Parti": false,
+        "Zafer Partisi": false
+      },
       "isOpen": false,
       "isEnabled": true
     },
@@ -978,6 +981,7 @@
           "Bilecik",
           "Bitlis",
           "Bolu",
+          "Bursa 1. Bölge",
           "Bursa 2. Bölge",
           "Çankırı",
           "Çorum",
@@ -1037,15 +1041,9 @@
           "Batman",
           "Çanakkale",
           "Denizli",
-          "Balıkesir",
-          "Aydın",
-          "Iğdır",
-          "Isparta",
-          "Tekirdağ",
-          "Muğla",
-          "İzmir 1. Bölge",
-          "İzmir 2. Bölge",
-          "Eskişehir"
+          "Eskişehir",
+          "Hatay",
+          "Balıkesir"
         ],
         "Saadet": [
           "Adana",
@@ -1090,15 +1088,7 @@
           "Mardin",
           "Muş",
           "Niğde",
-          "Şırnak",
-          "Iğdır",
-          "Isparta",
-          "Tokat",
-          "Bitlis",
-          "Bolu",
-          "Diyarbakır",
-          "Düzce",
-          "Hatay"
+          "Şırnak"
         ],
         "DEVA Partisi": [
           "Amasya",
@@ -1114,10 +1104,12 @@
           "Bingöl",
           "Bitlis",
           "Bolu",
+          "Bursa 1. Bölge",
           "Burdur",
           "Çanakkale",
           "Çankırı",
           "Çorum",
+          "Bursa 2. Bölge",
           "Düzce",
           "Diyarbakır",
           "Denizli",
@@ -1154,15 +1146,15 @@
           "Siirt",
           "Samsun",
           "Şırnak",
+          "Tokat",
           "Tunceli",
           "Uşak",
+          "Van",
+          "Yozgat",
           "Yalova",
           "Ankara 3. Bölge",
           "Balıkesir",
-          "Mersin",
-          "Gümüşhane",
-          "Tekirdağ",
-          "Bursa 1. Bölge"
+          "Mersin"
         ],
         "Gelecek Partisi": []
       },
@@ -1274,7 +1266,10 @@
           "Batman"
         ]
       },
-      "openParties": {},
+      "openParties": {
+        "HÜDA PAR": true,
+        "AK Parti": false
+      },
       "isOpen": false,
       "isEnabled": true
     }
