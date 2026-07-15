@@ -535,8 +535,8 @@
                 <div class="settings-row">
                     <div class="settings-row-info">
                         <div>
-                            <div class="settings-row-title">Baskın Durum Beyaz Oranı (%50+)</div>
-                            <div class="settings-row-desc">Bir parti sandalyelerin yarısından fazlasını aldığında renge karıştırılacak beyaz. 0 = saf renk.</div>
+                            <div class="settings-row-title">Baskın Durum Şeffaflığı (%50+)</div>
+                            <div class="settings-row-desc">Bir parti sandalyelerin yarısından fazlasını aldığında rengin şeffaflaşma oranı (koyu/açık temayla uyumlu). 0 = tam opak.</div>
                         </div>
                     </div>
                     <div class="settings-field" style="width:90px; display:flex; align-items:center; gap:4px;">
@@ -548,8 +548,8 @@
                 <div class="settings-row">
                     <div class="settings-row-info">
                         <div>
-                            <div class="settings-row-title">Sadece 1. Parti Beyaz Oranı</div>
-                            <div class="settings-row-desc">Çoğunluk yokken, sadece önde olan partinin rengine karıştırılacak beyaz. 0 = saf renk.</div>
+                            <div class="settings-row-title">Sadece 1. Parti Şeffaflığı</div>
+                            <div class="settings-row-desc">Çoğunluk yokken, sadece önde olan partinin renginin şeffaflaşma oranı (koyu/açık temayla uyumlu). 0 = tam opak.</div>
                         </div>
                     </div>
                     <div class="settings-field" style="width:90px; display:flex; align-items:center; gap:4px;">
@@ -925,18 +925,17 @@ let isFullscreen = false; // Harita tam ekran modu bayrağı
 let isSelectionModeActive = false;
 let selectedDistricts = new Set();
 
-function blendWithWhite(hexColor, whiteRatio) {
+// Adı "blendWithWhite" olarak kaldı (çok sayıda çağrı noktası var) ama artık beyaza doğru
+// karıştırmıyor: rengi şeffaflaştırıyor, böylece altındaki temaya göre (açık/koyu) doğru
+// görünüyor — sabit bir beyaz yerine.
+function blendWithWhite(hexColor, fadeRatio) {
     let hex = hexColor.replace('#', '');
     if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
-    let r = parseInt(hex.substring(0,2), 16);
-    let g = parseInt(hex.substring(2,4), 16);
-    let b = parseInt(hex.substring(4,6), 16);
-    
-    r = Math.round(r * (1 - whiteRatio) + 255 * whiteRatio);
-    g = Math.round(g * (1 - whiteRatio) + 255 * whiteRatio);
-    b = Math.round(b * (1 - whiteRatio) + 255 * whiteRatio);
-    
-    return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+    const r = parseInt(hex.substring(0,2), 16);
+    const g = parseInt(hex.substring(2,4), 16);
+    const b = parseInt(hex.substring(4,6), 16);
+    const alpha = Math.max(0, Math.min(1, 1 - fadeRatio));
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 // Global Veri Görünüm Yöneticisi
