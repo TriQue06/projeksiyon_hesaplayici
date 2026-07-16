@@ -3601,18 +3601,36 @@ function renderResults(res){
     const domRatio = (isNaN(domRatioRaw) ? 20 : domRatioRaw) / 100;
     const pluRatio = (isNaN(pluRatioRaw) ? 40 : pluRatioRaw) / 100;
 
-    // ── Sütunlar: ülke geneli %1+ varlıklar, Diğer gruplama uygulanmış ──
-    const partyToDisplayKey = {};
-    if (digerDisplayEnabled) {
-        digerGroups.forEach(dg => { if (dg.isEnabled !== false) dg.members.forEach(m => { partyToDisplayKey[m] = dg.name; }); });
-    }
+    // ── Sütunlar: ülke geneli %1+ varlıklar ──
+    // Önce ortak listeler (coalitions) birleştirilir — çünkü runProjection'da rawVotes içindeki
+    // gerçek anahtar da budur (üye partiler runProjection sırasında liste adı altında toplanıp
+    // ayrı ayrı silinir). Diğer gruplaması ise yalnızca bir listeye dahil olmayıp kendi adıyla
+    // kalan partilere uygulanır — böylece bu tablo gerçek rawVotes anahtarlarıyla birebir eşleşir
+    // ve ortak listeler (ittifak üyesi olsalar bile) artık sütunlardan kaybolmaz.
     const entityNat = {};
     extraParties.forEach(ep => {
         if (ep.isEnabled === false) return;
-        const nat = parseFloat(ep.nat) || 0;
-        const dk = partyToDisplayKey[ep.name] || ep.name;
-        entityNat[dk] = (entityNat[dk] || 0) + nat;
+        entityNat[ep.name] = (entityNat[ep.name] || 0) + (parseFloat(ep.nat) || 0);
     });
+    coalitions.forEach(c => {
+        if (c.isEnabled === false) return;
+        let cSum = 0, hasMembers = false;
+        c.members.forEach(m => {
+            if (entityNat[m] !== undefined) { hasMembers = true; cSum += entityNat[m]; delete entityNat[m]; }
+        });
+        if (hasMembers) entityNat[c.name] = (entityNat[c.name] || 0) + cSum;
+    });
+    const partyToDisplayKey = {};
+    if (digerDisplayEnabled) {
+        digerGroups.forEach(dg => { if (dg.isEnabled !== false) dg.members.forEach(m => { partyToDisplayKey[m] = dg.name; }); });
+        const merged = {};
+        Object.entries(entityNat).forEach(([k, v]) => {
+            const dk = partyToDisplayKey[k] || k;
+            merged[dk] = (merged[dk] || 0) + v;
+        });
+        for (const k in entityNat) delete entityNat[k];
+        Object.assign(entityNat, merged);
+    }
     const columns = Object.entries(entityNat)
         .filter(([, nat]) => nat >= 1)
         .sort((a, b) => b[1] - a[1])
