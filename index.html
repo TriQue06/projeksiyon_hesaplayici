@@ -274,6 +274,14 @@
         .cp-input:focus { border-color:var(--primary); }
         .cp-preview { width:100%; height:40px; border-radius:8px; margin-bottom:12px; border:1px solid var(--border); transition:background-color 0.1s; }
 
+        #iconModalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; }
+        .icon-modal-box { background:var(--surface); padding:20px; border-radius:12px; width:360px; max-width:92vw; box-shadow:0 10px 25px rgba(0,0,0,0.3); }
+        .icon-modal-box h3 { margin-top:0; color:var(--text); margin-bottom:12px; font-size:1.1rem; }
+        .icon-modal-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; max-height:340px; overflow-y:auto; padding-right:4px; margin-bottom:12px; }
+        .icon-pick-box { aspect-ratio:1; border-radius:8px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:8px; box-sizing:border-box; background:var(--surface-alt); transition:0.15s; }
+        .icon-pick-box:hover { transform:scale(1.06); box-shadow:0 2px 8px rgba(0,0,0,0.25); }
+        .icon-pick-box svg { width:100%; height:100%; display:block; }
+
         /* Hover Tooltip Stilleri */
         #chartTooltip { position: absolute; background: rgba(0, 0, 0, 0.85); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; pointer-events: none; z-index: 9999; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.3); white-space: nowrap; line-height: 1.4; }
         #chartTooltip span.tt-party { font-size: 14px; display: block; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; }
@@ -459,6 +467,7 @@
             <div style="display:flex; gap:8px; margin-bottom:0;">
                 <select id="archiveSelector" style="flex:2; font-weight: bold; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <option value="">-- Arşivden Seç --</option>
+                    <option value="temmuz2_2026.json" selected>Temmuz #2</option>
                     <option value="temmuz1_2026.json" selected>Temmuz #1</option>
                     <option value="haziran3_2026.json">Haziran #3</option>
                 </select>
@@ -798,16 +807,15 @@
 <div class="right-panel">
 
     <div id="mainContentWrapper">
-        <div id="parliamentContainer" class="card" style="display:none; margin-bottom: 24px; padding: 12px 24px; position: relative;">
-            <button id="parliamentScreenshotBtn" onclick="captureParliamentPanel(this)" title="Ekran Görüntüsü Al" style="position:absolute; top:10px; right:10px; z-index:5; background: var(--surface); color: var(--text); border-radius: 8px; font-size: 16px; padding: 6px 10px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: 0.2s; line-height:1;">📸</button>
-            <div id="parliamentPanelCapture" style="display:flex; gap:20px; align-items:center;">
-                <div style="flex:3; min-width:0; text-align:center;">
-                    <div id="parliamentChartLabel" style="display:none;"></div>
-                    <div id="parliamentChartArea"></div>
-                </div>
-                <div style="flex:2; min-width:0;">
-                    <div id="parliamentSideList" style="overflow-y:auto; max-height:340px; display:flex; flex-direction:column; gap:5px;"></div>
-                </div>
+        <div id="parliamentContainer" style="display:none; margin-bottom: 24px; gap: 20px; align-items: stretch;">
+            <div id="parliamentChartCard" class="card" style="flex:3; min-width:0; padding: 12px 24px; margin-bottom:0; position: relative; text-align:center;">
+                <button id="parliamentScreenshotBtn" onclick="captureParliamentPanel(this)" title="Ekran Görüntüsü Al" style="position:absolute; top:10px; right:10px; z-index:5; background: var(--surface); color: var(--text); border-radius: 8px; font-size: 16px; padding: 6px 10px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: 0.2s; line-height:1;">📸</button>
+                <div id="parliamentChartLabel" style="display:none;"></div>
+                <div id="parliamentChartArea"></div>
+            </div>
+            <div id="partyListCard" class="card" style="flex:2; min-width:0; padding: 12px 24px; margin-bottom:0; position: relative;">
+                <button id="partyListScreenshotBtn" onclick="capturePartyListPanel(this)" title="Ekran Görüntüsü Al" style="position:absolute; top:10px; right:10px; z-index:5; background: var(--surface); color: var(--text); border-radius: 8px; font-size: 16px; padding: 6px 10px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: 0.2s; line-height:1;">📸</button>
+                <div id="parliamentSideList" style="overflow-y:auto; max-height:340px; display:flex; flex-direction:column; gap:5px;"></div>
             </div>
         </div>
 
@@ -893,6 +901,14 @@
     </div>
 </div>
 
+<div id="iconModalOverlay" onkeydown="if(event.key==='Escape')closeIconModal()">
+    <div class="icon-modal-box">
+        <h3>Logo Seçimi</h3>
+        <div class="icon-modal-grid" id="iconModalGrid"></div>
+        <button onclick="closeIconModal()" style="background:var(--surface-alt); color:var(--text); border:1px solid var(--border); width:100%;">Kapat</button>
+    </div>
+</div>
+
 <script>
 const $ = id => document.getElementById(id);
 let datasets = [];
@@ -908,6 +924,76 @@ let parliamentOrderOverride = [];
 let localDisabledParties = {}; // YENİ: İl bazlı parti iptallerini tutar
 let districtVoteOverrides = {}; // İl bazlı manuel oy oranı müdahaleleri: { [ilAdi]: { [parti]: {ratio} veya {abs} } }
 let districtBaselineShares = {}; // Her runProjection çağrısında hesaplanan, müdahale uygulanmadan önceki "model" oy oranı: { [ilAdi]: { [parti]: yuzde } }
+
+const PARTY_ICON_FILES = ["a_parti_icon.svg","ak_parti_icon.svg","anap_icon.svg","ap_icon.svg","btp_icon.svg","buyuk_birlik_icon.svg","chp_icon.svg","dem_parti_icon.svg","deva_partisi_icon.svg","dp_icon.svg","dsp_icon.svg","gelecek_partisi_icon.svg","genc_parti_icon.svg","huda_par_icon.svg","iyi_parti_icon.svg","ldp_icon.svg","mhp_icon.svg","saadet_icon.svg","sol_parti_icon.svg","tip_icon.svg","tkp_icon.svg","yeniden_refah_icon.svg","zafer_partisi_icon.svg"];
+let partyIconRaw = {}; // dosya adı -> ham SVG metni (bir kere çekilip önbelleğe alınır)
+let partyIconLoadPromise = null;
+let activeIconTarget = { type: null, idx: null };
+
+function ensurePartyIconsLoaded() {
+    if (!partyIconLoadPromise) {
+        partyIconLoadPromise = Promise.all(PARTY_ICON_FILES.map(f =>
+            fetch('party_icons/' + f).then(r => r.ok ? r.text() : null).then(t => { if (t) partyIconRaw[f] = t; }).catch(() => {})
+        ));
+    }
+    return partyIconLoadPromise;
+}
+ensurePartyIconsLoaded().then(() => {
+    if (extraParties.length) renderExtraParties();
+    if (Object.keys(globalResults).length > 0) updateSelectionUI();
+});
+
+// Bir ikonun tüm fill değerlerini tek bir renge boyar (beyaz siluetten renkli/monokrom versiyona geçiş için).
+function recolorIconSvg(rawSvg, color) {
+    return rawSvg
+        .replace(/fill:\s*[^;"]+/gi, `fill:${color}`)
+        .replace(/fill="[^"]*"/gi, `fill="${color}"`);
+}
+
+// Parti logosunu <span> içinde inline SVG olarak döndürür (renk parametresiyle boyanmış).
+// İkon henüz yüklenmemişse veya seçilmemişse boş string döner.
+function partyIconInlineSvg(pName, color, sizePx) {
+    const ep = extraParties.find(e => e.name === pName);
+    if (!ep || !ep.icon) return '';
+    const raw = partyIconRaw[ep.icon];
+    if (!raw) return '';
+    const colored = recolorIconSvg(raw, color);
+    return `<span style="display:inline-flex;align-items:center;justify-content:center;width:${sizePx}px;height:${sizePx}px;flex-shrink:0;">${colored}</span>`;
+}
+
+window.openIconModal = function(type, idx) {
+    activeIconTarget = { type, idx };
+    const arr = type === 'party' ? extraParties : null;
+    if (!arr) return;
+    const item = arr[idx];
+    ensurePartyIconsLoaded().then(() => renderIconModalGrid(item.color || '#000000'));
+    renderIconModalGrid(item.color || '#000000');
+    $('iconModalOverlay').style.display = 'flex';
+};
+
+function renderIconModalGrid(color) {
+    const grid = $('iconModalGrid');
+    if (!grid) return;
+    grid.innerHTML = `<div class="icon-pick-box" title="Logo Yok" onclick="selectPartyIcon(null)">
+            <span style="font-size:11px;color:var(--text-secondary);">Yok</span>
+        </div>` +
+        PARTY_ICON_FILES.map(f => {
+            const raw = partyIconRaw[f];
+            const inner = raw ? raw : '';
+            return `<div class="icon-pick-box" style="background:${color};" title="${f}" onclick="selectPartyIcon('${f}')">${inner}</div>`;
+        }).join('');
+}
+
+window.selectPartyIcon = function(fileName) {
+    if (activeIconTarget.type === 'party' && activeIconTarget.idx !== null) {
+        extraParties[activeIconTarget.idx].icon = fileName;
+        renderExtraParties();
+        if (Object.keys(globalResults).length > 0) updateSelectionUI();
+    }
+    closeIconModal();
+};
+
+window.closeIconModal = function() { $('iconModalOverlay').style.display = 'none'; activeIconTarget = { type: null, idx: null }; };
 
 let dragCtx = { type: null, idx: null };
 let activePartyFilter = null;
@@ -2227,7 +2313,9 @@ function renderExtraParties(){
                 <button class="status-btn ${ep.isEnabled !== false ? 'active' : ''}" style="background:${ep.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${ep.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${ep.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="extraParties[${idx}].isEnabled=!(extraParties[${idx}].isEnabled!==false); updateTotalTracker(); renderExtraParties(); renderParlOrder();" title="${ep.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${ep.isEnabled !== false ? 'A' : 'P'}</button>
                 
                 <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius:6px; background:${ep.color || '#000000'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('party', ${idx})"></div>
-                
+
+                <div title="Logo Seç" style="width:24px; height:24px; border-radius:6px; background:${ep.color || '#000000'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s; display:flex; align-items:center; justify-content:center; padding:3px; box-sizing:border-box;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="openIconModal('party', ${idx})">${ep.icon && partyIconRaw[ep.icon] ? partyIconRaw[ep.icon] : '<span style="font-size:10px;color:#fff;opacity:0.85;">🖼</span>'}</div>
+
                 <input type="text" class="editable-name" value="${escapeStr(ep.name)}" onchange="renameParty(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
                 
                 <input type="text" inputmode="decimal" value="${fmtPctInput(ep.nat)}" style="width:65px; margin:0; font-weight:bold; color:var(--primary); flex-shrink:0;" oninput="extraParties[${idx}].nat=parsePctInputOrZero(this.value); updateTotalTracker();">
@@ -2793,8 +2881,11 @@ function renderParlOrder() {
     }).join('');
     if (sel) {
         const used = new Set(parliamentOrderOverride);
-        sel.innerHTML = extraParties.filter(ep => ep.isEnabled !== false && !used.has(ep.name))
-            .map(ep => `<option value="${escapeStr(ep.name)}">${ep.name}</option>`).join('');
+        const options = [
+            ...extraParties.filter(ep => ep.isEnabled !== false).map(ep => ep.name),
+            ...coalitions.filter(c => c.isEnabled !== false).map(c => c.name)
+        ].filter(name => !used.has(name));
+        sel.innerHTML = options.map(name => `<option value="${escapeStr(name)}">${name}</option>`).join('');
     }
 }
 
@@ -3532,7 +3623,7 @@ function renderResults(res){
     });
 
     if (globalSeatCount > 0) {
-        $('parliamentContainer').style.display = 'block';
+        $('parliamentContainer').style.display = 'flex';
         const defaultSorted = Object.keys(totalMvs).sort((a,b) => totalMvs[b] - totalMvs[a]);
         const orderedKeys = parliamentOrderOverride.length > 0
             ? [...parliamentOrderOverride.filter(p => totalMvs[p] > 0), ...defaultSorted.filter(p => !parliamentOrderOverride.includes(p))]
@@ -4327,6 +4418,7 @@ function updateSelectionUI() {
             const barW = maxPct > 0 ? (pct / maxPct * 100).toFixed(2) : 0;
             const s = partySeats[p] || 0;
             const color = getPartyColor(p);
+            const iconHtml = partyIconInlineSvg(p, color, 18);
             html += `<div style="display:flex; align-items:center; margin-bottom:3px; gap:6px; font-size:13px; font-weight:bold;">
                 <span style="color:#888; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:90px; flex-shrink:0; text-align:right;" title="${p}">${p}</span>
                 <span style="background:#111; color:#fff; padding:3px 7px; width:34px; text-align:center; flex-shrink:0;">${s}</span>
@@ -4335,6 +4427,7 @@ function updateSelectionUI() {
                     <span style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); padding-left:8px; color:${color}; clip-path:inset(0 0 0 ${barW}%); white-space:nowrap; overflow:hidden;">&thinsp;%${pctStr}</span>
                     <span style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); padding-left:8px; color:#fff; clip-path:inset(0 ${100 - barW}% 0 0); white-space:nowrap; overflow:hidden;">&thinsp;%${pctStr}</span>
                 </div>
+                ${iconHtml}
             </div>`;
         });
         body.innerHTML = html;
@@ -4377,6 +4470,7 @@ function updateSelectionUI() {
             const pctStr = pct.toFixed(2);
             const barW = maxPctSel > 0 ? (pct / maxPctSel * 100).toFixed(2) : 0;
             const color = getPartyColor(p);
+            const iconHtml = partyIconInlineSvg(p, color, 18);
             html += `<div style="display:flex; align-items:center; margin-bottom:3px; gap:6px; font-size:13px; font-weight:bold;">
                 <span style="color:#888; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:90px; flex-shrink:0; text-align:right;" title="${p}">${p}</span>
                 <span style="background:#111; color:#fff; padding:3px 7px; width:34px; text-align:center; flex-shrink:0;">${s}</span>
@@ -4385,6 +4479,7 @@ function updateSelectionUI() {
                     <span style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); padding-left:8px; color:${color}; clip-path:inset(0 0 0 ${barW}%); white-space:nowrap; overflow:hidden;">&thinsp;%${pctStr}</span>
                     <span style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); padding-left:8px; color:#fff; clip-path:inset(0 ${100 - barW}% 0 0); white-space:nowrap; overflow:hidden;">&thinsp;%${pctStr}</span>
                 </div>
+                ${iconHtml}
             </div>`;
         });
         body.innerHTML = html;
@@ -4625,9 +4720,14 @@ async function exportInfographic() {
             const mv = partySeats[p] || 0;
             const pct = totalVotes > 0 ? (partyVotes[p]||0)/totalVotes*100 : 0;
             const fsize = p.length > 14 ? '11px' : p.length > 9 ? '13px' : p.length > 5 ? '16px' : '18px';
+            const ep = extraParties.find(e => e.name === p);
+            const rawIcon = ep && ep.icon ? partyIconRaw[ep.icon] : null;
+            const badgeContent = rawIcon
+                ? `<span style="display:flex;align-items:center;justify-content:center;width:70%;height:70%;">${rawIcon}</span>`
+                : `<span style="color:white;font-weight:900;font-size:${fsize};line-height:1.25;text-align:center;padding:8px;word-break:break-word;">${p}</span>`;
             return `<div style="text-align:center;flex-shrink:0;">
                 <div style="width:92px;height:115px;background:${color};display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto 9px;">
-                    <span style="color:white;font-weight:900;font-size:${fsize};line-height:1.25;text-align:center;padding:8px;word-break:break-word;">${p}</span>
+                    ${badgeContent}
                 </div>
                 <div style="font-size:32px;font-weight:900;color:#111;line-height:1;">${mv}</div>
                 <div style="font-size:15px;font-weight:bold;color:#555;margin-top:5px;">%${pct.toFixed(2)}</div>
@@ -4760,18 +4860,11 @@ async function captureMapPng() {
     if (!svgEl) { alert('Harita henüz yüklenmedi!'); return; }
 
     const W = 1920, H = 1080;
-    const bgColor = '#e9eaef';
 
     const svgClone = svgEl.cloneNode(true);
     svgClone.setAttribute('width', W);
     svgClone.setAttribute('height', H);
     svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-
-    const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    bgRect.setAttribute('width', '100%');
-    bgRect.setAttribute('height', '100%');
-    bgRect.setAttribute('fill', bgColor);
-    svgClone.insertBefore(bgRect, svgClone.firstChild);
 
     const svgStr = new XMLSerializer().serializeToString(svgClone);
     const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
@@ -4780,8 +4873,6 @@ async function captureMapPng() {
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, W, H);
 
     await new Promise((resolve, reject) => {
         const img = new Image();
@@ -4797,9 +4888,53 @@ async function captureMapPng() {
 }
 
 async function captureParliamentPanel(triggerBtn) {
-    const el = $('parliamentPanelCapture');
+    const el = $('parliamentChartCard');
     if (!el) return;
     const btn = triggerBtn || $('parliamentScreenshotBtn');
+    const origHTML = btn.innerHTML;
+    btn.innerHTML = '⏳';
+    btn.disabled = true;
+
+    const prevBg = el.style.background;
+    const prevBoxShadow = el.style.boxShadow;
+    const prevBorder = el.style.border;
+    const prevBorderRadius = el.style.borderRadius;
+    el.style.background = 'transparent';
+    el.style.boxShadow = 'none';
+    el.style.border = 'none';
+    el.style.borderRadius = '0';
+
+    try {
+        await ensureHtml2Canvas();
+        const canvas = await html2canvas(el, {
+            scale: 2,
+            backgroundColor: null,
+            useCORS: true,
+            logging: false,
+            allowTaint: false,
+            ignoreElements: (node) => node.id === 'parliamentScreenshotBtn'
+        });
+        const link = document.createElement('a');
+        link.download = 'parlamento_' + new Date().toISOString().slice(0, 10) + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    } catch (err) {
+        console.error(err);
+        alert('Ekran görüntüsü alınamadı: ' + err.message);
+    } finally {
+        el.style.background = prevBg;
+        el.style.boxShadow = prevBoxShadow;
+        el.style.border = prevBorder;
+        el.style.borderRadius = prevBorderRadius;
+        btn.innerHTML = origHTML;
+        btn.disabled = false;
+    }
+}
+
+async function capturePartyListPanel(triggerBtn) {
+    const el = $('partyListCard');
+    if (!el) return;
+    const btn = triggerBtn || $('partyListScreenshotBtn');
     const origHTML = btn.innerHTML;
     btn.innerHTML = '⏳';
     btn.disabled = true;
@@ -4810,17 +4945,27 @@ async function captureParliamentPanel(triggerBtn) {
     sideList.style.maxHeight = 'none';
     sideList.style.overflowY = 'visible';
 
+    const prevBg = el.style.background;
+    const prevBoxShadow = el.style.boxShadow;
+    const prevBorder = el.style.border;
+    const prevBorderRadius = el.style.borderRadius;
+    el.style.background = 'transparent';
+    el.style.boxShadow = 'none';
+    el.style.border = 'none';
+    el.style.borderRadius = '0';
+
     try {
         await ensureHtml2Canvas();
         const canvas = await html2canvas(el, {
             scale: 2,
-            backgroundColor: '#ffffff',
+            backgroundColor: null,
             useCORS: true,
             logging: false,
-            allowTaint: false
+            allowTaint: false,
+            ignoreElements: (node) => node.id === 'partyListScreenshotBtn'
         });
         const link = document.createElement('a');
-        link.download = 'parlamento_' + new Date().toISOString().slice(0, 10) + '.png';
+        link.download = 'parti_oy_oranlari_' + new Date().toISOString().slice(0, 10) + '.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
     } catch (err) {
@@ -4829,6 +4974,10 @@ async function captureParliamentPanel(triggerBtn) {
     } finally {
         sideList.style.maxHeight = prevMaxHeight;
         sideList.style.overflowY = prevOverflow;
+        el.style.background = prevBg;
+        el.style.boxShadow = prevBoxShadow;
+        el.style.border = prevBorder;
+        el.style.borderRadius = prevBorderRadius;
         btn.innerHTML = origHTML;
         btn.disabled = false;
     }
