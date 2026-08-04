@@ -925,7 +925,7 @@ let localDisabledParties = {}; // YENİ: İl bazlı parti iptallerini tutar
 let districtVoteOverrides = {}; // İl bazlı manuel oy oranı müdahaleleri: { [ilAdi]: { [parti]: {ratio} veya {abs} } }
 let districtBaselineShares = {}; // Her runProjection çağrısında hesaplanan, müdahale uygulanmadan önceki "model" oy oranı: { [ilAdi]: { [parti]: yuzde } }
 
-const PARTY_ICON_FILES = ["a_parti_icon.svg","ak_parti_icon.svg","anap_icon.svg","ap_icon.svg","btp_icon.svg","buyuk_birlik_icon.svg","chp_icon.svg","dem_parti_icon.svg","deva_partisi_icon.svg","dp_icon.svg","dsp_icon.svg","gelecek_partisi_icon.svg","genc_parti_icon.svg","huda_par_icon.svg","iyi_parti_icon.svg","ldp_icon.svg","mhp_icon.svg","saadet_icon.svg","sol_parti_icon.svg","tip_icon.svg","tkp_icon.svg","yeniden_refah_icon.svg","zafer_partisi_icon.svg"];
+const PARTY_ICON_FILES = ["a_parti_icon.svg","ak_parti_icon.svg","anap_icon.svg","ap_icon.svg","btp_icon.svg","buyuk_birlik_icon.svg","chp_icon.svg","dem_parti_icon.svg","deva_partisi_icon.svg","dp_icon.svg","dsp_icon.svg","gelecek_partisi_icon.svg","genc_parti_icon.svg","huda_par_icon.svg","iyi_parti_icon.svg","ldp_icon.svg","mhp_icon.svg","saadet_icon.svg","sol_parti_icon.svg","tip_icon.svg","tkp_icon.svg","yeni_parti_icon.svg","yeniden_refah_icon.svg","zafer_partisi_icon.svg"];
 let partyIconRaw = {}; // dosya adı -> ham SVG metni (bir kere çekilip önbelleğe alınır)
 let partyIconLoadPromise = null;
 let activeIconTarget = { type: null, idx: null };
