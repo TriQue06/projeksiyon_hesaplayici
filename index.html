@@ -2669,8 +2669,9 @@ async function loadFromArchive() {
             data.datasets = refetched;
         }
 
-        applyProjectData(data);
-
+        // Önce varsayılan kaynakları yükle, SONRA proje verisini uygula — sayfa açılışıyla
+        // aynı sıra. Ters sırada yapılırsa projeye kaydedilmiş vekil nokta konumları
+        // default_konum.json tarafından eziliyordu.
         try {
             const svgRes = await fetch('turkiye_harita.svg');
             if (svgRes.ok) {
@@ -2687,6 +2688,8 @@ async function loadFromArchive() {
                 customDotPositions = await konumRes.json();
             }
         } catch(e) {}
+
+        applyProjectData(data);
 
         if (datasets.length > 0) runProjection();
 
@@ -2747,7 +2750,8 @@ function applyProjectData(data) {
     }
 
     customSeatOverrides = data.customSeatOverrides || {};
-    customDotPositions = data.customDotPositions || {};
+    // Proje kendi konumlarını taşımıyorsa yüklü olan varsayılan konumlar korunur
+    if (data.customDotPositions && Object.keys(data.customDotPositions).length > 0) customDotPositions = data.customDotPositions;
     parliamentOrderOverride = data.parliamentOrderOverride || [];
     
     localDisabledParties = {};

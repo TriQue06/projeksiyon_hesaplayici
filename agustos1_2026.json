@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "10.1-lean",
-    "date": "2026-08-14T09:22:25.271Z"
+    "date": "2026-08-14T13:01:42.953Z"
   },
   "datasets": [
     {
@@ -37,7 +37,7 @@
     },
     {
       "name": "YENİ Parti",
-      "nat": 29.33,
+      "nat": 29.34,
       "similarity": {
         "ZP": 0,
         "İYİ": 0.05,
@@ -89,7 +89,7 @@
     },
     {
       "name": "İYİ Parti",
-      "nat": 6.25,
+      "nat": 6.26,
       "similarity": {
         "İYİ": 0.82,
         "MHP": 0.035,
@@ -106,7 +106,7 @@
     },
     {
       "name": "CHP",
-      "nat": 4.24,
+      "nat": 4.27,
       "similarity": {
         "AKP": 0.005,
         "MHP": 0.005,
@@ -144,7 +144,7 @@
     },
     {
       "name": "Yeniden Refah",
-      "nat": 3.46,
+      "nat": 3.48,
       "similarity": {
         "YRP": 0.755,
         "AKP": 0.175,
@@ -275,7 +275,7 @@
     },
     {
       "name": "TKP",
-      "nat": 0.15,
+      "nat": 0.16,
       "similarity": {
         "CHP": 0.25,
         "TİP": 0.025,
@@ -394,7 +394,7 @@
     },
     {
       "name": "Genç Parti",
-      "nat": 0.04,
+      "nat": 0.05,
       "similarity": {
         "GENÇ": 1
       },
@@ -727,9 +727,7 @@
           "Aydın"
         ]
       },
-      "openParties": {
-        "TİP": false
-      },
+      "openParties": {},
       "isOpen": true,
       "isEnabled": true
     },
@@ -873,10 +871,7 @@
         "AP": [],
         "BTP": []
       },
-      "openParties": {
-        "Zafer Partisi": false,
-        "İYİ Parti": false
-      },
+      "openParties": {},
       "isOpen": true,
       "isEnabled": true
     },
@@ -1020,10 +1015,7 @@
           "İzmir 1. Bölge"
         ]
       },
-      "openParties": {
-        "Yeniden Refah": false,
-        "Saadet": false
-      },
+      "openParties": {},
       "isOpen": false,
       "isEnabled": true
     }
