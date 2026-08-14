@@ -10,7 +10,7 @@
     {
       "name": "eksen",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-p", "3005", "C:/Users/baris/Desktop/eksen_projeksiyon"],
+      "runtimeArgs": ["serve", "-p", "3005", "C:/Users/baris/Documents/GitHub/eksen_projeksiyon"],
       "port": 3005
     }
   ]

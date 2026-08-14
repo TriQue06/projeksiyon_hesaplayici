@@ -14,7 +14,7 @@
             font-weight: bold;
         }
 
-        :root, [data-theme="light"] {
+        :root {
             --primary: #1a73e8;
             --primary-hover: #1557b0;
             --bg: #f0f2f5;
@@ -46,107 +46,6 @@
             --orange: #f57c00;
             --teal: #00897b;
             --shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        /* Sistem teması: OS tercihine göre otomatik */
-        @media (prefers-color-scheme: dark) {
-            :root:not([data-theme]), [data-theme="system"] {
-                --primary: #5b9bd5;
-                --primary-hover: #4a7fb5;
-                --bg: #1e2233;
-                --panel-bg: #191c2a;
-                --surface: #282d3e;
-                --surface-alt: #2e334a;
-                --text: #e8eaed;
-                --text-secondary: #9aa5c0;
-                --text-dim: #b0bec5;
-                --border: #3d4358;
-                --border-subtle: #2d3347;
-                --border-dashed: #3d4358;
-                --input-bg: #323748;
-                --input-focus-bg: #363b52;
-                --table-head-bg: #2a304a;
-                --highlight-bg: #2a304a;
-                --highlight-border: #3d4358;
-                --map-stroke: #1e2233;
-                --map-stroke-hover: #e8eaed;
-                --map-default: #3a3f54;
-                --tooltip-bg: rgba(40,45,62,0.98);
-                --nav-btn-bg: #2e334a;
-                --nav-btn-hover: #363b52;
-                --purple-tint: #2d2545;
-                --disabled-bar: #3d4358;
-                --danger: #ef5350;
-                --success: #4caf50;
-                --purple: #9c6fdd;
-                --shadow: 0 2px 8px rgba(0,0,0,0.5);
-            }
-        }
-
-        /* Koyu – Lacivert (#282d3e bazlı) */
-        [data-theme="dark-navy"] {
-            --primary: #5b9bd5;
-            --primary-hover: #4a7fb5;
-            --bg: #1e2233;
-            --panel-bg: #191c2a;
-            --surface: #282d3e;
-            --surface-alt: #2e334a;
-            --text: #e8eaed;
-            --text-secondary: #9aa5c0;
-            --text-dim: #b0bec5;
-            --border: #3d4358;
-            --border-subtle: #2d3347;
-            --border-dashed: #3d4358;
-            --input-bg: #323748;
-            --input-focus-bg: #363b52;
-            --table-head-bg: #2a304a;
-            --highlight-bg: #2a304a;
-            --highlight-border: #3d4358;
-            --map-stroke: #1e2233;
-            --map-stroke-hover: #e8eaed;
-            --map-default: #3a3f54;
-            --tooltip-bg: rgba(40,45,62,0.98);
-            --nav-btn-bg: #2e334a;
-            --nav-btn-hover: #363b52;
-            --purple-tint: #2d2545;
-            --disabled-bar: #3d4358;
-            --danger: #ef5350;
-            --success: #4caf50;
-            --purple: #9c6fdd;
-            --shadow: 0 2px 8px rgba(0,0,0,0.5);
-        }
-
-        /* Koyu – OLED */
-        [data-theme="dark-oled"] {
-            --primary: #5b9bd5;
-            --primary-hover: #4a7fb5;
-            --bg: #000000;
-            --panel-bg: #000000;
-            --surface: #0d0d0d;
-            --surface-alt: #080808;
-            --text: #ffffff;
-            --text-secondary: #888888;
-            --text-dim: #aaaaaa;
-            --border: #1f1f1f;
-            --border-subtle: #141414;
-            --border-dashed: #2a2a2a;
-            --input-bg: #111111;
-            --input-focus-bg: #1a1a1a;
-            --table-head-bg: #0a0a0a;
-            --highlight-bg: #111827;
-            --highlight-border: #1f2a3a;
-            --map-stroke: #000000;
-            --map-stroke-hover: #ffffff;
-            --map-default: #1a1a1a;
-            --tooltip-bg: rgba(13,13,13,0.98);
-            --nav-btn-bg: #111111;
-            --nav-btn-hover: #1a1a1a;
-            --purple-tint: #1a1025;
-            --disabled-bar: #2a2a2a;
-            --danger: #ef5350;
-            --success: #4caf50;
-            --purple: #9c6fdd;
-            --shadow: 0 2px 8px rgba(0,0,0,0.9);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Product Sans', sans-serif; }
@@ -302,6 +201,19 @@
         .nav-btn:hover { background: var(--nav-btn-hover); transform: scale(1.05); }
 
         /* Bulut/Arşiv Kartı */
+        /* İnfografik yerleşim editörü */
+        .info-layout-block {
+            position: absolute; box-sizing: border-box; border: 2px solid rgba(0,0,0,0.35);
+            border-radius: 4px; cursor: move; user-select: none; display: flex;
+            align-items: center; justify-content: center; text-align: center;
+        }
+        .info-layout-label { font-size: 12px; font-weight: 800; color: #111; padding: 4px; pointer-events: none; text-shadow: 0 1px 2px rgba(255,255,255,0.6); }
+        .info-layout-resize-handle {
+            position: absolute; right: 0; bottom: 0; width: 16px; height: 16px;
+            cursor: nwse-resize; background: rgba(0,0,0,0.45);
+            border-top-left-radius: 4px;
+        }
+
         .archive-card { background: linear-gradient(to bottom, #0d47a1 0%, #00acc1 80%, #ffffff 100%); border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .archive-card label { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); margin-bottom: 8px !important; }
         .archive-card span { color: #e0f7fa !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
@@ -443,11 +355,8 @@
 <div id="mapTooltip"></div>
 
 <div class="left-panel">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+    <div style="margin-bottom:14px;">
         <h1 style="margin:0; font-size:1.05rem; line-height:1.3;">🗳️ PGM Projeksiyon Arayüzü</h1>
-        <button onclick="cycleTheme()" title="Tema değiştir" style="flex-shrink:0; background:var(--surface-alt); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:5px 10px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:5px; margin-left:10px;">
-            <span class="theme-icon-el">☀️</span><span class="theme-label-el" style="font-size:12px;">Açık</span>
-        </button>
     </div>
 
     <div id="uiModeToggle">
@@ -1005,6 +914,20 @@ let customDotPositions = {};
 let mapMode = 'party'; // 'party' | 'alliance'
 let digerDisplayEnabled = true;
 let isFullscreen = false; // Harita tam ekran modu bayrağı
+
+// İnfografik (1920x1080) öge yerleşimi — kullanıcı "Yerleşimi Düzenle" ile sürükleyip
+// yeniden boyutlandırabilir. localStorage'da saklanır; yoksa varsayılan kullanılır.
+const DEFAULT_INFOGRAPHIC_LAYOUT = {
+    partyStrip: { x: 5,    y: -43.5, w: 1907, h: 265.5, label: 'Parti Şeridi' },
+    map:        { x: 0,    y: 220,  w: 1927, h: 837, label: 'Harita' },
+    arch:       { x: 1279, y: 757,  w: 464,  h: 327, label: 'Parlamento Diyagramı' },
+    info:       { x: 652,  y: 758,  w: 390,  h: 290, label: 'Bilgi Kutusu' }
+};
+let infographicLayout = null;
+try {
+    const savedLayout = localStorage.getItem('infographicLayout');
+    if (savedLayout) infographicLayout = JSON.parse(savedLayout);
+} catch(e) { infographicLayout = null; }
 
 // Yeni Ara Seçim İnceleme Değişkenleri
 let isSelectionModeActive = false;
@@ -2132,7 +2055,11 @@ window.renameCoalition = function(idx, newName) {
         }
     }
 
-    renderCoalitions(); renderAlliances();
+    // Parlamento sıralamasında da adı güncelle, sonra yeniden hesapla
+    parliamentOrderOverride.forEach((n, i) => { if (n === oldName) parliamentOrderOverride[i] = newName; });
+
+    renderCoalitions(); renderAlliances(); renderParlOrder();
+    if (Object.keys(globalResults).length > 0) runProjection();
 };
 
 window.renameAlliance = function(idx, newName) {
@@ -2148,7 +2075,10 @@ window.renameAlliance = function(idx, newName) {
         }
     }
 
-    renderAlliances();
+    parliamentOrderOverride.forEach((n, i) => { if (n === oldName) parliamentOrderOverride[i] = newName; });
+
+    renderAlliances(); renderParlOrder();
+    if (Object.keys(globalResults).length > 0) runProjection();
 };
 
 function addExtraParty(){
@@ -2353,18 +2283,18 @@ function renderCoalitions(){
                 
                 <button class="toggle-btn" onclick="coalitions[${idx}].isOpen=!coalitions[${idx}].isOpen;renderCoalitions()">${c.isOpen ? '▲' : '▼'}</button>
                 
-                <button class="status-btn ${c.isEnabled !== false ? 'active' : ''}" style="background:${c.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${c.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${c.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="coalitions[${idx}].isEnabled=!(coalitions[${idx}].isEnabled!==false);renderCoalitions()" title="${c.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${c.isEnabled !== false ? 'A' : 'P'}</button>
+                <button class="status-btn ${c.isEnabled !== false ? 'active' : ''}" style="background:${c.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${c.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${c.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="coalitions[${idx}].isEnabled=!(coalitions[${idx}].isEnabled!==false);renderCoalitions(); if(Object.keys(globalResults).length>0)runProjection();" title="${c.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${c.isEnabled !== false ? 'A' : 'P'}</button>
                 
                 <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius:6px; background:${c.color || '#000000'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('coal', ${idx})"></div>
                 
                 <input type="text" class="editable-name" value="${escapeStr(c.name)}" onchange="renameCoalition(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
                 
-                <button class="danger" onclick="takeSnapshot();coalitions.splice(${idx},1);renderCoalitions();renderAlliances();">✖</button>
+                <button class="danger" onclick="takeSnapshot();coalitions.splice(${idx},1);renderCoalitions();renderAlliances(); if(Object.keys(globalResults).length>0)runProjection();">✖</button>
             </div>
             <div style="margin-top:10px; display: ${c.isOpen ? 'grid' : 'none'}; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; border-top: 1px dashed var(--border); padding-top:10px;">
                 ${all.map(p => `
                     <label class="coal-sim-box ${c.members.includes(p)?'active':''}" title="${escapeStr(p)}">
-                        <input type="checkbox" style="display:none;" ${c.members.includes(p)?'checked':''} onchange="const m=coalitions[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : coalitions[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderCoalitions();">
+                        <input type="checkbox" style="display:none;" ${c.members.includes(p)?'checked':''} onchange="const m=coalitions[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : coalitions[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderCoalitions(); if(Object.keys(globalResults).length>0)runProjection();">
                         <span>${p}</span>
                     </label>
                 `).join('')}
@@ -2390,18 +2320,18 @@ function renderAlliances(){
                 
                 <button class="toggle-btn" onclick="electoralAlliances[${idx}].isOpen=!electoralAlliances[${idx}].isOpen;renderAlliances()">${a.isOpen ? '▲' : '▼'}</button>
                 
-                <button class="status-btn ${a.isEnabled !== false ? 'active' : ''}" style="background:${a.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${a.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${a.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="electoralAlliances[${idx}].isEnabled=!(electoralAlliances[${idx}].isEnabled!==false);renderAlliances()" title="${a.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${a.isEnabled !== false ? 'A' : 'P'}</button>
+                <button class="status-btn ${a.isEnabled !== false ? 'active' : ''}" style="background:${a.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${a.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${a.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="electoralAlliances[${idx}].isEnabled=!(electoralAlliances[${idx}].isEnabled!==false);renderAlliances(); if(Object.keys(globalResults).length>0)runProjection();" title="${a.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${a.isEnabled !== false ? 'A' : 'P'}</button>
                 
                 <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius:6px; background:${a.color || '#000000'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('alliance', ${idx})"></div>
                 
                 <input type="text" class="editable-name" value="${escapeStr(a.name)}" onchange="renameAlliance(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
                 
-                <button class="danger" onclick="takeSnapshot();electoralAlliances.splice(${idx},1);renderAlliances();">✖</button>
+                <button class="danger" onclick="takeSnapshot();electoralAlliances.splice(${idx},1);renderAlliances(); if(Object.keys(globalResults).length>0)runProjection();">✖</button>
             </div>
             <div style="margin-top:10px; display: ${a.isOpen ? 'grid' : 'none'}; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; border-top: 1px dashed var(--border); padding-top:10px;">
                 ${all.map(p => `
                     <label class="coal-sim-box ${a.members.includes(p)?'active':''}" style="${a.members.includes(p)?'background:var(--teal);border-color:var(--teal);':''}" title="${escapeStr(p)}">
-                        <input type="checkbox" style="display:none;" ${a.members.includes(p)?'checked':''} onchange="const m=electoralAlliances[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : electoralAlliances[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderAlliances();">
+                        <input type="checkbox" style="display:none;" ${a.members.includes(p)?'checked':''} onchange="const m=electoralAlliances[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : electoralAlliances[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderAlliances(); if(Object.keys(globalResults).length>0)runProjection();">
                         <span>${p}</span>
                     </label>
                 `).join('')}
@@ -3046,18 +2976,28 @@ function runProjection() {
         if (cSum > 0) resolvedNat[c.name] = cSum;
     });
 
+    // Baraj, girilen ham oy oranına göre değil, bu oranların 100'e normalize edilmiş
+    // (yani gerçek çıktıda görünecek) haline göre uygulanır. Girilen partilerin toplamı
+    // %100'ün altında/üstünde olsa bile (örn. toplam %30 ise), her partinin gerçek
+    // ülke geneli payı bu toplama göre yeniden ölçeklenip barajla karşılaştırılır.
+    const natSum = Object.values(resolvedNat).reduce((a, b) => a + b, 0);
+    const normalizedNat = {};
+    Object.keys(resolvedNat).forEach(p => {
+        normalizedNat[p] = natSum > 0 ? (resolvedNat[p] / natSum) * 100 : 0;
+    });
+
     let passedThreshold = new Set();
     electoralAlliances.forEach(a => {
         if (a.isEnabled === false) return;
         let aSum = 0;
-        a.members.forEach(m => { if(resolvedNat[m] !== undefined) aSum += resolvedNat[m]; });
+        a.members.forEach(m => { if(normalizedNat[m] !== undefined) aSum += normalizedNat[m]; });
         if (aSum >= threshold) {
-            a.members.forEach(m => { if(resolvedNat[m] !== undefined) passedThreshold.add(m); });
+            a.members.forEach(m => { if(normalizedNat[m] !== undefined) passedThreshold.add(m); });
         }
     });
 
-    Object.keys(resolvedNat).forEach(p => {
-        if (!passedThreshold.has(p) && resolvedNat[p] >= threshold) passedThreshold.add(p);
+    Object.keys(normalizedNat).forEach(p => {
+        if (!passedThreshold.has(p) && normalizedNat[p] >= threshold) passedThreshold.add(p);
     });
 
     globalResults = {}; 
@@ -4159,11 +4099,23 @@ function renderDistrictOverlay() {
         !(fl.districtMap[p] || []).includes(dName)
     );
 
+    // Gösterilecek oy oranı: haritadaki hover kutusuyla birebir aynı hesap — güncel geçerli
+    // oy toplamı (pasife alınanlar çıkarılmış) üzerinden. Bu, ortak liste/fermuar üyelerinde
+    // ortaya çıkan çift sayımı da önler: preDisableVotes bireysel parti bazında tutulurken
+    // rawVotes liste birleştirilmiş halde olduğu için ikisi karıştırılmamalı.
+    // Pasife alınan partiler için, pasifleşmeden önceki payı (üstü çizili) gösterilir.
+    const effTotal = displayData.totalVotes || 1;
+    function displayPctOf(name) {
+        const isDisabled = localDisabledParties[dName] && localDisabledParties[dName].has(name);
+        if (isDisabled) return preDisTotal > 0 ? (preVotesOf(name) / preDisTotal * 100) : 0;
+        return (displayData.rawVotes[name] || 0) / effTotal * 100;
+    }
+
     const sortedParties = Object.keys(displayData.rawVotes)
         .filter(p => !isFermuarNonCompeting(p))
-        .sort((a,b) => preVotesOf(b) - preVotesOf(a));
-    // Lider partinin oy yüzdesi: bar normalizasyonu için sabit referans (pasif yapılsa bile değişmez)
-    const leaderPct = Math.max(...sortedParties.map(p => preVotesOf(p) / preDisTotal * 100), 0.01);
+        .sort((a,b) => displayPctOf(b) - displayPctOf(a));
+    // Bar normalizasyonu için lider oranı
+    const leaderPct = Math.max(...sortedParties.map(p => displayPctOf(p)), 0.01);
     
     let winnerParty = null;
     let maxMvs = -1;
@@ -4246,8 +4198,8 @@ function renderDistrictOverlay() {
             return;
         }
         
-        // realPct: preDisableVotes'tan (alliance modunda üye oyları toplanır), bu sayede %0 hatası olmaz
-        const realPct = preDisTotal > 0 ? (preVotesOf(p) / preDisTotal * 100) : pctNum;
+        // realPct: hover kutusuyla aynı hesap (pasife alınanlar hariç geçerli toplam üzerinden)
+        const realPct = displayPctOf(p);
         const realPctStr = realPct.toFixed(2).replace('.', ',');
         // Bar genişliği: lider her zaman %100, diğerleri orantılı; pasif yapılsa değişmez
         const normalizedBarWidth = leaderPct > 0 ? (realPct / leaderPct) * 100 : realPct;
@@ -4633,33 +4585,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ensureDigerGroup();
     renderDiger();
     cpInit();
-    applyTheme(localStorage.getItem('theme') || 'system');
 });
-
-const THEMES = [
-    { key: 'system',     icon: '🔄', label: 'Sistem' },
-    { key: 'light',      icon: '☀️',  label: 'Açık'  },
-    { key: 'dark-navy',  icon: '🌙', label: 'Koyu'  },
-    { key: 'dark-oled',  icon: '⬛', label: 'OLED'  },
-];
-
-function applyTheme(key) {
-    const theme = THEMES.find(t => t.key === key) || THEMES[0];
-    document.documentElement.setAttribute('data-theme', theme.key);
-    localStorage.setItem('theme', theme.key);
-    const icon  = document.getElementById('themeBtnIcon');
-    const label = document.getElementById('themeBtnLabel');
-    if (icon)  icon.textContent  = theme.icon;
-    if (label) label.textContent = theme.label;
-    document.querySelectorAll('.theme-icon-el').forEach(el => el.textContent = theme.icon);
-    document.querySelectorAll('.theme-label-el').forEach(el => el.textContent = theme.label);
-}
-
-window.cycleTheme = function() {
-    const current = localStorage.getItem('theme') || 'system';
-    const idx = THEMES.findIndex(t => t.key === current);
-    applyTheme(THEMES[(idx + 1) % THEMES.length].key);
-};
 
 // ─── EXPERIMENTAL: Ekran Görüntüsü ───────────────────────────────────────────
 async function exportInfographic() {
@@ -4784,14 +4710,10 @@ async function exportInfographic() {
         const now = new Date();
         const dateStr = now.toLocaleDateString('tr-TR', {year:'numeric', month:'long'});
 
-        // --- Düzen: absolute positioning, editör çıktısından ---
+        // --- Düzen: absolute positioning — kullanıcının "Yerleşimi Düzenle" ile ayarladığı
+        // konumlar (yoksa varsayılan) ---
         const W = 1920, H = 1080;
-        const L = {
-            partyStrip: {x:0,   y:-40, w:1920, h:255},
-            map:        {x:0,   y:220, w:1920, h:785},
-            arch:       {x:1310,y:705, w:575,  h:370},
-            info:       {x:40,  y:775, w:390,  h:290},
-        };
+        const L = infographicLayout || DEFAULT_INFOGRAPHIC_LAYOUT;
         const exportDiv = document.createElement('div');
         exportDiv.style.cssText = `position:fixed;left:-9999px;top:0;width:${W}px;height:${H}px;overflow:hidden;background:#fff;font-family:'Product Sans',Arial,sans-serif;color:#111;`;
 
@@ -5292,7 +5214,104 @@ function executeClear() {
 
     closeClearModal();
 }
+
+// ── İnfografik Yerleşim Editörü ──────────────────────────────────────────────
+// 1920x1080'lik export tuvalini küçültülmüş bir önizlemede gösterir; kullanıcı
+// 4 bloğu (parti şeridi, harita, parlamento, bilgi kutusu) sürükleyip köşeden
+// tutarak yeniden boyutlandırabilir. Sonuç localStorage'a kaydedilir.
+const INFO_LAYOUT_SCALE = 800 / 1920; // önizleme genişliği 800px
+let editingInfographicLayout = null;
+
+function openInfographicLayoutEditor() {
+    editingInfographicLayout = JSON.parse(JSON.stringify(infographicLayout || DEFAULT_INFOGRAPHIC_LAYOUT));
+    renderInfographicLayoutEditor();
+    $('infographicLayoutModal').style.display = 'flex';
+}
+
+window.closeInfographicLayoutEditor = function() {
+    $('infographicLayoutModal').style.display = 'none';
+};
+
+window.resetInfographicLayoutEditor = function() {
+    editingInfographicLayout = JSON.parse(JSON.stringify(DEFAULT_INFOGRAPHIC_LAYOUT));
+    renderInfographicLayoutEditor();
+};
+
+window.saveInfographicLayoutEditor = function() {
+    infographicLayout = editingInfographicLayout;
+    localStorage.setItem('infographicLayout', JSON.stringify(infographicLayout));
+    closeInfographicLayoutEditor();
+};
+
+const INFO_BLOCK_COLORS = {
+    partyStrip: 'rgba(245, 158, 11, 0.35)',
+    map:        'rgba(59, 130, 246, 0.30)',
+    arch:       'rgba(168, 85, 247, 0.35)',
+    info:       'rgba(16, 185, 129, 0.35)'
+};
+
+function renderInfographicLayoutEditor() {
+    const canvas = $('infoLayoutCanvas');
+    if (!canvas) return;
+    const s = INFO_LAYOUT_SCALE;
+    canvas.innerHTML = Object.keys(editingInfographicLayout).map(key => {
+        const b = editingInfographicLayout[key];
+        return `<div class="info-layout-block" data-key="${key}"
+                    style="left:${b.x*s}px; top:${(b.y+40)*s}px; width:${b.w*s}px; height:${b.h*s}px; background:${INFO_BLOCK_COLORS[key]||'rgba(120,120,120,0.3)'};"
+                    onmousedown="infoLayoutStartDrag(event,'${key}')">
+                <span class="info-layout-label">${b.label || key}</span>
+                <div class="info-layout-resize-handle" onmousedown="infoLayoutStartResize(event,'${key}')"></div>
+            </div>`;
+    }).join('');
+}
+
+let infoLayoutDrag = null; // { key, mode:'move'|'resize', startX, startY, orig:{x,y,w,h} }
+
+window.infoLayoutStartDrag = function(e, key) {
+    if (e.target.classList.contains('info-layout-resize-handle')) return;
+    e.preventDefault();
+    infoLayoutDrag = { key, mode: 'move', startX: e.clientX, startY: e.clientY, orig: { ...editingInfographicLayout[key] } };
+};
+window.infoLayoutStartResize = function(e, key) {
+    e.preventDefault();
+    e.stopPropagation();
+    infoLayoutDrag = { key, mode: 'resize', startX: e.clientX, startY: e.clientY, orig: { ...editingInfographicLayout[key] } };
+};
+document.addEventListener('mousemove', (e) => {
+    if (!infoLayoutDrag) return;
+    const s = INFO_LAYOUT_SCALE;
+    const dx = (e.clientX - infoLayoutDrag.startX) / s;
+    const dy = (e.clientY - infoLayoutDrag.startY) / s;
+    const b = editingInfographicLayout[infoLayoutDrag.key];
+    const o = infoLayoutDrag.orig;
+    if (infoLayoutDrag.mode === 'move') {
+        b.x = Math.max(-200, Math.min(1920 - 40, Math.round(o.x + dx)));
+        b.y = Math.max(-100, Math.min(1080 - 40, Math.round(o.y + dy)));
+    } else {
+        b.w = Math.max(60, Math.round(o.w + dx));
+        b.h = Math.max(40, Math.round(o.h + dy));
+    }
+    renderInfographicLayoutEditor();
+});
+document.addEventListener('mouseup', () => { infoLayoutDrag = null; });
+// ─────────────────────────────────────────────────────────────────────────────
 </script>
+
+<!-- İnfografik Yerleşim Editörü Modalı -->
+<div id="infographicLayoutModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this)closeInfographicLayoutEditor()">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 26px;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+        <div style="font-size:15px;font-weight:900;color:var(--text);margin-bottom:4px;">🎛️ İnfografik Yerleşimini Düzenle</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;max-width:800px;">Blokları sürükleyerek taşıyın, sağ-alt köşeden tutup yeniden boyutlandırın. Kutu 1920×1080'lik gerçek çıktıyı temsil eder.</div>
+        <div id="infoLayoutCanvas" style="position:relative;width:800px;height:450px;background:repeating-conic-gradient(#f0f0f0 0% 25%, #ffffff 0% 50%) 50% / 20px 20px;border:1px solid var(--border);border-radius:6px;overflow:hidden;"></div>
+        <div style="display:flex;gap:10px;justify-content:space-between;margin-top:16px;">
+            <button onclick="resetInfographicLayoutEditor()" style="padding:8px 16px;border-radius:7px;border:1px solid var(--border);background:var(--surface-alt);color:var(--text);cursor:pointer;font-size:13px;">↺ Varsayılana Sıfırla</button>
+            <div style="display:flex;gap:10px;">
+                <button onclick="closeInfographicLayoutEditor()" style="padding:8px 16px;border-radius:7px;border:1px solid var(--border);background:var(--surface-alt);color:var(--text);cursor:pointer;font-size:13px;">İptal</button>
+                <button onclick="saveInfographicLayoutEditor()" style="padding:8px 16px;border-radius:7px;border:none;background:var(--success,#22c55e);color:#fff;cursor:pointer;font-size:13px;font-weight:bold;">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Temizle Modal -->
 <div id="clearModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;" onclick="if(event.target===this)closeClearModal()">
