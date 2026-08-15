@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Değişim Oranı Hesaplayıcı</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+    :root {
+        --bg:#f0f2f5; --surface:#fff; --surface-alt:#f7f8fa; --border:#dcdfe4;
+        --text:#1c1e21; --dim:#606770; --primary:#1a73e8; --success:#1e8e3e; --danger:#d93025;
+    }
+    body { background:var(--bg); color:var(--text); font-size:13px; padding:24px; display:flex; justify-content:center; }
+    .wrap { width:100%; max-width:560px; }
+    h1 { font-size:16px; font-weight:800; color:var(--primary); margin-bottom:4px; }
+    .sub { font-size:12px; color:var(--dim); margin-bottom:18px; line-height:1.6; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+    .card h2 { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color:var(--dim);
+               margin-bottom:12px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+    .row { display:flex; gap:10px; margin-bottom:12px; }
+    .fld { flex:1; }
+    .fld label { display:block; font-size:11px; font-weight:700; color:var(--dim); margin-bottom:4px; }
+    input { width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 10px; font-size:15px;
+            font-weight:700; outline:none; background:var(--surface); color:var(--text); }
+    input:focus { border-color:var(--primary); box-shadow:0 0 0 2px rgba(26,115,232,.15); }
+    .arrow { display:flex; align-items:flex-end; padding-bottom:9px; color:var(--dim); font-size:18px; }
+
+    .result { background:var(--surface-alt); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center; }
+    .result .big { font-size:34px; font-weight:900; line-height:1.1; letter-spacing:-1px; }
+    .result .lbl { font-size:11px; color:var(--dim); font-weight:700; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; }
+    .up { color:var(--success); } .down { color:var(--danger); } .flat { color:var(--dim); }
+    .meta { display:flex; gap:8px; margin-top:12px; }
+    .meta div { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:8px; }
+    .meta .k { font-size:10px; color:var(--dim); font-weight:700; }
+    .meta .v { font-size:16px; font-weight:800; margin-top:2px; }
+
+    button { background:var(--primary); color:#fff; border:none; padding:9px 14px; border-radius:6px;
+             cursor:pointer; font-size:12px; font-weight:700; transition:.15s; }
+    button:hover { filter:brightness(1.08); }
+    button.ghost { background:var(--surface); color:var(--text); border:1px solid var(--border); }
+    button.ghost:hover { border-color:var(--primary); color:var(--primary); }
+    .btnrow { display:flex; gap:8px; margin-top:12px; }
+    .btnrow button { flex:1; }
+
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th, td { padding:6px 8px; border-bottom:1px solid var(--border); text-align:right; }
+    th { font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.3px; }
+    td:first-child, th:first-child { text-align:left; }
+    .hist-empty { font-size:12px; color:var(--dim); text-align:center; padding:14px; }
+    .copybtn { background:none; border:1px solid var(--border); color:var(--dim); padding:2px 7px; font-size:11px; border-radius:4px; }
+    .copybtn:hover { border-color:var(--primary); color:var(--primary); }
+    .note { font-size:11px; color:var(--dim); line-height:1.6; margin-top:10px; background:var(--surface-alt);
+            border-left:3px solid var(--primary); padding:8px 10px; border-radius:0 5px 5px 0; }
+    .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#1c1e21; color:#fff;
+             padding:9px 16px; border-radius:20px; font-size:12px; font-weight:700; opacity:0; transition:.2s; pointer-events:none; }
+    .toast.show { opacity:1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <h1>📊 Değişim Oranı Hesaplayıcı</h1>
+    <div class="sub">
+        Birincil değerden ikincil değere geçişin yüzdesel değişimini hesaplar.
+        Çıkan sonucu <b>Seçim Verisi Oluşturucu</b>'daki çevre hücrelerine girebilirsiniz.
+    </div>
+
+    <div class="card">
+        <h2>Değişim Hesapla</h2>
+        <div class="row">
+            <div class="fld">
+                <label>Birincil değer (referans)</label>
+                <input id="a" placeholder="örn. 30" inputmode="decimal" autofocus>
+            </div>
+            <div class="arrow">→</div>
+            <div class="fld">
+                <label>İkincil değer (hedef)</label>
+                <input id="b" placeholder="örn. 3" inputmode="decimal">
+            </div>
+        </div>
+
+        <div class="result">
+            <div class="lbl">Değişim Oranı</div>
+            <div class="big flat" id="out">—</div>
+            <div class="meta">
+                <div><div class="k">KATSAYI</div><div class="v" id="mult">—</div></div>
+                <div><div class="k">FARK</div><div class="v" id="diff">—</div></div>
+            </div>
+        </div>
+
+        <div class="btnrow">
+            <button onclick="copyResult()">📋 Değişimi Kopyala</button>
+            <button class="ghost" onclick="addHistory()">➕ Listeye Ekle</button>
+            <button class="ghost" onclick="swap()">⇄ Yer Değiştir</button>
+        </div>
+
+        <div class="note">
+            <b>Örnek:</b> Bir partinin ülke geneli oranı <b>30</b>, Bolu'daki oranı <b>3</b> ise
+            değişim <b>−90%</b> çıkar (katsayı 0,1). Bu değeri Bolu hücresine yazdığınızda,
+            o parti Bolu'da ülke ortalamasının onda biri kadar güçlü olur.
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Ters Hesap — Değişimden Sonucu Bul</h2>
+        <div class="row">
+            <div class="fld">
+                <label>Birincil değer</label>
+                <input id="ra" placeholder="örn. 30" inputmode="decimal">
+            </div>
+            <div class="fld">
+                <label>Değişim (%)</label>
+                <input id="rc" placeholder="örn. -90" inputmode="decimal">
+            </div>
+            <div class="arrow">=</div>
+            <div class="fld">
+                <label>Sonuç</label>
+                <input id="rb" readonly style="background:var(--surface-alt); color:var(--primary);">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Kayıt Listesi</h2>
+        <div id="hist"></div>
+        <div class="btnrow" id="histBtns" style="display:none;">
+            <button class="ghost" onclick="copyAll()">📋 Tümünü Kopyala</button>
+            <button class="ghost" onclick="clearHistory()">🗑️ Temizle</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// Türkçe virgül ve binlik ayırıcıya duyarlı sayı okuma
+function parseNum(v) {
+    if (v === null || v === undefined) return null;
+    let s = String(v).trim().replace(/\s/g, '');
+    if (!s) return null;
+    if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+    else {
+        const p = s.split('.');
+        if (p.length > 2) s = p.join('');
+        else if (p.length === 2 && p[1].length === 3 && p[0].length <= 3) s = p.join('');
+    }
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+}
+const fmt = (n, d = 2) => n.toFixed(d).replace('.', ',');
+
+let history = [];
+let lastChange = null;
+
+function calc() {
+    const a = parseNum($('a').value), b = parseNum($('b').value);
+    const out = $('out'), mult = $('mult'), diff = $('diff');
+
+    if (a === null || b === null) { out.textContent = '—'; out.className = 'big flat'; mult.textContent = '—'; diff.textContent = '—'; lastChange = null; return; }
+    if (a === 0) { out.textContent = '∞'; out.className = 'big flat'; mult.textContent = '—'; diff.textContent = fmt(b); lastChange = null; return; }
+
+    const ch = (b - a) / a * 100;
+    lastChange = ch;
+    out.textContent = (ch > 0 ? '+' : '') + fmt(ch) + '%';
+    out.className = 'big ' + (ch > 0.005 ? 'up' : ch < -0.005 ? 'down' : 'flat');
+    mult.textContent = '×' + fmt(b / a, 3);
+    diff.textContent = (b - a > 0 ? '+' : '') + fmt(b - a);
+}
+['a','b'].forEach(id => $(id).addEventListener('input', calc));
+
+function swap() { const t = $('a').value; $('a').value = $('b').value; $('b').value = t; calc(); }
+
+function reverseCalc() {
+    const a = parseNum($('ra').value), c = parseNum($('rc').value);
+    $('rb').value = (a === null || c === null) ? '' : fmt(a * (1 + c / 100), 3);
+}
+['ra','rc'].forEach(id => $(id).addEventListener('input', reverseCalc));
+
+function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+function copyText(txt, msg) {
+    navigator.clipboard.writeText(txt).then(() => toast(msg || 'Kopyalandı: ' + txt))
+        .catch(() => { prompt('Kopyalayın:', txt); });
+}
+
+function copyResult() {
+    if (lastChange === null) return toast('Önce iki değer girin');
+    copyText(fmt(lastChange));
+}
+
+function addHistory() {
+    if (lastChange === null) return toast('Önce iki değer girin');
+    const label = prompt('Etiket (örn. çevre veya parti adı):', '');
+    if (label === null) return;
+    history.unshift({ label: label.trim() || '—', a: $('a').value, b: $('b').value, ch: lastChange });
+    renderHistory();
+}
+
+function renderHistory() {
+    const el = $('hist');
+    if (!history.length) { el.innerHTML = '<div class="hist-empty">Henüz kayıt yok. Hesapladığınız değerleri buraya ekleyip toplu kopyalayabilirsiniz.</div>'; $('histBtns').style.display = 'none'; return; }
+    $('histBtns').style.display = 'flex';
+    el.innerHTML = `<table><thead><tr><th>Etiket</th><th>Birincil</th><th>İkincil</th><th>Değişim</th><th></th></tr></thead><tbody>` +
+        history.map((h, i) => `<tr>
+            <td>${esc(h.label)}</td><td>${esc(h.a)}</td><td>${esc(h.b)}</td>
+            <td style="font-weight:800; color:${h.ch > 0 ? 'var(--success)' : h.ch < 0 ? 'var(--danger)' : 'var(--dim)'}">${(h.ch > 0 ? '+' : '') + fmt(h.ch)}%</td>
+            <td><button class="copybtn" onclick="copyText('${fmt(h.ch)}')">kopyala</button></td>
+        </tr>`).join('') + '</tbody></table>';
+}
+function esc(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function copyAll() { copyText(history.map(h => `${h.label}\t${fmt(h.ch)}`).join('\n'), 'Liste kopyalandı'); }
+function clearHistory() { if (confirm('Liste temizlensin mi?')) { history = []; renderHistory(); } }
+
+renderHistory();
+</script>
+</body>
+</html>

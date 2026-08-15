@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seçim Verisi Oluşturucu</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+    :root {
+        --bg: #f0f2f5; --surface: #ffffff; --surface-alt: #f7f8fa;
+        --border: #dcdfe4; --text: #1c1e21; --text-dim: #606770;
+        --primary: #1a73e8; --success: #1e8e3e; --danger: #d93025; --orange: #e37400;
+        --head-bg: #eef1f6;
+    }
+    body { background: var(--bg); color: var(--text); font-size: 13px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    header {
+        background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 16px;
+        display: flex; align-items: center; gap: 12px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    header h1 { font-size: 15px; font-weight: 800; color: var(--primary); white-space: nowrap; }
+    header .spacer { flex: 1; }
+
+    button {
+        background: var(--primary); color: #fff; border: none; padding: 7px 13px; border-radius: 6px;
+        cursor: pointer; font-size: 12px; font-weight: 700; transition: 0.15s;
+    }
+    button:hover { filter: brightness(1.08); }
+    button.ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    button.ghost:hover { border-color: var(--primary); color: var(--primary); }
+    button.danger { background: var(--danger); }
+    button.success { background: var(--success); }
+    button.sm { padding: 3px 7px; font-size: 11px; }
+
+    input, select {
+        border: 1px solid var(--border); border-radius: 5px; padding: 5px 7px;
+        font-size: 12px; background: var(--surface); color: var(--text); outline: none; width: 100%;
+    }
+    input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(26,115,232,0.15); }
+
+    .layout { flex: 1; display: flex; min-height: 0; }
+
+    aside {
+        width: 310px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border);
+        overflow-y: auto; padding: 14px;
+    }
+    .panel { margin-bottom: 18px; }
+    .panel > h2 {
+        font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px;
+        color: var(--text-dim); margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border);
+    }
+    .hint { font-size: 11px; color: var(--text-dim); line-height: 1.5; margin-bottom: 8px; }
+    .hint b { color: var(--text); }
+
+    .party-row {
+        display: flex; align-items: center; gap: 6px; padding: 5px; border-radius: 6px;
+        background: var(--surface-alt); border: 1px solid var(--border); margin-bottom: 5px;
+    }
+    .swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+    .party-row .nm { flex: 1; min-width: 0; }
+    .party-row .nat { width: 62px; flex-shrink: 0; text-align: right; font-weight: 700; color: var(--primary); }
+
+    main { flex: 1; overflow: auto; position: relative; }
+    table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; background: var(--surface); }
+    th, td { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 0; }
+    thead th {
+        position: sticky; top: 0; z-index: 3; background: var(--head-bg);
+        padding: 6px 8px; font-size: 11px; font-weight: 800; text-align: center; white-space: nowrap;
+    }
+    thead th .sub { display: block; font-weight: 600; font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+    thead th .real { display: block; font-weight: 700; font-size: 10px; margin-top: 1px; }
+    tbody td { text-align: center; }
+    tbody td input { border: none; border-radius: 0; background: transparent; text-align: center; padding: 6px 4px; }
+    tbody td input:focus { background: #fff; box-shadow: inset 0 0 0 2px var(--primary); }
+    tbody tr:nth-child(even) td { background: var(--surface-alt); }
+    tbody tr:hover td { background: #eaf2fe; }
+
+    .col-name { position: sticky; left: 0; z-index: 2; background: inherit !important; text-align: left !important;
+                padding: 6px 10px !important; font-weight: 700; white-space: nowrap; border-right: 2px solid var(--border); }
+    thead .col-name { z-index: 4; background: var(--head-bg) !important; }
+    .col-size { width: 110px; }
+    .col-pct  { width: 78px; }
+    .col-sum  { width: 74px; font-weight: 800; font-size: 11px; padding: 6px 4px !important; }
+
+    .empty-note { padding: 40px; text-align: center; color: var(--text-dim); font-size: 13px; line-height: 1.7; }
+    .badge { display:inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; }
+    .ok   { background: #e6f4ea; color: var(--success); }
+    .warn { background: #fef7e0; color: var(--orange); }
+    .bad  { background: #fce8e6; color: var(--danger); }
+    .statusbar { background: var(--surface); border-top: 1px solid var(--border); padding: 6px 16px;
+                 font-size: 11px; color: var(--text-dim); flex-shrink: 0; display: flex; gap: 18px; }
+    .statusbar b { color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>🗳️ Seçim Verisi Oluşturucu</h1>
+    <span class="hint" style="margin:0;">87 seçim çevresi · 600 milletvekili</span>
+    <button class="ghost" id="viewBtn" onclick="toggleView()">👁️ Görünüm: Değişim %</button>
+    <div class="spacer"></div>
+    <button class="ghost" onclick="saveWork()">💾 Çalışmayı Kaydet</button>
+    <button class="ghost" onclick="document.getElementById('workLoader').click()">📂 Çalışmayı Yükle</button>
+    <input type="file" id="workLoader" accept=".json" style="display:none" onchange="loadWork(this)">
+    <button class="success" onclick="downloadDataset()">📊 Seçim Verisi İndir (.JSON)</button>
+</header>
+
+<div class="layout">
+    <aside>
+        <div class="panel">
+            <h2>Partiler</h2>
+            <div class="hint">
+                Yalnızca parti adı girin. Tabloda her çevreye o partinin
+                <b>ülke ortalamasına göre yüzdesel sapmasını</b> yazacaksınız:
+                <b>0</b> = ülke ortalaması, <b>+50</b> = 1,5 katı, <b>−90</b> = onda biri.
+            </div>
+            <div class="hint" style="background:var(--surface-alt); border-left:3px solid var(--primary); padding:7px 9px; border-radius:0 5px 5px 0;">
+                <b>Boş bırakmak ≠ 0 yazmak.</b> Bir hücreye değer yazdığınızda o parti
+                o çevrede sabitlenir ve girdiğiniz sapma birebir gerçekleşir.
+                <b>Boş</b> bıraktıklarınız serbest kalır, kalan oy payını aralarında bölüşür.
+                Bu yüzden bir çevrede yalnızca farklılaşan partilere değer yazmanız yeterlidir.
+            </div>
+            <div style="display:flex; gap:5px; margin-bottom:8px;">
+                <input id="newPName" placeholder="Parti adı" style="flex:1;">
+                <button onclick="addParty()" style="width:34px; padding:0;">+</button>
+            </div>
+            <div id="partyList"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Yardımcı Araç</h2>
+            <button class="ghost" style="width:100%;" onclick="window.open('degisim_hesaplayici.html','_blank')">
+                📊 Değişim Oranı Hesaplayıcı
+            </button>
+            <div class="hint" style="margin-top:6px;">
+                Elinizde iki sayı varsa (örn. ülke geneli %30, çevrede %3) aradaki değişim oranını
+                hesaplayıp buraya girebilirsiniz.
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Hızlı İşlemler</h2>
+            <button class="ghost" style="width:100%; margin-bottom:6px;" onclick="fillZero()">
+                ⤵️ Tüm hücreleri 0 yap (ülke ortalaması)
+            </button>
+            <div class="hint">Boş tablodan başlarken iyi bir başlangıç: tüm çevreler ülke ortalamasına eşitlenir, siz sonra farklılaştırırsınız.</div>
+            <button class="ghost" style="width:100%;" onclick="clearCells()">🧹 Tablo değerlerini temizle</button>
+        </div>
+
+        <div class="panel">
+            <h2>Seçmen Sayısı</h2>
+            <div class="hint">
+                Tablodaki <b>Seçmen</b> sütununa istediğiniz formatta yazabilirsiniz:
+                <b>1.250.000</b> gibi mutlak sayı ya da <b>0,04</b> / <b>4</b> gibi oransal pay.
+                Araç ikisini de otomatik algılar. Boş bıraktığınız çevreler,
+                milletvekili sayısıyla orantılı kabul edilir.
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:11px; color:var(--text-dim); white-space:nowrap;">Toplam seçmen</span>
+                <input id="totalElectorate" value="50.000.000" oninput="refreshSummaries()">
+            </div>
+            <div class="hint" style="margin-top:6px;">Yalnızca oransal giriş yaptığınızda kullanılır.</div>
+        </div>
+    </aside>
+
+    <main id="tableArea"></main>
+</div>
+
+<div class="statusbar">
+    <span>Çevre: <b id="stDistricts">87</b></span>
+    <span>Parti: <b id="stParties">0</b></span>
+    <span>Toplam seçmen: <b id="stElectorate">—</b></span>
+    <span id="stWarn"></span>
+</div>
+
+<script>
+// ─── Sabit veri: 87 seçim çevresi ve milletvekili sayıları ───────────────────
+const DISTRICTS = [
+["Adana",15],["Adıyaman",5],["Afyonkarahisar",6],["Ağrı",4],["Aksaray",4],["Amasya",3],
+["Ankara 1. Bölge",13],["Ankara 2. Bölge",11],["Ankara 3. Bölge",13],["Antalya",18],["Ardahan",2],["Artvin",2],
+["Aydın",8],["Balıkesir",9],["Bartın",2],["Batman",5],["Bayburt",1],["Bilecik",2],["Bingöl",3],["Bitlis",3],
+["Bolu",3],["Burdur",3],["Bursa 1. Bölge",11],["Bursa 2. Bölge",10],["Çanakkale",4],["Çankırı",2],["Çorum",4],
+["Denizli",7],["Diyarbakır",12],["Düzce",3],["Edirne",4],["Elazığ",5],["Erzincan",2],["Erzurum",5],["Eskişehir",7],
+["Gaziantep",14],["Giresun",4],["Gümüşhane",2],["Hakkari",3],["Hatay",10],["Iğdır",2],["Isparta",4],
+["İstanbul 1. Bölge",35],["İstanbul 2. Bölge",25],["İstanbul 3. Bölge",36],["İzmir 1. Bölge",14],["İzmir 2. Bölge",14],
+["Kahramanmaraş",8],["Karabük",2],["Karaman",3],["Kars",3],["Kastamonu",3],["Kayseri",10],["Kırıkkale",3],
+["Kırklareli",3],["Kırşehir",2],["Kilis",2],["Kocaeli",14],["Konya",15],["Kütahya",4],["Malatya",6],["Manisa",10],
+["Mardin",6],["Mersin",13],["Muğla",8],["Muş",3],["Nevşehir",3],["Niğde",3],["Ordu",6],["Osmaniye",4],["Rize",3],
+["Sakarya",8],["Samsun",9],["Siirt",3],["Sinop",2],["Sivas",5],["Şanlıurfa",15],["Şırnak",4],["Tekirdağ",8],
+["Tokat",5],["Trabzon",6],["Tunceli",2],["Uşak",3],["Van",8],["Yalova",3],["Yozgat",3],["Zonguldak",5]
+];
+
+const PALETTE = ['#e53935','#1e88e5','#43a047','#fb8c00','#8e24aa','#00acc1','#f4511e','#3949ab',
+                 '#7cb342','#d81b60','#00897b','#5e35b1','#c0ca33','#6d4c41','#039be5','#e91e63'];
+
+// ─── Durum ──────────────────────────────────────────────────────────────────
+let parties = [];                              // { name, nat, color }
+let districts = DISTRICTS.map(([name]) => ({ name, size: '' }));
+let cells = {};                                // cells[çevre][parti] = ham metin (yüzde)
+
+const $ = id => document.getElementById(id);
+
+// Adaptif sayı çözümleyici: "1.250.000", "1250000", "0,04", "4,5", "4.5" hepsini anlar.
+// "yok" / "-" yazılan hücre: parti o seçim çevresinde yarışmıyor → hiç oy almaz.
+// (Boş hücreden farklıdır: boş bırakılan parti kalan payı diğerleriyle bölüşür.)
+function isAbsent(v) {
+    if (v === null || v === undefined) return false;
+    const s = String(v).trim().toLowerCase();
+    return s === 'yok' || s === '-' || s === '—' || s === 'x';
+}
+
+function parseNum(v) {
+    if (v === null || v === undefined) return null;
+    let s = String(v).trim().replace(/\s/g, '');
+    if (!s) return null;
+    if (s.includes(',')) {
+        s = s.replace(/\./g, '').replace(',', '.');          // virgül = ondalık, nokta = binlik
+    } else {
+        const parts = s.split('.');
+        if (parts.length > 2) s = parts.join('');             // 1.250.000 → binlik
+        else if (parts.length === 2 && parts[1].length === 3 && parts[0].length <= 3) s = parts.join('');
+    }
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+}
+const fmtInt = n => Math.round(n).toLocaleString('tr-TR');
+const fmtPct = n => n.toFixed(2).replace('.', ',');
+
+// ─── Seçmen dağılımı (adaptif) ──────────────────────────────────────────────
+// Her çevre için bir "ağırlık" bulunur: girilmişse girilen değer, boşsa mv sayısına
+// orantılı tahmin. Ağırlıkların toplamı büyükse mutlak seçmen sayısı kabul edilir;
+// küçükse oransal kabul edilip "Toplam seçmen" ile ölçeklenir.
+const RATIO_LIMIT = 1000;
+function computeElectorate() {
+    const raw = districts.map(d => parseNum(d.size));
+    const knownIdx = raw.map((v, i) => (v !== null && v > 0) ? i : -1).filter(i => i >= 0);
+
+    let weights;
+    if (knownIdx.length === 0) {
+        weights = districts.map(() => 1);                     // hiç veri yok → eşit ağırlık
+    } else {
+        const avg = knownIdx.reduce((s, i) => s + raw[i], 0) / knownIdx.length;
+        weights = districts.map((d, i) => raw[i] !== null && raw[i] > 0 ? raw[i] : avg); // boşlar ortalama
+    }
+
+    const wSum = weights.reduce((a, b) => a + b, 0) || 1;
+    const isRatio = wSum <= RATIO_LIMIT;
+    const total = isRatio ? (parseNum($('totalElectorate').value) || 50000000) : wSum;
+    const values = weights.map(w => (w / wSum) * total);
+    return { values, total, isRatio };
+}
+
+// ─── Değişim → oy payı dönüşümü ─────────────────────────────────────────────
+// Her partinin bir çevredeki ham gücü = 1 + (girilen değişim / 100).
+// Çevredeki tüm partiler normalize edilerek oy payları bulunur; bu paylar
+// seçmen sayısıyla çarpılıp oy sayısına dönüşür. Böylece "0 = ülke ortalaması,
+// +50 = 1,5 katı, -90 = onda biri" ilişkisi korunur.
+// Değeri GİRİLEN parti o çevrede sabitlenir: payı = ülke oranı × (1 + değişim/100).
+// Değeri BOŞ bırakılan partiler serbesttir; geriye kalan payı ülke oranlarına göre
+// aralarında bölüşür. Böylece girdiğiniz sapma birebir gerçekleşir (−90 → tam onda biri).
+// Ülke oranları çevre paylarından doğduğu için ikisi sabit noktaya yakınsayana dek yinelenir.
+function computeShares(electorate) {
+    const nat = {};
+    parties.forEach(p => nat[p.name] = 1 / parties.length);
+    let shares = {};
+
+    for (let iter = 0; iter < 80; iter++) {
+        districts.forEach(d => {
+            const fixed = {}; const free = [];
+            let fixedSum = 0, freeNat = 0;
+            parties.forEach(p => {
+                if (isAbsent(cells[d.name]?.[p.name])) { fixed[p.name] = 0; return; } // o çevrede yarışmıyor
+                const ch = parseNum(cells[d.name]?.[p.name]);
+                if (ch === null) { free.push(p.name); freeNat += nat[p.name]; }
+                else { const v = Math.max(0, nat[p.name] * (1 + ch / 100)); fixed[p.name] = v; fixedSum += v; }
+            });
+            shares[d.name] = {};
+            if (free.length === 0 || fixedSum >= 1) {
+                // Serbest parti yok ya da sabitler payı doldurmuş → orantılı normalize
+                parties.forEach(p => shares[d.name][p.name] = fixedSum > 0 ? (fixed[p.name] || 0) / fixedSum : 0);
+            } else {
+                const rest = 1 - fixedSum;
+                parties.forEach(p => {
+                    shares[d.name][p.name] = fixed[p.name] !== undefined ? fixed[p.name]
+                        : (freeNat > 0 ? rest * nat[p.name] / freeNat : rest / free.length);
+                });
+            }
+        });
+
+        const newNat = {}; let tot = 0;
+        parties.forEach(p => newNat[p.name] = 0);
+        districts.forEach((d, di) => {
+            tot += electorate[di];
+            parties.forEach(p => newNat[p.name] += shares[d.name][p.name] * electorate[di]);
+        });
+        parties.forEach(p => newNat[p.name] = tot > 0 ? newNat[p.name] / tot : 0);
+
+        let diff = 0;
+        parties.forEach(p => diff += Math.abs(newNat[p.name] - nat[p.name]));
+        parties.forEach(p => nat[p.name] = newNat[p.name]);
+        if (diff < 1e-10) break;
+    }
+
+    const natPct = {};
+    parties.forEach(p => natPct[p.name] = nat[p.name] * 100);
+    return { shares, nat: natPct };
+}
+
+// ─── Render ─────────────────────────────────────────────────────────────────
+function renderParties() {
+    $('partyList').innerHTML = parties.map((p, i) => `
+        <div class="party-row">
+            <span class="swatch" style="background:${p.color}"></span>
+            <input class="nm" value="${esc(p.name)}" onchange="renameParty(${i}, this.value)">
+            <button class="danger sm" onclick="removeParty(${i})">✕</button>
+        </div>`).join('') || '<div class="hint">Henüz parti yok.</div>';
+    $('stParties').textContent = parties.length;
+}
+
+function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderTable() {
+    if (parties.length === 0) {
+        $('tableArea').innerHTML = `<div class="empty-note">
+            Başlamak için soldaki panelden <b>parti ekleyin</b>.<br>
+            Ardından her seçim çevresi için oy oranlarını buraya girebilirsiniz.
+        </div>`;
+        return;
+    }
+
+    let head = `<thead><tr>
+        <th class="col-name">Seçim Çevresi</th>
+        <th class="col-size">Seçmen</th>`;
+    parties.forEach((p, i) => {
+        head += `<th class="col-pct" style="border-bottom:3px solid ${p.color};">
+            ${esc(p.name)}
+            <span class="sub">${viewMode === 'change' ? 'değişim %' : 'oy oranı'}</span>
+            <span class="real" id="real_${i}">—</span>
+        </th>`;
+    });
+    head += `<th class="col-sum">${viewMode === 'change' ? 'Ort. Sapma' : 'Σ %'}</th></tr></thead>`;
+
+    let body = '<tbody>';
+    districts.forEach((d, di) => {
+        body += `<tr>
+            <td class="col-name">${esc(d.name)}</td>
+            <td class="col-size"><input value="${esc(d.size)}" data-t="size" data-d="${di}" placeholder="—"></td>`;
+        parties.forEach((p, pi) => {
+            if (viewMode === 'change') {
+                const v = (cells[d.name] && cells[d.name][p.name] !== undefined) ? cells[d.name][p.name] : '';
+                body += `<td class="col-pct"><input value="${esc(v)}" data-t="pct" data-d="${di}" data-p="${pi}" inputmode="decimal" placeholder="0"></td>`;
+            } else {
+                body += `<td class="col-pct" id="res_${di}_${pi}" style="font-size:12px; padding:6px 4px; color:var(--text-dim);">—</td>`;
+            }
+        });
+        body += `<td class="col-sum" id="rowsum_${di}"></td></tr>`;
+    });
+    body += '</tbody>';
+
+    $('tableArea').innerHTML = `<table>${head}${body}</table>`;
+    refreshSummaries();
+}
+
+// Tek olay dinleyici — 87 × N hücre için performanslı
+$('tableArea').addEventListener('input', e => {
+    const el = e.target;
+    if (el.tagName !== 'INPUT') return;
+    const di = +el.dataset.d, t = el.dataset.t;
+    if (t === 'size') districts[di].size = el.value;
+    else if (t === 'pct') {
+        const dn = districts[di].name, pn = parties[+el.dataset.p].name;
+        if (!cells[dn]) cells[dn] = {};
+        if (el.value.trim() === '') delete cells[dn][pn]; else cells[dn][pn] = el.value;
+        updateRowSum(di);
+    }
+    refreshSummaries(t === 'pct' ? di : null);
+});
+
+function updateRowSum(di) {
+    const cell = $('rowsum_' + di);
+    if (!cell) return;
+    const dn = districts[di].name;
+    const entered = parties.map(p => parseNum(cells[dn]?.[p.name])).filter(v => v !== null);
+    if (entered.length === 0) { cell.innerHTML = '<span style="color:var(--text-dim)">—</span>'; return; }
+    const avg = entered.reduce((a, b) => a + b, 0) / entered.length;
+    const cls = Math.abs(avg) < 5 ? 'ok' : (Math.abs(avg) < 25 ? 'warn' : 'bad');
+    cell.innerHTML = `<span class="badge ${cls}" title="${entered.length}/${parties.length} parti girildi">${avg > 0 ? '+' : ''}${fmtPct(avg)}</span>`;
+}
+
+// Sütun altındaki "gerçekleşen ülke geneli %" ve durum çubuğu
+function refreshSummaries(onlyRow) {
+    districts.forEach((_, i) => updateRowSum(i));
+
+    const { values, total, isRatio } = computeElectorate();
+    $('stElectorate').textContent = fmtInt(total) + (isRatio ? ' (oransal)' : ' (mutlak)');
+    $('stDistricts').textContent = districts.length;
+
+    if (!parties.length) return;
+    const { shares, nat } = computeShares(values);
+
+    // Sütun başlıkları: girilen değişimlerden doğan ülke geneli oy oranı
+    parties.forEach((p, i) => {
+        const el = $('real_' + i);
+        if (!el) return;
+        el.innerHTML = `<span class="badge ok">%${fmtPct(nat[p.name])}</span>`;
+        el.title = `Girdiğiniz sapmalardan doğan ülke geneli oy oranı: %${fmtPct(nat[p.name])}`;
+    });
+
+    // Sonuç görünümü: her çevrede oy oranı ve ülke ortalamasına göre katsayı
+    if (viewMode === 'result') {
+        districts.forEach((d, di) => {
+            parties.forEach((p, pi) => {
+                const cell = $(`res_${di}_${pi}`);
+                if (!cell) return;
+                const pct = shares[d.name][p.name] * 100;
+                const k = nat[p.name] > 0 ? pct / nat[p.name] : 0;
+                cell.innerHTML = `<b style="color:${p.color}">%${fmtPct(pct)}</b>
+                    <span style="display:block; font-size:10px; color:var(--text-dim);">×${k.toFixed(2).replace('.', ',')}</span>`;
+            });
+        });
+    }
+
+    const bos = districts.filter(d => parties.some(p => cells[d.name]?.[p.name] === undefined)).length;
+    $('stWarn').innerHTML = bos > 0
+        ? `<span style="color:var(--orange)">${bos} çevrede boş hücre var (serbest — kalan payı bölüşürler)</span>`
+        : `<span style="color:var(--success)">Tüm çevreler dolu</span>`;
+}
+
+// Değişim girişi ↔ hesaplanan sonuç görünümü arasında geçiş
+let viewMode = 'change';
+function toggleView() {
+    viewMode = viewMode === 'change' ? 'result' : 'change';
+    $('viewBtn').innerHTML = viewMode === 'change' ? '👁️ Görünüm: Değişim %' : '👁️ Görünüm: Sonuç oranı';
+    renderTable();
+}
+
+// ─── Parti işlemleri ────────────────────────────────────────────────────────
+function addParty() {
+    const name = $('newPName').value.trim();
+    if (!name) return alert('Parti adı girin.');
+    if (parties.some(p => p.name === name)) return alert('Bu isimde bir parti zaten var.');
+    parties.push({ name, color: PALETTE[parties.length % PALETTE.length] });
+    $('newPName').value = '';
+    renderParties(); renderTable();
+    $('newPName').focus();
+}
+$('newPName').addEventListener('keydown', e => { if (e.key === 'Enter') addParty(); });
+
+function renameParty(i, newName) {
+    newName = newName.trim();
+    const old = parties[i].name;
+    if (!newName || newName === old) { renderParties(); return; }
+    if (parties.some((p, j) => j !== i && p.name === newName)) { alert('Bu isimde bir parti zaten var.'); renderParties(); return; }
+    parties[i].name = newName;
+    for (const d in cells) {
+        if (cells[d][old] !== undefined) { cells[d][newName] = cells[d][old]; delete cells[d][old]; }
+    }
+    renderParties(); renderTable();
+}
+
+function removeParty(i) {
+    const name = parties[i].name;
+    if (!confirm(`"${name}" silinsin mi? Tablodaki değerleri de kaldırılacak.`)) return;
+    parties.splice(i, 1);
+    for (const d in cells) delete cells[d][name];
+    renderParties(); renderTable();
+}
+
+// ─── Hızlı işlemler ─────────────────────────────────────────────────────────
+function fillZero() {
+    if (!parties.length) return;
+    if (!confirm('Tüm hücrelere 0 yazılacak — yani her parti her çevrede ülke ortalamasına sabitlenecek. Mevcut değerler silinecek. Devam?')) return;
+    districts.forEach(d => {
+        cells[d.name] = {};
+        parties.forEach(p => { cells[d.name][p.name] = '0'; });
+    });
+    renderTable();
+}
+
+function clearCells() {
+    if (!confirm('Tablodaki tüm oy oranları silinsin mi?')) return;
+    cells = {}; renderTable();
+}
+
+// ─── Dışa aktarma ───────────────────────────────────────────────────────────
+function downloadDataset() {
+    if (!parties.length) return alert('Önce parti ekleyin.');
+    const { values } = computeElectorate();
+    const { shares } = computeShares(values);
+    const out = {};
+    districts.forEach((d, di) => {
+        const votes = {};
+        parties.forEach(p => { votes[p.name] = Math.round(values[di] * shares[d.name][p.name]); });
+        out[d.name] = { votes };
+    });
+    dl(out, 'secim_verisi_' + new Date().toISOString().slice(0, 10) + '.json');
+}
+
+function saveWork() {
+    // Renkler arayüzde paletten otomatik atanır; veri dosyasında tutulmaz.
+    dl({ _tool: 'secim_verisi_olusturucu', v: 1,
+         parties: parties.map(p => ({ name: p.name })), districts, cells,
+         totalElectorate: $('totalElectorate').value },
+       'veri_calismasi_' + new Date().toISOString().slice(0, 10) + '.json');
+}
+
+async function loadWork(inp) {
+    const f = inp.files[0]; if (!f) return;
+    try {
+        const data = JSON.parse(await f.text());
+        if (!data._tool) return alert('Bu bir çalışma dosyası değil.');
+        parties = (data.parties || []).map((p, i) => ({ name: p.name, color: p.color || PALETTE[i % PALETTE.length] }));
+        cells = data.cells || {};
+        if (Array.isArray(data.districts) && data.districts.length) {
+            // Sabit çevre listesini koru, yalnızca mv/seçmen değerlerini al
+            const map = {}; data.districts.forEach(d => map[d.name] = d);
+            districts = DISTRICTS.map(([name]) => ({
+                name,
+                size: map[name] ? (map[name].size ?? '') : ''
+            }));
+        }
+        if (data.totalElectorate) $('totalElectorate').value = data.totalElectorate;
+        renderParties(); renderTable();
+    } catch (e) { alert('Dosya okunamadı: ' + e.message); }
+    inp.value = '';
+}
+
+function dl(obj, filename) {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// ─── Başlat ─────────────────────────────────────────────────────────────────
+renderParties();
+renderTable();
+</script>
+</body>
+</html>

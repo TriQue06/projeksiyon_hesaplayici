@@ -1,5 +1,6 @@
 {
-  "defaultProject": "agustos1_2026.json",
+  "database": "universal_veri.json",
+  "defaultProject": "gecis_varsayilan.json",
   "map": "turkiye_harita.svg",
   "mapping": "eslestirme.json",
   "dotPositions": "default_konum.json"

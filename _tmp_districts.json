@@ -1,0 +1,350 @@
+[
+{
+"name": "Adana",
+"seats": 15
+},
+{
+"name": "Adıyaman",
+"seats": 5
+},
+{
+"name": "Afyonkarahisar",
+"seats": 6
+},
+{
+"name": "Ağrı",
+"seats": 4
+},
+{
+"name": "Aksaray",
+"seats": 4
+},
+{
+"name": "Amasya",
+"seats": 3
+},
+{
+"name": "Ankara 1. Bölge",
+"seats": 13
+},
+{
+"name": "Ankara 2. Bölge",
+"seats": 11
+},
+{
+"name": "Ankara 3. Bölge",
+"seats": 13
+},
+{
+"name": "Antalya",
+"seats": 18
+},
+{
+"name": "Ardahan",
+"seats": 2
+},
+{
+"name": "Artvin",
+"seats": 2
+},
+{
+"name": "Aydın",
+"seats": 8
+},
+{
+"name": "Balıkesir",
+"seats": 9
+},
+{
+"name": "Bartın",
+"seats": 2
+},
+{
+"name": "Batman",
+"seats": 5
+},
+{
+"name": "Bayburt",
+"seats": 1
+},
+{
+"name": "Bilecik",
+"seats": 2
+},
+{
+"name": "Bingöl",
+"seats": 3
+},
+{
+"name": "Bitlis",
+"seats": 3
+},
+{
+"name": "Bolu",
+"seats": 3
+},
+{
+"name": "Burdur",
+"seats": 3
+},
+{
+"name": "Bursa 1. Bölge",
+"seats": 11
+},
+{
+"name": "Bursa 2. Bölge",
+"seats": 10
+},
+{
+"name": "Çanakkale",
+"seats": 4
+},
+{
+"name": "Çankırı",
+"seats": 2
+},
+{
+"name": "Çorum",
+"seats": 4
+},
+{
+"name": "Denizli",
+"seats": 7
+},
+{
+"name": "Diyarbakır",
+"seats": 12
+},
+{
+"name": "Düzce",
+"seats": 3
+},
+{
+"name": "Edirne",
+"seats": 4
+},
+{
+"name": "Elazığ",
+"seats": 5
+},
+{
+"name": "Erzincan",
+"seats": 2
+},
+{
+"name": "Erzurum",
+"seats": 5
+},
+{
+"name": "Eskişehir",
+"seats": 7
+},
+{
+"name": "Gaziantep",
+"seats": 14
+},
+{
+"name": "Giresun",
+"seats": 4
+},
+{
+"name": "Gümüşhane",
+"seats": 2
+},
+{
+"name": "Hakkari",
+"seats": 3
+},
+{
+"name": "Hatay",
+"seats": 10
+},
+{
+"name": "Iğdır",
+"seats": 2
+},
+{
+"name": "Isparta",
+"seats": 4
+},
+{
+"name": "İstanbul 1. Bölge",
+"seats": 35
+},
+{
+"name": "İstanbul 2. Bölge",
+"seats": 25
+},
+{
+"name": "İstanbul 3. Bölge",
+"seats": 36
+},
+{
+"name": "İzmir 1. Bölge",
+"seats": 14
+},
+{
+"name": "İzmir 2. Bölge",
+"seats": 14
+},
+{
+"name": "Kahramanmaraş",
+"seats": 8
+},
+{
+"name": "Karabük",
+"seats": 2
+},
+{
+"name": "Karaman",
+"seats": 3
+},
+{
+"name": "Kars",
+"seats": 3
+},
+{
+"name": "Kastamonu",
+"seats": 3
+},
+{
+"name": "Kayseri",
+"seats": 10
+},
+{
+"name": "Kırıkkale",
+"seats": 3
+},
+{
+"name": "Kırklareli",
+"seats": 3
+},
+{
+"name": "Kırşehir",
+"seats": 2
+},
+{
+"name": "Kilis",
+"seats": 2
+},
+{
+"name": "Kocaeli",
+"seats": 14
+},
+{
+"name": "Konya",
+"seats": 15
+},
+{
+"name": "Kütahya",
+"seats": 4
+},
+{
+"name": "Malatya",
+"seats": 6
+},
+{
+"name": "Manisa",
+"seats": 10
+},
+{
+"name": "Mardin",
+"seats": 6
+},
+{
+"name": "Mersin",
+"seats": 13
+},
+{
+"name": "Muğla",
+"seats": 8
+},
+{
+"name": "Muş",
+"seats": 3
+},
+{
+"name": "Nevşehir",
+"seats": 3
+},
+{
+"name": "Niğde",
+"seats": 3
+},
+{
+"name": "Ordu",
+"seats": 6
+},
+{
+"name": "Osmaniye",
+"seats": 4
+},
+{
+"name": "Rize",
+"seats": 3
+},
+{
+"name": "Sakarya",
+"seats": 8
+},
+{
+"name": "Samsun",
+"seats": 9
+},
+{
+"name": "Siirt",
+"seats": 3
+},
+{
+"name": "Sinop",
+"seats": 2
+},
+{
+"name": "Sivas",
+"seats": 5
+},
+{
+"name": "Şanlıurfa",
+"seats": 15
+},
+{
+"name": "Şırnak",
+"seats": 4
+},
+{
+"name": "Tekirdağ",
+"seats": 8
+},
+{
+"name": "Tokat",
+"seats": 5
+},
+{
+"name": "Trabzon",
+"seats": 6
+},
+{
+"name": "Tunceli",
+"seats": 2
+},
+{
+"name": "Uşak",
+"seats": 3
+},
+{
+"name": "Van",
+"seats": 8
+},
+{
+"name": "Yalova",
+"seats": 3
+},
+{
+"name": "Yozgat",
+"seats": 3
+},
+{
+"name": "Zonguldak",
+"seats": 5
+}
+]
