@@ -2827,12 +2827,15 @@ function runDhondt(v, s){
         }
         if(winP) { res[winP]++; lastQ = maxQ; }
     }
-    // Artık oy: her partinin kendi bir sonraki (kazanamadığı) bölümü, yani v[p]/(res[p]+1).
-    // Tek bir global "son bölüm" değerine göre hesaplamak partiler arasında haksız biçimde
-    // sandalye sayısına bağlı sapma yaratıyordu (çok sandalyeli parti hep az, az sandalyeli
-    // parti hep çok artık gösteriyordu); bu yöntem her parti için kendi bölümüne dayanır.
+    // Artık oy (Milli Bakiye havuzuna giden pay): partinin oyundan, kazandığı sandalyelerin
+    // karşılığı düşülür. Kota = çevredeki geçerli oy / sandalye sayısı — Hare yöntemiyle aynı
+    // tanım, böylece hangi matematiksel model seçilirse seçilsin havuz tutarlı hesaplanır.
+    // (Bölüm değeri v[p]/(res[p]+1) bir "artık oy" değildir; oyunu sandalyeye çevirmiş büyük
+    // partilere de yüksek artık yazdığı için Milli Bakiye'yi bozuyordu.)
+    let totalV = 0; for(let p in v) totalV += v[p];
+    const quota = s > 0 ? totalV / s : 0;
     const remainders = {};
-    for(let p in v) remainders[p] = v[p] / (res[p] + 1);
+    for(let p in v) remainders[p] = Math.max(0, v[p] - res[p] * quota);
     return { seats: res, remainders, lastQ };
 }
 
