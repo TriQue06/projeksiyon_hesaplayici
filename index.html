@@ -188,6 +188,29 @@
         #chartTooltip span.tt-hint { display: block; margin-top: 6px; font-size: 10px; color: #aaa; font-style: italic; }
 
         /* Harita Üzeri Detay Tooltip Stilleri */
+        /* Fermuar harita düzenleme menüsü */
+        #fermuarEditMenu { position: absolute; display: none; z-index: 10000; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+            padding: 10px; min-width: 220px; max-width: 280px; font-size: 13px; }
+        #fermuarEditMenu .fm-head { display:flex; align-items:center; gap:8px; font-weight:900; font-size:13px;
+            color: var(--text); padding-bottom:8px; margin-bottom:8px; border-bottom:1px solid var(--border); }
+        #fermuarEditMenu .fm-head .fm-close { margin-left:auto; cursor:pointer; color:var(--text-secondary);
+            font-weight:bold; border:none; background:none; font-size:15px; line-height:1; padding:0 2px; }
+        #fermuarEditMenu label.fm-opt { display:flex; align-items:center; gap:8px; padding:6px 6px; border-radius:6px;
+            cursor:pointer; font-weight:bold; color:var(--text); transition:0.12s; }
+        #fermuarEditMenu label.fm-opt:hover { background: var(--surface-alt); }
+        #fermuarEditMenu label.fm-opt input { width:16px; height:16px; flex-shrink:0; cursor:pointer; margin:0; }
+        #fermuarEditMenu .fm-swatch { width:12px; height:12px; border-radius:3px; flex-shrink:0; border:1px solid rgba(0,0,0,0.2); }
+        #fermuarEditMenu .fm-note { font-size:11px; color:var(--text-secondary); margin-top:8px;
+            padding-top:8px; border-top:1px dashed var(--border); line-height:1.45; }
+        /* Düzenleme modunda haritada imleç: bu bir tıklanabilir atama yüzeyi */
+        #svgMapWrapper.fermuar-edit path, #svgMapWrapper.fermuar-edit polygon,
+        #svgMapWrapper.fermuar-edit polyline, #svgMapWrapper.fermuar-edit rect { cursor: pointer; }
+        #fermuarEditBanner { position:absolute; top:10px; left:10px; z-index:20; display:none; align-items:center;
+            gap:10px; background:var(--surface); border:1px solid var(--primary); border-radius:8px;
+            padding:7px 10px; box-shadow:var(--shadow); font-size:12px; font-weight:bold; color:var(--text); }
+        #fermuarEditBanner button { background:var(--primary); color:#fff; border:none; border-radius:5px;
+            padding:4px 10px; font-size:11px; font-weight:bold; cursor:pointer; }
         #mapTooltip { position: absolute; background: var(--tooltip-bg); color: var(--text); padding: 10px 12px; border-radius: 10px; font-size: 13px; pointer-events: none; z-index: 9999; display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.25); border: 1px solid var(--border); min-width: 260px; line-height: 1.4; transition: opacity 0.1s; }
         #mapTooltip h4 { margin: 0 0 8px 0; border-bottom: 1px solid var(--border); padding-bottom: 6px; color: var(--text); font-size: 13px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; }
 
@@ -341,6 +364,7 @@
 
 <div id="chartTooltip"></div>
 <div id="mapTooltip"></div>
+<div id="fermuarEditMenu"></div>
 
 <div class="left-panel">
     <div style="margin-bottom:14px;">
@@ -724,6 +748,7 @@
                 <button id="mapScreenshotBtn" onclick="takeScreenshot(this)" title="Ekran Görüntüsü Al" style="background: var(--surface); color: var(--text); border-radius: 8px; font-size: 16px; padding: 6px 10px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: 0.2s; line-height:1;">📸</button>
             </div>
 
+            <div id="fermuarEditBanner"></div>
             <div id="svgMapWrapper" style="position: relative;">
                 <p style="color:var(--text-secondary); font-size:13px; font-style:italic;">Harita Bekleniyor...</p>
             </div>
@@ -1267,6 +1292,8 @@ function drawMVDots(svgGroup, layout, partyColors, cx, cy, totalMVs) {
 }
 
 function updateMapColors() {
+    // Fermuar atama modu açıkken harita sonuçları değil, atamaları gösterir.
+    if (fermuarMapEditIdx !== null) { paintFermuarEditMap(); return; }
     if(Object.keys(globalResults).length === 0) return;
     
     const svg = document.querySelector('#svgMapWrapper svg');
@@ -1718,6 +1745,31 @@ svgWrapper.addEventListener('mousemove', (e) => {
 
     const dName = getMapDistrictName(e.target);
     const mapTooltip = $('mapTooltip');
+
+    if (fermuarMapEditIdx !== null) {
+        const fl = fermuarListes[fermuarMapEditIdx];
+        if (!dName || !fl) { mapTooltip.style.display = 'none'; return; }
+        const comp = fermuarCompetingIn(fl, dName);
+        let html = `<h4><span>${dName}</span><span style="font-size:11px; color:var(--text-secondary);">${escapeStr(fl.name)}</span></h4>`;
+        if (comp.length === 0) {
+            html += '<div style="font-size:12px;color:var(--text-secondary);">Bu çevrede listeden hiçbir parti yarışmıyor.</div>';
+        } else {
+            html += comp.map(m => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-weight:bold;">
+                <span style="width:12px;height:12px;border-radius:3px;background:${getPartyColor(m)};flex-shrink:0;"></span>
+                <span>${m}</span></div>`).join('');
+            if (comp.length > 1) html += '<div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Oylar bu partiler arasında paylaşılır.</div>';
+        }
+        html += '<div style="font-size:11px;color:var(--text-secondary);margin-top:6px;border-top:1px dashed var(--border);padding-top:5px;">Düzenlemek için tıklayın</div>';
+        mapTooltip.innerHTML = html;
+        mapTooltip.style.display = 'block';
+        let tw = mapTooltip.offsetWidth, th = mapTooltip.offsetHeight;
+        let lp = e.pageX + 15, tp = e.pageY + 15;
+        if (lp + tw > window.innerWidth - 15) lp = e.pageX - tw - 15;
+        if (tp + th > window.innerHeight - 15) tp = e.pageY - th - 15;
+        mapTooltip.style.left = lp + 'px';
+        mapTooltip.style.top = tp + 'px';
+        return;
+    }
     
     if (dName && globalResults[dName]) {
         const displayData = getDisplayData(globalResults[dName]);
@@ -1778,6 +1830,12 @@ svgWrapper.addEventListener('mouseout', (e) => {
 });
 
 svgWrapper.addEventListener('click', (e) => {
+    // Fermuar atama modunda tıklama, il detayını değil atama menüsünü açar
+    if (fermuarMapEditIdx !== null) {
+        const fd = getMapDistrictName(e.target);
+        if (fd) openFermuarDistrictMenu(fd, e); else closeFermuarMenu();
+        return;
+    }
     // Tam ekrandayken veya düzenleme modundayken seçim çevrelerine tıklama kilitlenir
     if (isEditModeActive || isFullscreen) return; 
     
@@ -2439,6 +2497,219 @@ function addFermuar() {
     renderFermuar();
 }
 
+// ─── Fermuar Liste: Harita Üzerinden Atama Modu ──────────────────────────────
+// Aktif fermuar listesinin indeksi; null ise mod kapalı ve harita normal boyanır.
+let fermuarMapEditIdx = null;
+let fermuarMenuDistrict = null;
+
+// Bir üye partinin belirli bir çevrede yarışıp yarışmadığı.
+function fermuarCompetingIn(fl, dName) {
+    if (!fl || !fl.districtMap) return [];
+    return fl.members.filter(m => (fl.districtMap[m] || []).includes(dName));
+}
+
+// SVG öğelerini gerçek çevre adlarına eşler ve data-district-name'i tazeler.
+// updateMapColors kendi eşlemesini teşhis bilgisiyle birlikte yapar; burada
+// projeksiyon çalışmamış olsa bile (globalResults boşken) çalışan sade sürüm var.
+function resolveDistrictPaths(nameList) {
+    const out = {};
+    const svg = document.querySelector('#svgMapWrapper svg');
+    if (!svg) return out;
+
+    const byLower = {};
+    nameList.forEach(n => { byLower[n.trim().toLowerCase()] = n; });
+
+    const normalizedDict = {};
+    for (let key in mapDictionary) normalizedDict[key.trim().toLowerCase()] = mapDictionary[key].trim().toLowerCase();
+
+    svg.querySelectorAll('path, g, polygon, polyline, rect').forEach(el => {
+        if (el.id === 'mp-dots-layer') return;
+        if (el.parentElement && el.parentElement.id === 'mp-dots-layer') return;
+        if (el.closest && el.closest('#fm-defs')) return;
+
+        let rawId = el.getAttribute('id') || el.getAttribute('name') || el.getAttribute('data-id') || el.getAttribute('data-name');
+        if (!rawId) return;
+        rawId = rawId.trim().toLowerCase();
+        // updateMapColors ile aynı cleanId kuralı
+        const cleanId = rawId.replace(/_[0-9]+_?/g, '').replace(/_x5f_.*/, '').replace(/-[0-9]+$/, '');
+        const targetLower = normalizedDict[rawId] || normalizedDict[cleanId];
+        if (!targetLower) return;
+        const actual = byLower[targetLower];
+        if (!actual) return;
+        el.setAttribute('data-district-name', actual);
+        if (!out[actual]) out[actual] = [];
+        out[actual].push(el);
+    });
+    return out;
+}
+
+// Birden fazla parti yarışıyorsa il, parti renklerinden oluşan çapraz şeritlerle dolar.
+function fermuarStripeFill(svg, colors) {
+    let defs = svg.querySelector('#fm-defs');
+    if (!defs) {
+        defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        defs.setAttribute('id', 'fm-defs');
+        svg.insertBefore(defs, svg.firstChild);
+    }
+    const id = 'fmpat_' + colors.map(c => String(c).replace(/[^a-zA-Z0-9]/g, '')).join('_');
+    if (!defs.querySelector('#' + id)) {
+        const BAND = 20; // viewBox birimi — harita ~1575 genişlikte, şeritler iri görünsün
+        const n = colors.length;
+        const pat = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+        pat.setAttribute('id', id);
+        pat.setAttribute('patternUnits', 'userSpaceOnUse');
+        pat.setAttribute('width', n * BAND);
+        pat.setAttribute('height', n * BAND);
+        pat.setAttribute('patternTransform', 'rotate(45)');
+        colors.forEach((c, i) => {
+            const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            r.setAttribute('x', i * BAND); r.setAttribute('y', 0);
+            r.setAttribute('width', BAND); r.setAttribute('height', n * BAND);
+            r.setAttribute('fill', c);
+            pat.appendChild(r);
+        });
+        defs.appendChild(pat);
+    }
+    return 'url(#' + id + ')';
+}
+
+// Haritayı fermuar atamalarına göre boyar (normal sonuç renklendirmesinin yerine geçer).
+function paintFermuarEditMap() {
+    const svg = document.querySelector('#svgMapWrapper svg');
+    if (!svg || fermuarMapEditIdx === null) return;
+    const fl = fermuarListes[fermuarMapEditIdx];
+    if (!fl) return;
+
+    const dotLayer = svg.querySelector('#mp-dots-layer');
+    if (dotLayer) dotLayer.innerHTML = '';
+
+    const emptyColor = getComputedStyle(document.documentElement).getPropertyValue('--map-default').trim() || '#e4e6eb';
+    const paths = resolveDistrictPaths(getMasterDistricts());
+
+    Object.keys(paths).forEach(dName => {
+        const comp = fermuarCompetingIn(fl, dName);
+        let fill;
+        if (comp.length === 0) fill = emptyColor;
+        else if (comp.length === 1) fill = getPartyColor(comp[0]);
+        else fill = fermuarStripeFill(svg, comp.map(m => getPartyColor(m)));
+        paths[dName].forEach(el => setElementFillAggressive(el, fill));
+    });
+}
+
+window.toggleFermuarMapEdit = function(idx) {
+    const wrapper = $('svgMapWrapper');
+    const banner = $('fermuarEditBanner');
+
+    if (fermuarMapEditIdx === idx) {
+        // Modu kapat: harita normal sonuç renklerine döner
+        fermuarMapEditIdx = null;
+        closeFermuarMenu();
+        if (wrapper) wrapper.classList.remove('fermuar-edit');
+        if (banner) banner.style.display = 'none';
+        renderFermuar();
+        updateMapColors();
+        return;
+    }
+
+    if (!document.querySelector('#svgMapWrapper svg')) { alert('Harita henüz yüklenmedi.'); return; }
+    const fl = fermuarListes[idx];
+    if (!fl || fl.members.length === 0) { alert('Önce bu fermuar listeye üye parti ekleyin.'); return; }
+
+    fermuarMapEditIdx = idx;
+    closeFermuarMenu();
+    if (wrapper) wrapper.classList.add('fermuar-edit');
+    if (banner) {
+        banner.style.display = 'flex';
+        banner.innerHTML = `<span>🗺️ Fermuar atama modu — <b>${escapeStr(fl.name)}</b></span>
+            <span style="color:var(--text-secondary);font-weight:normal;">Bir çevreye tıklayıp partileri işaretleyin</span>
+            <button onclick="toggleFermuarMapEdit(${idx})">Bitir</button>`;
+    }
+    renderFermuar();
+    paintFermuarEditMap();
+    const mc = $('mapContainer');
+    if (mc) mc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+window.closeFermuarMenu = function() {
+    const menu = $('fermuarEditMenu');
+    if (menu) menu.style.display = 'none';
+    fermuarMenuDistrict = null;
+};
+
+function renderFermuarMenu(dName) {
+    const menu = $('fermuarEditMenu');
+    const fl = fermuarListes[fermuarMapEditIdx];
+    if (!menu || !fl) return;
+    const comp = fermuarCompetingIn(fl, dName);
+
+    menu.innerHTML = `<div class="fm-head"><span>${escapeStr(dName)}</span>
+            <button class="fm-close" onclick="closeFermuarMenu()" title="Kapat">✕</button></div>` +
+        fl.members.map(m => `<label class="fm-opt">
+            <input type="checkbox" ${comp.includes(m) ? 'checked' : ''}
+                   onchange="fermuarMenuToggle('${escapeStr(m)}','${escapeStr(dName)}')">
+            <span class="fm-swatch" style="background:${getPartyColor(m)};"></span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeStr(m)}</span>
+        </label>`).join('') +
+        (comp.length === 0
+            ? '<div class="fm-note">⚠️ Hiçbir parti işaretli değil — bu çevrede fermuar listesi hiç uygulanmaz, üyeler ayrı ayrı yarışır.</div>'
+            : comp.length > 1
+                ? '<div class="fm-note">Birden fazla parti yarışıyor: oylar aralarında paylaşılır.</div>'
+                : '');
+}
+
+window.fermuarMenuToggle = function(partyName, dName) {
+    const fl = fermuarListes[fermuarMapEditIdx];
+    if (!fl) return;
+    takeSnapshot();
+    if (!fl.districtMap) fl.districtMap = {};
+    if (!fl.districtMap[partyName]) fl.districtMap[partyName] = [];
+    const arr = fl.districtMap[partyName];
+    const pos = arr.indexOf(dName);
+    if (pos >= 0) arr.splice(pos, 1); else arr.push(dName);
+
+    renderFermuar();
+    renderFermuarMenu(dName);
+    paintFermuarEditMap();
+    if (Object.keys(globalResults).length > 0) runProjection();
+};
+
+window.openFermuarDistrictMenu = function(dName, e) {
+    const menu = $('fermuarEditMenu');
+    if (!menu) return;
+    fermuarMenuDistrict = dName;
+    renderFermuarMenu(dName);
+    menu.style.display = 'block';
+    menu.style.visibility = 'hidden';
+    // Ölçüyü aldıktan sonra ekran dışına taşmayacak şekilde yerleştir
+    const w = menu.offsetWidth, h = menu.offsetHeight;
+    let left = e.pageX + 14, top = e.pageY + 14;
+    if (left + w > window.scrollX + window.innerWidth - 12) left = e.pageX - w - 14;
+    if (top + h > window.scrollY + window.innerHeight - 12) top = e.pageY - h - 14;
+    if (left < window.scrollX + 8) left = window.scrollX + 8;
+    if (top < window.scrollY + 8) top = window.scrollY + 8;
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+    menu.style.visibility = 'visible';
+    $('mapTooltip').style.display = 'none';
+};
+
+// Menü dışına tıklanınca kapanır (menünün kendi içindeki tıklamalar hariç).
+document.addEventListener('mousedown', (e) => {
+    if (fermuarMapEditIdx === null) return;
+    const menu = $('fermuarEditMenu');
+    if (!menu || menu.style.display === 'none') return;
+    if (menu.contains(e.target)) return;
+    if (e.target.closest && e.target.closest('#svgMapWrapper')) return; // harita tıklaması menüyü taşır
+    closeFermuarMenu();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || fermuarMapEditIdx === null) return;
+    const menu = $('fermuarEditMenu');
+    if (menu && menu.style.display !== 'none') closeFermuarMenu();
+    else toggleFermuarMapEdit(fermuarMapEditIdx);
+});
+
 function renderFermuar() {
     if (!$('fermuarArea')) return;
     const allParties = extraParties.map(e => e.name).sort((a, b) => a.localeCompare(b, 'tr'));
@@ -2482,6 +2753,7 @@ function renderFermuar() {
                 <button class="toggle-btn" onclick="fermuarListes[${idx}].isOpen=!fermuarListes[${idx}].isOpen;renderFermuar()">${fl.isOpen ? '▲' : '▼'}</button>
                 <button class="status-btn ${fl.isEnabled !== false ? 'active' : ''}" style="background:${fl.isEnabled !== false ? 'var(--success)' : '#f5f6f7'};color:${fl.isEnabled !== false ? '#fff' : 'var(--text-secondary)'};border-color:${fl.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="fermuarListes[${idx}].isEnabled=!(fermuarListes[${idx}].isEnabled!==false);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();" title="${fl.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${fl.isEnabled !== false ? 'A' : 'P'}</button>
                 <input type="text" class="editable-name" value="${escapeStr(fl.name)}" onchange="renameFermuar(${idx},this.value)" onkeyup="if(event.key==='Enter')this.blur()">
+                <button onclick="toggleFermuarMapEdit(${idx})" style="flex-shrink:0;padding:4px 8px;background:${fermuarMapEditIdx === idx ? 'var(--primary)' : 'var(--highlight-bg)'};color:${fermuarMapEditIdx === idx ? '#fff' : 'var(--primary)'};border:1px solid var(--primary);border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;white-space:nowrap;" title="Haritadan tıklayarak ata">🗺️ ${fermuarMapEditIdx === idx ? 'Haritada: AÇIK' : 'Haritadan Ayarla'}</button>
                 <button onclick="autoDistributeFermuar(${idx})" style="flex-shrink:0;padding:4px 8px;background:var(--highlight-bg);color:var(--primary);border:1px solid var(--primary);border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;white-space:nowrap;" title="Her seçim çevresini en güçlü üyeye otomatik dağıt">🎯 Otomatik</button>
                 <button class="danger" onclick="takeSnapshot();fermuarListes.splice(${idx},1);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();">✖</button>
             </div>
