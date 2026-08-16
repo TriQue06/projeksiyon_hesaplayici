@@ -419,12 +419,12 @@
   "cells": {
     "Adana": {
       "ak_parti": "-15,0",
-      "chp": "+13,5",
+      "chp": "+11,5",
       "mhp": "+8,5",
       "iyi_parti": "+12,5",
       "dem_parti": "+11,5",
       "saadet": "-21,0",
-      "yeniden_refah": "-37,0",
+      "yeniden_refah": "-35,5",
       "zafer_partisi": "-6,0",
       "tip": "+32,5",
       "memleket": "-16,0",
@@ -438,16 +438,16 @@
       "millet": "+5,0",
       "anap": "yok",
       "hak_par": "-19,5",
-      "huda_par": "+39,0"
+      "huda_par": "+40,5"
     },
     "Adıyaman": {
       "ak_parti": "+50,5",
-      "chp": "-47,5",
+      "chp": "-49,5",
       "mhp": "-49,5",
       "iyi_parti": "-42,0",
       "dem_parti": "+41,0",
       "saadet": "+21,5",
-      "yeniden_refah": "+77,5",
+      "yeniden_refah": "+78,5",
       "zafer_partisi": "-71,5",
       "tip": "yok",
       "memleket": "-50,0",
@@ -461,7 +461,7 @@
       "millet": "+75,0",
       "anap": "yok",
       "hak_par": "+63,5",
-      "huda_par": "+223,0"
+      "huda_par": "+224,5"
     },
     "Afyonkarahisar": {
       "ak_parti": "+26,0",
@@ -488,12 +488,12 @@
     },
     "Ağrı": {
       "ak_parti": "-31,0",
-      "chp": "-64,0",
+      "chp": "-66,5",
       "mhp": "-77,5",
       "iyi_parti": "-83,5",
       "dem_parti": "+511,0",
       "saadet": "-39,0",
-      "yeniden_refah": "-31,0",
+      "yeniden_refah": "-29,5",
       "zafer_partisi": "yok",
       "tip": "yok",
       "memleket": "-21,5",
@@ -507,7 +507,7 @@
       "millet": "-40,0",
       "anap": "yok",
       "hak_par": "+70,0",
-      "huda_par": "+98,0"
+      "huda_par": "+99,5"
     },
     "Aksaray": {
       "ak_parti": "+26,0",
@@ -649,12 +649,12 @@
     },
     "Ardahan": {
       "ak_parti": "-4,5",
-      "chp": "+16,5",
+      "chp": "+14,5",
       "mhp": "-64,0",
       "iyi_parti": "-50,5",
       "dem_parti": "+137,0",
       "saadet": "-25,5",
-      "yeniden_refah": "-65,5",
+      "yeniden_refah": "-64,5",
       "zafer_partisi": "-53,5",
       "tip": "yok",
       "memleket": "-51,5",
@@ -668,7 +668,7 @@
       "millet": "-12,5",
       "anap": "+178,0",
       "hak_par": "+84,0",
-      "huda_par": "-8,0"
+      "huda_par": "-6,5"
     },
     "Artvin": {
       "ak_parti": "+2,5",
@@ -764,12 +764,12 @@
     },
     "Batman": {
       "ak_parti": "-23,5",
-      "chp": "-83,5",
+      "chp": "-85,5",
       "mhp": "-88,5",
       "iyi_parti": "-72,0",
       "dem_parti": "+546,5",
       "saadet": "+147,0",
-      "yeniden_refah": "-63,0",
+      "yeniden_refah": "-61,5",
       "zafer_partisi": "yok",
       "tip": "yok",
       "memleket": "-63,5",
@@ -783,7 +783,7 @@
       "millet": "-53,0",
       "anap": "yok",
       "hak_par": "+107,0",
-      "huda_par": "-99,0"
+      "huda_par": "-97,5"
     },
     "Bayburt": {
       "ak_parti": "+63,0",
@@ -833,12 +833,12 @@
     },
     "Bingöl": {
       "ak_parti": "+16,5",
-      "chp": "-82,0",
+      "chp": "-84,5",
       "mhp": "+22,0",
       "iyi_parti": "-75,5",
       "dem_parti": "+174,5",
       "saadet": "-18,5",
-      "yeniden_refah": "+268,0",
+      "yeniden_refah": "+269,5",
       "zafer_partisi": "yok",
       "tip": "yok",
       "memleket": "-59,5",
@@ -852,16 +852,16 @@
       "millet": "-8,5",
       "anap": "+13,0",
       "hak_par": "+81,0",
-      "huda_par": "+1043,0"
+      "huda_par": "+1044,5"
     },
     "Bitlis": {
       "ak_parti": "+4,5",
-      "chp": "-78,5",
+      "chp": "-80,5",
       "mhp": "-64,5",
       "iyi_parti": "-35,5",
       "dem_parti": "+341,0",
       "saadet": "-17,5",
-      "yeniden_refah": "-26,5",
+      "yeniden_refah": "-25,5",
       "zafer_partisi": "yok",
       "tip": "yok",
       "memleket": "-35,5",
@@ -875,7 +875,7 @@
       "millet": "+6,0",
       "anap": "+39,5",
       "hak_par": "+129,5",
-      "huda_par": "+190,0"
+      "huda_par": "+191,5"
     },
     "Bolu": {
       "ak_parti": "+8,0",
@@ -1063,12 +1063,12 @@
     },
     "Diyarbakır": {
       "ak_parti": "-39,5",
-      "chp": "-73,5",
+      "chp": "-75,5",
       "mhp": "-88,5",
       "iyi_parti": "-76,5",
       "dem_parti": "+578,0",
       "saadet": "+25,5",
-      "yeniden_refah": "-45,5",
+      "yeniden_refah": "-44,5",
       "zafer_partisi": "yok",
       "tip": "yok",
       "memleket": "-54,0",
@@ -1082,7 +1082,7 @@
       "millet": "-42,5",
       "anap": "yok",
       "hak_par": "+153,0",
-      "huda_par": "+989,5"
+      "huda_par": "+990,5"
     },
     "Düzce": {
       "ak_parti": "+39,0",
@@ -1178,12 +1178,12 @@
     },
     "Erzurum": {
       "ak_parti": "+28,0",
-      "chp": "-78,5",
+      "chp": "-80,5",
       "mhp": "+72,5",
       "iyi_parti": "-3,5",
       "dem_parti": "+13,0",
       "saadet": "+32,0",
-      "yeniden_refah": "+81,5",
+      "yeniden_refah": "+82,5",
       "zafer_partisi": "+8,5",
       "tip": "yok",
       "memleket": "-44,5",
@@ -1197,7 +1197,7 @@
       "millet": "-25,0",
       "anap": "yok",
       "hak_par": "+14,0",
-      "huda_par": "-49,0"
+      "huda_par": "-47,5"
     },
     "Eskişehir": {
       "ak_parti": "-7,5",
@@ -1224,12 +1224,12 @@
     },
     "Gaziantep": {
       "ak_parti": "+26,0",
-      "chp": "-24,0",
+      "chp": "-26,5",
       "mhp": "+0,0",
       "iyi_parti": "-42,5",
       "dem_parti": "+3,0",
       "saadet": "-10,5",
-      "yeniden_refah": "+46,5",
+      "yeniden_refah": "+47,5",
       "zafer_partisi": "+45,5",
       "tip": "yok",
       "memleket": "-19,5",
@@ -1243,7 +1243,7 @@
       "millet": "+40,5",
       "anap": "+49,5",
       "hak_par": "-9,0",
-      "huda_par": "+118,5"
+      "huda_par": "+119,5"
     },
     "Giresun": {
       "ak_parti": "+22,5",
@@ -1293,12 +1293,12 @@
     },
     "Hakkari": {
       "ak_parti": "-45,5",
-      "chp": "-81,5",
+      "chp": "-83,5",
       "mhp": "-71,5",
       "iyi_parti": "-82,5",
       "dem_parti": "+609,0",
       "saadet": "-60,0",
-      "yeniden_refah": "-29,5",
+      "yeniden_refah": "-28,5",
       "zafer_partisi": "yok",
       "tip": "yok",
       "memleket": "-17,5",
@@ -1312,7 +1312,7 @@
       "millet": "+0,0",
       "anap": "+77,5",
       "hak_par": "+85,5",
-      "huda_par": "+50,0"
+      "huda_par": "+51,5"
     },
     "Hatay": {
       "ak_parti": "-7,5",
@@ -1339,12 +1339,12 @@
     },
     "Iğdır": {
       "ak_parti": "-11,5",
-      "chp": "-79,0",
+      "chp": "-81,5",
       "mhp": "-21,0",
       "iyi_parti": "-35,0",
       "dem_parti": "+380,0",
       "saadet": "+49,0",
-      "yeniden_refah": "-84,0",
+      "yeniden_refah": "-82,5",
       "zafer_partisi": "yok",
       "tip": "yok",
       "memleket": "-56,5",
@@ -1358,7 +1358,7 @@
       "millet": "-44,5",
       "anap": "+38,5",
       "hak_par": "+25,0",
-      "huda_par": "-43,5"
+      "huda_par": "-42,5"
     },
     "Isparta": {
       "ak_parti": "-4,5",
@@ -1431,12 +1431,12 @@
     },
     "İstanbul 3. Bölge": {
       "ak_parti": "+0,0",
-      "chp": "+5,5",
+      "chp": "+3,5",
       "mhp": "-33,5",
       "iyi_parti": "-18,0",
       "dem_parti": "+21,5",
       "saadet": "+0,5",
-      "yeniden_refah": "+10,5",
+      "yeniden_refah": "+11,5",
       "zafer_partisi": "+28,0",
       "tip": "+116,5",
       "memleket": "+7,5",
@@ -1450,16 +1450,16 @@
       "millet": "-18,0",
       "anap": "+9,0",
       "hak_par": "-45,5",
-      "huda_par": "-47,0"
+      "huda_par": "-45,5"
     },
     "İzmir 1. Bölge": {
       "ak_parti": "-30,5",
-      "chp": "+69,5",
+      "chp": "+67,5",
       "mhp": "-52,5",
       "iyi_parti": "+18,0",
       "dem_parti": "+3,5",
       "saadet": "-41,5",
-      "yeniden_refah": "-71,0",
+      "yeniden_refah": "-69,5",
       "zafer_partisi": "+2,5",
       "tip": "yok",
       "memleket": "+30,5",
@@ -1473,7 +1473,7 @@
       "millet": "-7,5",
       "anap": "-4,0",
       "hak_par": "-39,0",
-      "huda_par": "-57,0"
+      "huda_par": "-55,5"
     },
     "İzmir 2. Bölge": {
       "ak_parti": "-31,5",
@@ -1569,12 +1569,12 @@
     },
     "Kars": {
       "ak_parti": "-25,5",
-      "chp": "-36,5",
+      "chp": "-38,5",
       "mhp": "-10,5",
       "iyi_parti": "+36,5",
       "dem_parti": "+212,5",
       "saadet": "-49,0",
-      "yeniden_refah": "-31,5",
+      "yeniden_refah": "-30,5",
       "zafer_partisi": "yok",
       "tip": "yok",
       "memleket": "-43,0",
@@ -1588,7 +1588,7 @@
       "millet": "-17,5",
       "anap": "yok",
       "hak_par": "+18,0",
-      "huda_par": "-23,5"
+      "huda_par": "-22,5"
     },
     "Kastamonu": {
       "ak_parti": "+27,5",
@@ -1845,12 +1845,12 @@
     },
     "Mardin": {
       "ak_parti": "-27,5",
-      "chp": "-75,5",
+      "chp": "-77,5",
       "mhp": "-68,5",
       "iyi_parti": "-88,5",
       "dem_parti": "+535,0",
       "saadet": "-38,5",
-      "yeniden_refah": "-59,0",
+      "yeniden_refah": "-57,5",
       "zafer_partisi": "-78,0",
       "tip": "yok",
       "memleket": "-70,5",
@@ -1864,16 +1864,16 @@
       "millet": "-55,0",
       "anap": "-13,5",
       "hak_par": "+78,5",
-      "huda_par": "+447,0"
+      "huda_par": "+448,5"
     },
     "Mersin": {
       "ak_parti": "-32,0",
-      "chp": "+21,5",
+      "chp": "+19,5",
       "mhp": "+18,5",
       "iyi_parti": "+24,0",
       "dem_parti": "+50,0",
       "saadet": "-48,5",
-      "yeniden_refah": "-68,5",
+      "yeniden_refah": "-67,5",
       "zafer_partisi": "-20,0",
       "tip": "+15,5",
       "memleket": "-23,5",
@@ -1887,7 +1887,7 @@
       "millet": "-18,5",
       "anap": "yok",
       "hak_par": "-15,5",
-      "huda_par": "+4,5"
+      "huda_par": "+5,5"
     },
     "Muğla": {
       "ak_parti": "-33,0",
@@ -1914,12 +1914,12 @@
     },
     "Muş": {
       "ak_parti": "-39,0",
-      "chp": "-91,5",
+      "chp": "-93,5",
       "mhp": "+38,0",
       "iyi_parti": "-62,5",
       "dem_parti": "+459,0",
       "saadet": "-32,5",
-      "yeniden_refah": "-0,5",
+      "yeniden_refah": "+0,5",
       "zafer_partisi": "yok",
       "tip": "yok",
       "memleket": "-61,5",
@@ -1933,7 +1933,7 @@
       "millet": "-24,0",
       "anap": "+138,5",
       "hak_par": "+153,0",
-      "huda_par": "+288,5"
+      "huda_par": "+289,5"
     },
     "Nevşehir": {
       "ak_parti": "+13,5",
@@ -2098,12 +2098,12 @@
     },
     "Siirt": {
       "ak_parti": "-1,0",
-      "chp": "-75,0",
+      "chp": "-77,5",
       "mhp": "-64,5",
       "iyi_parti": "-85,5",
       "dem_parti": "+423,0",
       "saadet": "-30,5",
-      "yeniden_refah": "-58,5",
+      "yeniden_refah": "-57,5",
       "zafer_partisi": "yok",
       "tip": "yok",
       "memleket": "-50,5",
@@ -2117,7 +2117,7 @@
       "millet": "-52,0",
       "anap": "+9,0",
       "hak_par": "+57,5",
-      "huda_par": "+210,5"
+      "huda_par": "+211,5"
     },
     "Sinop": {
       "ak_parti": "+22,5",
@@ -2167,12 +2167,12 @@
     },
     "Şanlıurfa": {
       "ak_parti": "+27,5",
-      "chp": "-73,5",
+      "chp": "-75,5",
       "mhp": "-4,5",
       "iyi_parti": "-57,5",
       "dem_parti": "+192,0",
       "saadet": "-3,0",
-      "yeniden_refah": "+10,5",
+      "yeniden_refah": "+11,5",
       "zafer_partisi": "yok",
       "tip": "yok",
       "memleket": "-56,0",
@@ -2186,16 +2186,16 @@
       "millet": "-28,0",
       "anap": "-2,5",
       "hak_par": "+13,0",
-      "huda_par": "+310,0"
+      "huda_par": "+311,5"
     },
     "Şırnak": {
       "ak_parti": "-45,0",
-      "chp": "-72,0",
+      "chp": "-74,5",
       "mhp": "-75,5",
       "iyi_parti": "-87,5",
       "dem_parti": "+600,5",
       "saadet": "-66,0",
-      "yeniden_refah": "-80,0",
+      "yeniden_refah": "-78,5",
       "zafer_partisi": "-50,5",
       "tip": "yok",
       "memleket": "-62,0",
@@ -2209,7 +2209,7 @@
       "millet": "-72,5",
       "anap": "-34,5",
       "hak_par": "+65,5",
-      "huda_par": "+446,5"
+      "huda_par": "+447,5"
     },
     "Tekirdağ": {
       "ak_parti": "-15,0",
@@ -2282,12 +2282,12 @@
     },
     "Tunceli": {
       "ak_parti": "-66,0",
-      "chp": "+24,5",
+      "chp": "+22,5",
       "mhp": "-47,0",
       "iyi_parti": "-79,0",
       "dem_parti": "+382,5",
       "saadet": "-76,0",
-      "yeniden_refah": "-66,0",
+      "yeniden_refah": "-64,5",
       "zafer_partisi": "yok",
       "tip": "yok",
       "memleket": "-50,0",
@@ -2301,7 +2301,7 @@
       "millet": "-47,5",
       "anap": "+15,0",
       "hak_par": "+6,0",
-      "huda_par": "-72,5"
+      "huda_par": "-71,5"
     },
     "Uşak": {
       "ak_parti": "+1,0",
@@ -2328,12 +2328,12 @@
     },
     "Van": {
       "ak_parti": "-28,0",
-      "chp": "-80,0",
+      "chp": "-82,5",
       "mhp": "-55,5",
       "iyi_parti": "-76,0",
       "dem_parti": "+494,5",
       "saadet": "-40,5",
-      "yeniden_refah": "+11,0",
+      "yeniden_refah": "+12,5",
       "zafer_partisi": "-66,0",
       "tip": "yok",
       "memleket": "-48,0",
@@ -2347,7 +2347,7 @@
       "millet": "-46,5",
       "anap": "yok",
       "hak_par": "+108,0",
-      "huda_par": "+137,5"
+      "huda_par": "+138,5"
     },
     "Yalova": {
       "ak_parti": "-3,0",

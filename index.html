@@ -1757,7 +1757,8 @@ svgWrapper.addEventListener('mousemove', (e) => {
             html += comp.map(m => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-weight:bold;">
                 <span style="width:12px;height:12px;border-radius:3px;background:${getPartyColor(m)};flex-shrink:0;"></span>
                 <span>${m}</span></div>`).join('');
-            if (comp.length > 1) html += '<div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Oylar bu partiler arasında paylaşılır.</div>';
+            if (comp.length === fl.members.length && fl.members.length > 1) html += '<div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Tüm üyeler yarışıyor — oy aktarımı yok.</div>';
+            else if (comp.length > 1) html += '<div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Oylar bu partiler arasında paylaşılır.</div>';
         }
         html += '<div style="font-size:11px;color:var(--text-secondary);margin-top:6px;border-top:1px dashed var(--border);padding-top:5px;">Düzenlemek için tıklayın</div>';
         mapTooltip.innerHTML = html;
@@ -2508,6 +2509,25 @@ function fermuarCompetingIn(fl, dName) {
     return fl.members.filter(m => (fl.districtMap[m] || []).includes(dName));
 }
 
+// Bir fermuar listesinin her çevrede kazandığı toplam vekil sayısı.
+// Üye bir ortak listenin parçasıysa vekiller o listenin adı altında sayıldığı için
+// anahtar ortak liste adına çevrilir (aynı anahtar iki kez sayılmasın diye Set kullanılır).
+function fermuarSeatsByDistrict(fl) {
+    const keys = new Set();
+    fl.members.forEach(m => {
+        const c = coalitions.find(x => x.isEnabled !== false && x.members.includes(m));
+        keys.add(c ? c.name : m);
+    });
+    const out = {};
+    for (const d in globalResults) {
+        if (globalResults[d].isMilliBakiye) continue;
+        let s = 0;
+        keys.forEach(k => { s += (globalResults[d].mvs[k] || 0); });
+        out[d] = s;
+    }
+    return out;
+}
+
 // SVG öğelerini gerçek çevre adlarına eşler ve data-district-name'i tazeler.
 // updateMapColors kendi eşlemesini teşhis bilgisiyle birlikte yapar; burada
 // projeksiyon çalışmamış olsa bile (globalResults boşken) çalışan sade sürüm var.
@@ -2652,9 +2672,11 @@ function renderFermuarMenu(dName) {
         </label>`).join('') +
         (comp.length === 0
             ? '<div class="fm-note">⚠️ Hiçbir parti işaretli değil — bu çevrede fermuar listesi hiç uygulanmaz, üyeler ayrı ayrı yarışır.</div>'
-            : comp.length > 1
-                ? '<div class="fm-note">Birden fazla parti yarışıyor: oylar aralarında paylaşılır.</div>'
-                : '');
+            : comp.length === fl.members.length && fl.members.length > 1
+                ? '<div class="fm-note">Tüm üyeler işaretli — oy aktarımı olmaz, partiler bu çevrede ayrı ayrı yarışır.</div>'
+                : comp.length > 1
+                    ? '<div class="fm-note">Birden fazla parti yarışıyor: oylar aralarında paylaşılır.</div>'
+                    : '');
 }
 
 window.fermuarMenuToggle = function(partyName, dName) {
@@ -2754,7 +2776,7 @@ function renderFermuar() {
                 <button class="status-btn ${fl.isEnabled !== false ? 'active' : ''}" style="background:${fl.isEnabled !== false ? 'var(--success)' : '#f5f6f7'};color:${fl.isEnabled !== false ? '#fff' : 'var(--text-secondary)'};border-color:${fl.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="fermuarListes[${idx}].isEnabled=!(fermuarListes[${idx}].isEnabled!==false);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();" title="${fl.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${fl.isEnabled !== false ? 'A' : 'P'}</button>
                 <input type="text" class="editable-name" value="${escapeStr(fl.name)}" onchange="renameFermuar(${idx},this.value)" onkeyup="if(event.key==='Enter')this.blur()">
                 <button onclick="toggleFermuarMapEdit(${idx})" style="flex-shrink:0;padding:4px 8px;background:${fermuarMapEditIdx === idx ? 'var(--primary)' : 'var(--highlight-bg)'};color:${fermuarMapEditIdx === idx ? '#fff' : 'var(--primary)'};border:1px solid var(--primary);border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;white-space:nowrap;" title="Haritadan tıklayarak ata">🗺️ ${fermuarMapEditIdx === idx ? 'Haritada: AÇIK' : 'Haritadan Ayarla'}</button>
-                <button onclick="autoDistributeFermuar(${idx})" style="flex-shrink:0;padding:4px 8px;background:var(--highlight-bg);color:var(--primary);border:1px solid var(--primary);border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;white-space:nowrap;" title="Her seçim çevresini en güçlü üyeye otomatik dağıt">🎯 Otomatik</button>
+                <button onclick="autoDistributeFermuar(${idx})" style="flex-shrink:0;padding:4px 8px;background:var(--highlight-bg);color:var(--primary);border:1px solid var(--primary);border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer;white-space:nowrap;" title="Yalnızca listeye vekil kazandıran çevrelerde tek partiye indir">🎯 Otomatik</button>
                 <button class="danger" onclick="takeSnapshot();fermuarListes.splice(${idx},1);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();">✖</button>
             </div>
             ${fl.isOpen ? `
@@ -2845,8 +2867,8 @@ window.autoDistributeFermuar = function(flIdx) {
         dg.members.forEach(m => { if (natMap[m] !== undefined) natMap[m] *= sc; });
     });
 
-    fl.districtMap = {};
-    fl.members.forEach(m => { fl.districtMap[m] = []; });
+    // Her çevre için "tek parti yarışacaksa hangisi" adayı; atama kararı aşağıda verilir.
+    const bestOf = {};
 
     districts.forEach(dName => {
         let best = null, bestScore = -1;
@@ -2871,11 +2893,55 @@ window.autoDistributeFermuar = function(flIdx) {
             const s = epScore * ((natMap[m] || 0) / 100);
             if (s > bestScore) { bestScore = s; best = m; }
         });
-        if (best) fl.districtMap[best].push(dName);
+        if (best) bestOf[dName] = best;
     });
 
-    renderFermuar();
-    if (Object.keys(globalResults).length > 0) runProjection();
+    // ── Karar aşaması ────────────────────────────────────────────────────────
+    // Tek partiye indirmek yalnızca listenin o çevredeki toplam vekilini artırıyorsa
+    // uygulanır. İki senaryo da gerçek projeksiyon motoruyla hesaplanır; böylece baraj,
+    // ittifak dağıtımı, ortak listeler ve matematiksel model karara aynen yansır.
+    // Kazanç yoksa üyelerin hepsi işaretlenir — bu durumda oy aktarımı devreye girmez
+    // (yarışmayan üye kalmadığı için) ve partiler o çevrede ayrı ayrı yarışır.
+    takeSnapshot();
+    const prevMap = JSON.parse(JSON.stringify(fl.districtMap || {}));
+
+    try {
+        fl.districtMap = {};
+        fl.members.forEach(m => { fl.districtMap[m] = districts.slice(); });
+        runProjection();
+        const baseSeats = fermuarSeatsByDistrict(fl);
+
+        fl.districtMap = {};
+        fl.members.forEach(m => { fl.districtMap[m] = []; });
+        districts.forEach(d => { if (bestOf[d]) fl.districtMap[bestOf[d]].push(d); });
+        runProjection();
+        const soloSeats = fermuarSeatsByDistrict(fl);
+
+        fl.districtMap = {};
+        fl.members.forEach(m => { fl.districtMap[m] = []; });
+        let gainDistricts = 0, gainSeats = 0;
+        districts.forEach(d => {
+            const gain = (soloSeats[d] || 0) - (baseSeats[d] || 0);
+            if (bestOf[d] && gain > 0) {
+                fl.districtMap[bestOf[d]].push(d);
+                gainDistricts++; gainSeats += gain;
+            } else {
+                fl.members.forEach(m => fl.districtMap[m].push(d));
+            }
+        });
+
+        renderFermuar();
+        runProjection();
+        alert('Otomatik dağıtım tamamlandı.\n\n' +
+              gainDistricts + ' çevrede tek parti yarışacak (+' + gainSeats + ' vekil).\n' +
+              (districts.length - gainDistricts) + ' çevrede kazanç yok, üyeler ayrı ayrı yarışıyor.');
+    } catch (err) {
+        fl.districtMap = prevMap;
+        renderFermuar();
+        if (Object.keys(globalResults).length > 0) runProjection();
+        console.error('Otomatik dağıtım hatası:', err);
+        alert('Otomatik dağıtım başarısız: ' + err.message);
+    }
 };
 
 function downloadSeatData() {
