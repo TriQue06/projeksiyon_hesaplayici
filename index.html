@@ -281,18 +281,6 @@
         .card.collapsed .card-body { display: none !important; }
         .card.collapsed { padding-bottom: 14px; }
 
-        /* Temel / Gelişmiş mod seçici */
-        #uiModeToggle {
-            display: flex; margin-bottom: 12px; border: 1px solid var(--border);
-            border-radius: 8px; overflow: hidden; box-shadow: var(--shadow);
-            flex-shrink: 0; /* .left-panel dikey flex: overflow:hidden ile birlikte eleman 0'a ezilebiliyor */
-        }
-        #uiModeToggle button {
-            flex: 1; padding: 9px; background: var(--surface); color: var(--text-secondary);
-            border: none; font-size: 13px; font-weight: 800; cursor: pointer; transition: 0.15s;
-        }
-        #uiModeToggle button.active { background: var(--primary); color: #fff; }
-
         /* Ayarlar Paneli (artık diğer panellerle aynı açılır/kapanır kart) */
         .settings-section { margin-top: 18px; }
         .settings-section:first-child { margin-top: 6px; }
@@ -357,11 +345,6 @@
 <div class="left-panel">
     <div style="margin-bottom:14px;">
         <h1 style="margin:0; font-size:1.05rem; line-height:1.3;">🗳️ PGM Projeksiyon Arayüzü</h1>
-    </div>
-
-    <div id="uiModeToggle">
-        <button id="modeBtnTemel" class="active" onclick="setUIMode('temel')">Temel</button>
-        <button id="modeBtnGelismis" onclick="setUIMode('gelismis')">Gelişmiş</button>
     </div>
 
     <button id="selectionModeToggleBtn" onclick="toggleSelectionMode()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:11px 14px; margin-bottom:12px; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:8px; font-size:13px; font-weight:800; cursor:pointer; box-shadow:var(--shadow); transition:0.2s;">
@@ -479,8 +462,8 @@
 
             </div>
 
-            <div class="settings-section" id="advCevreMudahale" style="display:none;">
-                <div class="settings-section-title">Gelişmiş</div>
+            <div class="settings-section" id="advCevreMudahale">
+                <div class="settings-section-title">Seçim Çevresi Müdahalesi</div>
 
                 <div class="settings-row">
                     <div class="settings-row-info">
@@ -564,7 +547,15 @@
             <label>Ortak Liste</label>
         </div>
         <div class="card-body">
-            <div class="flex-row">
+            <div id="coalModeToggle" style="display:flex; gap:0; margin-bottom:10px; border:1px solid var(--border); border-radius:6px; overflow:hidden;">
+                <button type="button" id="coalModeJoinBtn" onclick="setCoalMode('join')" style="flex:1; padding:8px 6px; border:none; background:var(--purple); color:#fff; font-size:12px; font-weight:800; cursor:pointer;">Partiye Katılma</button>
+                <button type="button" id="coalModeMergeBtn" onclick="setCoalMode('merge')" style="flex:1; padding:8px 6px; border:none; background:var(--surface); color:var(--text-secondary); font-size:12px; font-weight:800; cursor:pointer;">Birleşik Liste</button>
+            </div>
+            <div id="coalAddJoin" class="flex-row">
+                <select id="coalHostSelect" style="flex:1; padding:7px; font-weight:bold;"></select>
+                <button onclick="addCoalition()" class="purple" style="width:40px; font-size: 16px;">+</button>
+            </div>
+            <div id="coalAddMerge" class="flex-row" style="display:none;">
                 <input id="coalName" placeholder="Liste Adı (Örn: CHP Listesi)">
                 <button onclick="addCoalition()" class="purple" style="width:40px; font-size: 16px;">+</button>
             </div>
@@ -608,8 +599,8 @@
         </div>
     </div>
 
-    <!-- 8. Milli Bakiye (gelişmiş mod) -->
-    <div class="card collapsed" id="cardMilliBakiye" style="display:none;">
+    <!-- 8. Milli Bakiye -->
+    <div class="card collapsed" id="cardMilliBakiye">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
             <label>Milli Bakiye</label>
         </div>
@@ -634,27 +625,14 @@
         </div>
     </div>
 
-    <!-- 9. Vekil Nokta Konumları -->
-    <div class="card collapsed">
-        <div class="card-header-row" onclick="toggleCardCollapse(this)">
-            <label>Vekil Nokta Konumları</label>
-        </div>
-        <div class="card-body">
-            <button id="toggleEditModeBtn" onclick="toggleEditMode()" style="width:100%; background:var(--surface); color:var(--text); border-radius:6px; font-size:12px; padding:9px 10px; border:1px solid var(--border); cursor:pointer; font-weight:bold; margin-bottom:10px;">✏️ Konum Düzenleme Modu: KAPALI</button>
-            <div style="display:flex; gap:8px;">
-                <button id="downloadPositionsBtn" onclick="downloadDotPositions()" class="blue" style="flex:1;">📥 Konumları İndir (.JSON)</button>
-                <button onclick="document.getElementById('dotPositionsLoader').click()" class="orange" style="flex:1;">📤 Konum Dosyası Yükle (.JSON)</button>
-                <input type="file" id="dotPositionsLoader" accept=".json" style="display:none" onchange="loadCustomDotPositions(this)">
-            </div>
-        </div>
-    </div>
-
-    <!-- 10. Milletvekili Sayıları (gelişmiş mod) -->
-    <div class="card collapsed" id="cardKoltukVerisi" style="display:none;">
+    <!-- 9. Milletvekili Sayıları -->
+    <div class="card collapsed" id="cardKoltukVerisi">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
             <label>Milletvekili Sayıları</label>
+            <div id="seatTotalTracker" onclick="event.stopPropagation()" style="margin-left:auto; font-size:11px; font-weight:bold; padding:3px 8px; border-radius:4px; background:var(--highlight-bg); color:var(--primary); border:1px solid var(--primary); cursor:default;">Toplam: 0</div>
         </div>
         <div class="card-body">
+            <div id="seatListArea" class="scroll-area" style="margin-bottom:10px;"></div>
             <div style="display:flex; gap:8px;">
                 <button onclick="downloadSeatData()" class="blue" style="flex:1;">📥 Koltukları İndir (.JSON)</button>
                 <button onclick="document.getElementById('seatDataLoader').click()" class="orange" style="flex:1;">📤 Koltuk Verisi Yükle (.JSON)</button>
@@ -663,7 +641,7 @@
         </div>
     </div>
 
-    <!-- 11. Parlamento Sıralaması -->
+    <!-- 10. Parlamento Sıralaması -->
     <div class="card collapsed">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
             <label>Parlamento Sıralaması</label>
@@ -677,10 +655,10 @@
         </div>
     </div>
 
-    <!-- 12. Geliştirici Modu (en altta) -->
+    <!-- 11. Harita Verisi -->
     <div class="card collapsed" id="cardGelistirici">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
-            <label>Geliştirici Modu</label>
+            <label>Harita Verisi</label>
         </div>
         <div class="card-body">
             <div id="haritaManuelYukle" class="flex-row" style="gap:12px; align-items: flex-end;">
@@ -696,6 +674,21 @@
         </div>
     </div>
 
+    <!-- 12. Vekil Nokta Konumları (en altta) -->
+    <div class="card collapsed">
+        <div class="card-header-row" onclick="toggleCardCollapse(this)">
+            <label>Vekil Nokta Konumları</label>
+        </div>
+        <div class="card-body">
+            <button id="toggleEditModeBtn" onclick="toggleEditMode()" style="width:100%; background:var(--surface); color:var(--text); border-radius:6px; font-size:12px; padding:9px 10px; border:1px solid var(--border); cursor:pointer; font-weight:bold; margin-bottom:10px;">✏️ Konum Düzenleme Modu: KAPALI</button>
+            <div style="display:flex; gap:8px;">
+                <button id="downloadPositionsBtn" onclick="downloadDotPositions()" class="blue" style="flex:1;">📥 Konumları İndir (.JSON)</button>
+                <button onclick="document.getElementById('dotPositionsLoader').click()" class="orange" style="flex:1;">📤 Konum Dosyası Yükle (.JSON)</button>
+                <input type="file" id="dotPositionsLoader" accept=".json" style="display:none" onchange="loadCustomDotPositions(this)">
+            </div>
+        </div>
+    </div>
+
     <div class="action-bar">
         <button id="runBtn" class="success" style="width: 100%; margin-bottom:12px;">🚀 PROJEKSİYONU HESAPLA</button>
         <div style="display:flex; gap:8px; margin-bottom:8px;">
@@ -703,7 +696,7 @@
             <button onclick="document.getElementById('projectLoader').click()" class="teal" style="flex:1;">📂 Yükle (.JSON)</button>
         </div>
         <input type="file" id="projectLoader" accept=".json" style="display:none" onchange="loadProject(this)">
-        <button id="downloadDatasetBtn" onclick="downloadDataset()" class="blue" style="width:100%; display:none; margin-bottom:8px;">📊 Veri Seti Olarak İndir (.JSON)</button>
+        <button id="downloadDatasetBtn" onclick="downloadDataset()" class="blue" style="width:100%; margin-bottom:8px;">📊 Veri Seti Olarak İndir (.JSON)</button>
         <button onclick="openClearModal()" style="width:100%; background:none; border:1px solid var(--border); border-radius:6px; padding:8px; cursor:pointer; font-size:12px; font-weight:bold; color:var(--text-secondary); transition:0.2s;" onmouseover="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">🗑️ Projeksiyonu Temizle</button>
     </div>
 </div>
@@ -858,7 +851,9 @@ function recolorIconSvg(rawSvg, color) {
 // Parti logosunu <span> içinde inline SVG olarak döndürür (renk parametresiyle boyanmış).
 // İkon henüz yüklenmemişse veya seçilmemişse boş string döner.
 function partyIconInlineSvg(pName, color, sizePx) {
-    const ep = extraParties.find(e => e.name === pName);
+    // Önce parti, bulunamazsa ortak liste (birleşik listelerin kendi logosu olabilir).
+    // Katılma listelerinde ad zaten ana partinin adıdır, ilk arama onu yakalar.
+    const ep = extraParties.find(e => e.name === pName) || coalitions.find(c => c.name === pName);
     if (!ep || !ep.icon) return '';
     const raw = partyIconRaw[ep.icon];
     if (!raw) return '';
@@ -868,7 +863,7 @@ function partyIconInlineSvg(pName, color, sizePx) {
 
 window.openIconModal = function(type, idx) {
     activeIconTarget = { type, idx };
-    const arr = type === 'party' ? extraParties : null;
+    const arr = type === 'party' ? extraParties : type === 'coal' ? coalitions : null;
     if (!arr) return;
     const item = arr[idx];
     ensurePartyIconsLoaded().then(() => renderIconModalGrid(item.color || '#000000'));
@@ -890,9 +885,14 @@ function renderIconModalGrid(color) {
 }
 
 window.selectPartyIcon = function(fileName) {
-    if (activeIconTarget.type === 'party' && activeIconTarget.idx !== null) {
-        extraParties[activeIconTarget.idx].icon = fileName;
-        renderExtraParties();
+    if (activeIconTarget.idx !== null) {
+        if (activeIconTarget.type === 'party') {
+            extraParties[activeIconTarget.idx].icon = fileName;
+            renderExtraParties();
+        } else if (activeIconTarget.type === 'coal') {
+            coalitions[activeIconTarget.idx].icon = fileName;
+            renderCoalitions();
+        }
         if (Object.keys(globalResults).length > 0) updateSelectionUI();
     }
     closeIconModal();
@@ -945,9 +945,6 @@ function blendWithWhite(hexColor, fadeRatio) {
 // Global Veri Görünüm Yöneticisi
 // Diğer display katmanı mapMode'dan bağımsız; önce Diğer, sonra ittifak gruplandırması uygulanır.
 function getDisplayData(item) {
-    if (item.isMilliBakiye) {
-        return { rawVotes: item.rawVotes, mvs: item.mvs, totalVotes: item.totalVotes, passed: item.passed, seats: item.seats, isMilliBakiye: true };
-    }
 
     // partyToKey: her partiyi hangi görüntü adıyla göstereceğimizi tutar
     const partyToKey = {};
@@ -970,7 +967,7 @@ function getDisplayData(item) {
 
     // Eğer hiç gruplama yoksa ham veriyi döndür
     if (Object.keys(partyToKey).length === 0) {
-        return { rawVotes: item.rawVotes, mvs: item.mvs, totalVotes: item.totalVotes, passed: item.passed, seats: item.seats };
+        return { rawVotes: item.rawVotes, mvs: item.mvs, totalVotes: item.totalVotes, passed: item.passed, seats: item.seats, isMilliBakiye: item.isMilliBakiye };
     }
 
     const groupedVotes = {};
@@ -984,7 +981,7 @@ function getDisplayData(item) {
         groupedMvs[gKey] = (groupedMvs[gKey] || 0) + s;
     });
 
-    return { rawVotes: groupedVotes, mvs: groupedMvs, totalVotes: item.totalVotes, passed: item.passed, seats: item.seats };
+    return { rawVotes: groupedVotes, mvs: groupedMvs, totalVotes: item.totalVotes, passed: item.passed, seats: item.seats, isMilliBakiye: item.isMilliBakiye };
 }
 
 function hasEntityPassed(entityName, passedSet) {
@@ -1961,6 +1958,7 @@ function getMasterDistricts() {
 }
 
 function updateGlobalParties(){
+    renderSeatList();
     renderExtraParties();
     renderCoalitions();
     renderAlliances();
@@ -1995,7 +1993,11 @@ window.renameParty = function(idx, newName) {
     if(oldName === newName) return;
     
     extraParties[idx].name = newName;
-    coalitions.forEach(c => { const mIdx = c.members.indexOf(oldName); if(mIdx > -1) c.members[mIdx] = newName; });
+    coalitions.forEach(c => {
+        const mIdx = c.members.indexOf(oldName); if(mIdx > -1) c.members[mIdx] = newName;
+        // Katılma modunda liste adı ana partinin adıdır; parti yeniden adlandırılınca birlikte taşınır.
+        if (c.host === oldName) { c.host = newName; c.name = newName; }
+    });
     electoralAlliances.forEach(a => { const mIdx = a.members.indexOf(oldName); if(mIdx > -1) a.members[mIdx] = newName; });
 
     for(let d in localDisabledParties) {
@@ -2096,6 +2098,8 @@ window.deleteParty = function(idx) {
     extraParties.splice(idx, 1);
     parliamentOrderOverride = parliamentOrderOverride.filter(p => p !== name);
     coalitions.forEach(c => { c.members = c.members.filter(m => m !== name); });
+    // Ana partisi silinen katılma listeleri anlamını yitirir; birlikte kaldırılır.
+    coalitions = coalitions.filter(c => !(c.host === name));
     electoralAlliances.forEach(a => { a.members = a.members.filter(m => m !== name); });
     digerGroups.forEach(d => { d.members = d.members.filter(m => m !== name); });
     fermuarListes.forEach(fl => { fl.members = fl.members.filter(m => m !== name); delete fl.districtMap[name]; });
@@ -2243,42 +2247,108 @@ function renderExtraParties(){
     updateTotalTracker();
 }
 
+// ── Ortak Liste: iki mod ─────────────────────────────────────────────────────
+// 'join'  → Partiye katılma: diğer partiler doğrudan bir ana partinin listesine katılır.
+//           Liste adı, rengi ve logosu ana partiden gelir (c.name === c.host olduğu için
+//           mevcut birleştirme mantığı ve getPartyColor/logo aramaları kendiliğinden çalışır).
+// 'merge' → Birleşik ortak liste: sıfırdan, kendi adı/rengi/logosu olan yeni bir liste.
+let coalAddMode = 'join';
+function coalModeOf(c) { return c.mode === 'merge' ? 'merge' : (c.host ? 'join' : 'merge'); }
+
+window.setCoalMode = function(mode) {
+    coalAddMode = mode;
+    const join = mode === 'join';
+    $('coalAddJoin').style.display = join ? 'flex' : 'none';
+    $('coalAddMerge').style.display = join ? 'none' : 'flex';
+    const jb = $('coalModeJoinBtn'), mb = $('coalModeMergeBtn');
+    [[jb, join], [mb, !join]].forEach(([b, on]) => {
+        if (!b) return;
+        b.style.background = on ? 'var(--purple)' : 'var(--surface)';
+        b.style.color = on ? '#fff' : 'var(--text-secondary)';
+    });
+    renderCoalHostSelect();
+};
+
+function renderCoalHostSelect() {
+    const sel = $('coalHostSelect');
+    if (!sel) return;
+    const taken = new Set(coalitions.filter(c => coalModeOf(c) === 'join').map(c => c.host));
+    const opts = extraParties.map(e => e.name).filter(n => !taken.has(n)).sort((a, b) => a.localeCompare(b, 'tr'));
+    const prev = sel.value;
+    sel.innerHTML = opts.length
+        ? opts.map(n => `<option value="${escapeStr(n)}">${n} listesi</option>`).join('')
+        : '<option value="">— uygun parti yok —</option>';
+    if (opts.includes(prev)) sel.value = prev;
+}
+
 function addCoalition(){
-    const name = $('coalName').value.trim();
-    if(!name) return;
-    takeSnapshot();
-    coalitions.push({ name, members:[], isOpen: true, isEnabled: true, color: '#000000' });
-    $('coalName').value = '';
+    if (coalAddMode === 'join') {
+        const host = $('coalHostSelect').value;
+        if (!host) return;
+        takeSnapshot();
+        coalitions.push({ name: host, host, mode: 'join', members: [host], isOpen: true, isEnabled: true });
+    } else {
+        const name = $('coalName').value.trim();
+        if(!name) return;
+        takeSnapshot();
+        coalitions.push({ name, mode: 'merge', members:[], isOpen: true, isEnabled: true, color: '#000000', icon: null });
+        $('coalName').value = '';
+    }
     renderCoalitions(); renderAlliances();
 }
 
+// Katılma modunda ana partiyi değiştirir: liste adı ana partiyle birlikte taşınır.
+window.setCoalHost = function(idx, host) {
+    const c = coalitions[idx];
+    if (!c || !host) return;
+    takeSnapshot();
+    c.host = host;
+    c.name = host;
+    if (!c.members.includes(host)) c.members.push(host);
+    renderCoalitions(); renderAlliances();
+    if (Object.keys(globalResults).length > 0) runProjection();
+};
+
 function renderCoalitions(){
     const all = extraParties.map(e=>e.name).sort((a,b) => a.localeCompare(b, 'tr'));
-    $('coalitionArea').innerHTML = coalitions.map((c, idx) => `
-        <div class="data-row" style="border-left-color: var(--purple);" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'coal', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'coal', ${idx})">
+    renderCoalHostSelect();
+    $('coalitionArea').innerHTML = coalitions.map((c, idx) => {
+        const isJoin = coalModeOf(c) === 'join';
+        const color = isJoin ? getPartyColor(c.host) : (c.color || '#000000');
+        const iconRaw = isJoin
+            ? (() => { const hp = extraParties.find(e => e.name === c.host); return hp && hp.icon ? partyIconRaw[hp.icon] : null; })()
+            : (c.icon ? partyIconRaw[c.icon] : null);
+
+        // Başlık: katılma modunda ana parti seçici, birleşik modda serbest ad + renk + logo.
+        const headHtml = isJoin
+            ? `<select style="flex:1; min-width:0; padding:5px; font-weight:bold;" onchange="setCoalHost(${idx}, this.value)">
+                   ${all.map(p => `<option value="${escapeStr(p)}" ${p === c.host ? 'selected' : ''}>${p} listesi</option>`).join('')}
+               </select>`
+            : `<div title="Rengi Değiştir" style="width:24px; height:24px; border-radius:6px; background:${color}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0;" onclick="updateColorModal('coal', ${idx})"></div>
+               <div title="Logo Seç" style="width:24px; height:24px; border-radius:6px; background:${color}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:3px; box-sizing:border-box;" onclick="openIconModal('coal', ${idx})">${iconRaw || '<span style="font-size:10px;color:#fff;opacity:0.85;">🖼</span>'}</div>
+               <input type="text" class="editable-name" value="${escapeStr(c.name)}" onchange="renameCoalition(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">`;
+
+        return `
+        <div class="data-row" style="border-left-color: var(--purple);" onmousedown="if(event.target.tagName==='INPUT'||event.target.tagName==='SELECT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'coal', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'coal', ${idx})">
             <div class="flex-row" style="margin-bottom:0;">
                 <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
-                
                 <button class="toggle-btn" onclick="coalitions[${idx}].isOpen=!coalitions[${idx}].isOpen;renderCoalitions()">${c.isOpen ? '▲' : '▼'}</button>
-                
                 <button class="status-btn ${c.isEnabled !== false ? 'active' : ''}" style="background:${c.isEnabled !== false ? 'var(--success)' : '#f5f6f7'}; color:${c.isEnabled !== false ? '#fff' : 'var(--text-secondary)'}; border-color:${c.isEnabled !== false ? 'var(--success)' : 'var(--border)'};" onclick="coalitions[${idx}].isEnabled=!(coalitions[${idx}].isEnabled!==false);renderCoalitions(); if(Object.keys(globalResults).length>0)runProjection();" title="${c.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${c.isEnabled !== false ? 'A' : 'P'}</button>
-                
-                <div title="Rengi Değiştir" style="width:24px; height:24px; border-radius:6px; background:${c.color || '#000000'}; cursor:pointer; border:1px solid rgba(0,0,0,0.2); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('coal', ${idx})"></div>
-                
-                <input type="text" class="editable-name" value="${escapeStr(c.name)}" onchange="renameCoalition(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
-                
+                ${headHtml}
                 <button class="danger" onclick="takeSnapshot();coalitions.splice(${idx},1);renderCoalitions();renderAlliances(); if(Object.keys(globalResults).length>0)runProjection();">✖</button>
             </div>
             <div style="margin-top:10px; display: ${c.isOpen ? 'grid' : 'none'}; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap:6px; border-top: 1px dashed var(--border); padding-top:10px;">
-                ${all.map(p => `
-                    <label class="coal-sim-box ${c.members.includes(p)?'active':''}" title="${escapeStr(p)}">
-                        <input type="checkbox" style="display:none;" ${c.members.includes(p)?'checked':''} onchange="const m=coalitions[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : coalitions[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderCoalitions(); if(Object.keys(globalResults).length>0)runProjection();">
-                        <span>${p}</span>
-                    </label>
-                `).join('')}
+                ${all.map(p => {
+                    const isHost = isJoin && p === c.host;
+                    // Ana parti kendi listesinden çıkarılamaz.
+                    return `<label class="coal-sim-box ${c.members.includes(p)?'active':''}" title="${isHost ? 'Ana parti' : escapeStr(p)}" style="${isHost ? 'opacity:0.75; cursor:default;' : ''}">
+                        <input type="checkbox" style="display:none;" ${c.members.includes(p)?'checked':''} ${isHost ? 'disabled' : ''} onchange="const m=coalitions[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : coalitions[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderCoalitions(); if(Object.keys(globalResults).length>0)runProjection();">
+                        <span>${isHost ? '★ ' : ''}${p}</span>
+                    </label>`;
+                }).join('')}
             </div>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
 
 function addAlliance(){
@@ -2290,7 +2360,7 @@ function addAlliance(){
 }
 
 function renderAlliances(){
-    const all = [...extraParties.map(e=>e.name), ...coalitions.map(c=>c.name)].sort((a,b) => a.localeCompare(b, 'tr'));
+    const all = [...new Set([...extraParties.map(e=>e.name), ...coalitions.map(c=>c.name)])].sort((a,b) => a.localeCompare(b, 'tr'));
     $('allianceArea').innerHTML = electoralAlliances.map((a, idx) => `
         <div class="data-row" style="border-left-color: var(--teal);" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'alliance', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'alliance', ${idx})">
             <div class="flex-row" style="margin-bottom:0;">
@@ -2559,6 +2629,7 @@ async function loadSeatData(inp) {
             customSeatOverrides[dName] = parseInt(data[dName]) || 0;
         }
         inp.value = '';
+        renderSeatList();
         if (Object.keys(globalResults).length > 0) runProjection();
     } catch (err) {}
 }
@@ -2735,13 +2806,41 @@ function applyProjectData(data) {
     }
 
     updateGlobalParties(); renderExtraParties(); renderCoalitions(); renderAlliances(); renderFermuar(); renderDiger();
-    updateTotalTracker(); renderParlOrder();
+    updateTotalTracker(); renderParlOrder(); renderSeatList();
 }
 
 window.updateSeatOverride = function(dName, val) {
     customSeatOverrides[dName] = parseInt(val) || 0;
+    renderSeatList();
     runProjection();
 };
+
+// Milletvekili Sayıları paneli: tüm seçim çevreleri sırayla, yanlarında düzenlenebilir koltuk sayısı.
+function renderSeatList() {
+    const area = $('seatListArea');
+    if (!area) return;
+    const districts = getMasterDistricts().sort((a, b) => a.localeCompare(b, 'tr'));
+    const tracker = $('seatTotalTracker');
+
+    if (districts.length === 0) {
+        area.innerHTML = '<div style="font-size:12px; color:var(--text-secondary); padding:10px 2px;">Seçim çevresi verisi yüklenmedi.</div>';
+        if (tracker) tracker.textContent = 'Toplam: 0';
+        return;
+    }
+
+    let total = 0;
+    area.innerHTML = districts.map(d => {
+        const val = parseInt(customSeatOverrides[d]) || 0;
+        total += val;
+        return `<div style="display:flex; align-items:center; gap:8px; padding:3px 2px; border-bottom:1px solid var(--border);">
+            <span style="flex:1; font-size:12px; font-weight:bold; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeStr(d)}">${escapeStr(d)}</span>
+            <input type="number" min="0" value="${val}" style="width:62px; padding:4px 6px; text-align:center; font-weight:bold; color:var(--primary);"
+                   onchange="updateSeatOverride('${escapeStr(d)}', this.value)">
+        </div>`;
+    }).join('');
+
+    if (tracker) tracker.textContent = 'Toplam: ' + total;
+}
 
 window.applySorting = function() {
     if(Object.keys(globalResults).length > 0) renderResults(globalResults);
@@ -2764,10 +2863,10 @@ function renderParlOrder() {
     }).join('');
     if (sel) {
         const used = new Set(parliamentOrderOverride);
-        const options = [
+        const options = [...new Set([
             ...extraParties.filter(ep => ep.isEnabled !== false).map(ep => ep.name),
             ...coalitions.filter(c => c.isEnabled !== false).map(c => c.name)
-        ].filter(name => !used.has(name));
+        ])].filter(name => !used.has(name));
         sel.innerHTML = options.map(name => `<option value="${escapeStr(name)}">${name}</option>`).join('');
     }
 }
@@ -3411,7 +3510,8 @@ function toggleParliamentStyle() {
     if ($('parliamentContainer').style.display !== 'none' && Object.keys(globalResults).length > 0) {
         let totalMvs = {}, globalSeatCount = 0;
         Object.keys(globalResults).forEach(d => {
-            if (globalResults[d].isMilliBakiye) return;
+            // Milli Bakiye havuzu da parlamentoya dahildir: oyları çevrelerin artığı olduğu için
+            // tekrar sayılmaz, ama dağıttığı vekiller toplam koltuklara eklenir.
             const dd = getDisplayData(globalResults[d]);
             Object.keys(dd.mvs).forEach(p => { const mv = dd.mvs[p]||0; if(mv>0){totalMvs[p]=(totalMvs[p]||0)+mv; globalSeatCount+=mv;} });
         });
@@ -4271,11 +4371,14 @@ function updateSelectionUI() {
         let totalVotes = 0, totalSeats = 0, partyVotes = {}, partySeats = {};
         for (const d in globalResults) {
             const res = globalResults[d];
-            if (res.isMilliBakiye) continue;
-            totalVotes += res.totalVotes;
-            totalSeats += res.seats;
             const dd = getDisplayData(res);
-            Object.entries(dd.rawVotes).forEach(([p, v]) => { partyVotes[p] = (partyVotes[p] || 0) + v; });
+            totalSeats += res.seats;
+            // Milli Bakiye havuzunun "oyları" çevrelerden artan oylardır; ülke geneli oy
+            // toplamına eklenirse çift sayım olur. Vekilleri ise parlamentonun parçasıdır.
+            if (!res.isMilliBakiye) {
+                totalVotes += res.totalVotes;
+                Object.entries(dd.rawVotes).forEach(([p, v]) => { partyVotes[p] = (partyVotes[p] || 0) + v; });
+            }
             Object.entries(dd.mvs).forEach(([p, s]) => { partySeats[p] = (partySeats[p] || 0) + s; });
         }
         const sorted = Object.keys(partyVotes).sort((a, b) => partyVotes[b] - partyVotes[a]);
@@ -4497,27 +4600,8 @@ document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) { e.preventDefault(); redo(); }
 });
 
-// ── Temel / Gelişmiş Mod ─────────────────────────────────────────────────────
-// Gelişmiş modda ekstra görünenler: Seçim Veri Setleri, Milli Bakiye,
-// Milletvekili Sayıları, "Seçim Çevrelerine Müdahale" ayarı ve veri seti indirme.
-let currentUIMode = 'temel';
-
-function setUIMode(mode) {
-    currentUIMode = mode;
-    const adv = mode === 'gelismis';
-    $('modeBtnTemel').classList.toggle('active', !adv);
-    $('modeBtnGelismis').classList.toggle('active', adv);
-    ['cardMilliBakiye', 'cardKoltukVerisi'].forEach(id => {
-        const el = $(id); if (el) el.style.display = adv ? 'block' : 'none';
-    });
-    const advSection = $('advCevreMudahale');
-    if (advSection) advSection.style.display = adv ? 'block' : 'none';
-    const dl = $('downloadDatasetBtn');
-    if (dl) dl.style.display = adv ? 'block' : 'none';
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-    setUIMode('temel');
+    setCoalMode('join');
     ensureDigerGroup();
     renderDiger();
     cpInit();
@@ -4537,10 +4621,13 @@ async function exportInfographic() {
         const partyVotes = {}, partySeats = {};
         for (const d in globalResults) {
             const res = globalResults[d];
-            if (res.isMilliBakiye) continue;
-            totalVotes += res.totalVotes; totalSeats += res.seats;
             const dd = getDisplayData(res);
-            Object.entries(dd.rawVotes).forEach(([p,v]) => { partyVotes[p]=(partyVotes[p]||0)+v; });
+            totalSeats += res.seats;
+            // Milli Bakiye: oyları çift sayılmaz, vekilleri toplama girer.
+            if (!res.isMilliBakiye) {
+                totalVotes += res.totalVotes;
+                Object.entries(dd.rawVotes).forEach(([p,v]) => { partyVotes[p]=(partyVotes[p]||0)+v; });
+            }
             Object.entries(dd.mvs).forEach(([p,s]) => { partySeats[p]=(partySeats[p]||0)+s; });
         }
 
@@ -4582,7 +4669,9 @@ async function exportInfographic() {
             const mv = partySeats[p] || 0;
             const pct = totalVotes > 0 ? (partyVotes[p]||0)/totalVotes*100 : 0;
             const fsize = p.length > 14 ? '11px' : p.length > 9 ? '13px' : p.length > 5 ? '16px' : '18px';
-            const ep = extraParties.find(e => e.name === p);
+            // Birleşik ortak listelerin de kendi logosu olabilir; katılma listelerinde ad
+            // ana partinin adı olduğu için ilk arama zaten doğru logoyu bulur.
+            const ep = extraParties.find(e => e.name === p) || coalitions.find(c => c.name === p);
             const rawIcon = ep && ep.icon ? partyIconRaw[ep.icon] : null;
             const badgeContent = rawIcon
                 ? `<span style="display:flex;align-items:center;justify-content:center;width:70%;height:70%;">${rawIcon}</span>`
@@ -4677,9 +4766,25 @@ async function exportInfographic() {
         });
         document.body.removeChild(exportDiv);
 
+        // --- 16:10 kırpma ---
+        // Yerleşim 1920x1080 (16:9) olarak çizilir; öğelerin dikey konumu bozulmasın diye
+        // yükseklik hiç kırpılmaz, sadece soldan ve sağdan eşit miktarda pay alınır.
+        // 1080 * 16/10 = 1728 → toplam 192px, iki yandan 96'şar piksel.
+        const targetW = Math.round(canvas.height * 16 / 10);
+        let outCanvas = canvas;
+        if (targetW < canvas.width) {
+            const sx = Math.round((canvas.width - targetW) / 2);
+            outCanvas = document.createElement('canvas');
+            outCanvas.width = targetW; outCanvas.height = canvas.height;
+            const octx = outCanvas.getContext('2d');
+            octx.fillStyle = '#ffffff';
+            octx.fillRect(0, 0, targetW, canvas.height);
+            octx.drawImage(canvas, sx, 0, targetW, canvas.height, 0, 0, targetW, canvas.height);
+        }
+
         const link = document.createElement('a');
         link.download = 'projeksiyon_infografik_' + now.toISOString().slice(0,10) + '.png';
-        link.href = canvas.toDataURL('image/png');
+        link.href = outCanvas.toDataURL('image/png');
         link.click();
     } catch(err) {
         console.error('İnfografik export hatası:', err);
