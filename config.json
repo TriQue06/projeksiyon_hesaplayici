@@ -1,5 +1,35 @@
 {
-  "database": "universal_veri.json",
+  "datasets": [
+    {
+      "id": "pgm",
+      "file": "universal_veri.json",
+      "label": "PGM Verisi",
+      "weight": 0.75,
+      "builtin": true
+    },
+    {
+      "id": "2024",
+      "file": "veri_2024.json",
+      "label": "2024 Yerel",
+      "weight": 0.05,
+      "builtin": true
+    },
+    {
+      "id": "2023",
+      "file": "veri_2023.json",
+      "label": "2023 Milletvekili",
+      "weight": 0.15,
+      "builtin": true
+    },
+    {
+      "id": "2018",
+      "file": "veri_2018.json",
+      "label": "2018 Milletvekili",
+      "weight": 0.05,
+      "builtin": true
+    }
+  ],
+  "population": "nufus_verisi.json",
   "defaultProject": "gecis_varsayilan.json",
   "map": "turkiye_harita.svg",
   "mapping": "eslestirme.json",
