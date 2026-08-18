@@ -4771,7 +4771,7 @@ function renderResults(res){
                 // Oranın altında, ortalanmış net oy sayısı
                 const votesStr = Math.round(v).toLocaleString('tr-TR');
                 cellHtml = `<div style="font-weight:${isWinner?'800':'400'};color:${isWinner?'var(--text)':'var(--text-dim)'};">${pctStr}${seatsHtml}</div>
-                    <div style="font-size:10px;font-weight:500;color:var(--text-secondary);opacity:0.85;font-variant-numeric:tabular-nums;">${votesStr}</div>`;
+                    <div style="font-size:10px;font-weight:${isWinner?'700':'500'};color:${isWinner?'var(--text)':'var(--text-secondary)'};opacity:${isWinner?'1':'0.85'};font-variant-numeric:tabular-nums;">${votesStr}</div>`;
             }
             rowHtml += `<td style="${tds} background:${cellBg};">${cellHtml}</td>`;
         });
