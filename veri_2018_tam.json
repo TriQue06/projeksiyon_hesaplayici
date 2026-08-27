@@ -1,0 +1,1255 @@
+{
+ "_tool": "secim_verisi_olusturucu",
+ "v": 2,
+ "format": "votes",
+ "label": "2018 Tam Sonuç",
+ "kaynak": "YSK 2018 resmî sonuçları (yurt içi + gümrük + yurt dışı). Dış oylar resmî kurala göre çevrelere yurt içi geçerli oy oranında dağıtıldı (katsayı 0.03094503); ittifak mühürleri üyelere oyları oranında paylaştırıldı.",
+ "parties": [
+  {
+   "name": "ak_parti"
+  },
+  {
+   "name": "mhp"
+  },
+  {
+   "name": "huda_par"
+  },
+  {
+   "name": "vatan_partisi"
+  },
+  {
+   "name": "dem_parti"
+  },
+  {
+   "name": "chp"
+  },
+  {
+   "name": "saadet"
+  },
+  {
+   "name": "iyi_parti"
+  }
+ ],
+ "districts": [
+  {
+   "name": "Adana"
+  },
+  {
+   "name": "Adıyaman"
+  },
+  {
+   "name": "Afyonkarahisar"
+  },
+  {
+   "name": "Ağrı"
+  },
+  {
+   "name": "Aksaray"
+  },
+  {
+   "name": "Amasya"
+  },
+  {
+   "name": "Ankara 1. Bölge"
+  },
+  {
+   "name": "Ankara 2. Bölge"
+  },
+  {
+   "name": "Ankara 3. Bölge"
+  },
+  {
+   "name": "Antalya"
+  },
+  {
+   "name": "Ardahan"
+  },
+  {
+   "name": "Artvin"
+  },
+  {
+   "name": "Aydın"
+  },
+  {
+   "name": "Balıkesir"
+  },
+  {
+   "name": "Bartın"
+  },
+  {
+   "name": "Batman"
+  },
+  {
+   "name": "Bayburt"
+  },
+  {
+   "name": "Bilecik"
+  },
+  {
+   "name": "Bingöl"
+  },
+  {
+   "name": "Bitlis"
+  },
+  {
+   "name": "Bolu"
+  },
+  {
+   "name": "Burdur"
+  },
+  {
+   "name": "Bursa 1. Bölge"
+  },
+  {
+   "name": "Bursa 2. Bölge"
+  },
+  {
+   "name": "Çanakkale"
+  },
+  {
+   "name": "Çankırı"
+  },
+  {
+   "name": "Çorum"
+  },
+  {
+   "name": "Denizli"
+  },
+  {
+   "name": "Diyarbakır"
+  },
+  {
+   "name": "Düzce"
+  },
+  {
+   "name": "Edirne"
+  },
+  {
+   "name": "Elazığ"
+  },
+  {
+   "name": "Erzincan"
+  },
+  {
+   "name": "Erzurum"
+  },
+  {
+   "name": "Eskişehir"
+  },
+  {
+   "name": "Gaziantep"
+  },
+  {
+   "name": "Giresun"
+  },
+  {
+   "name": "Gümüşhane"
+  },
+  {
+   "name": "Hakkari"
+  },
+  {
+   "name": "Hatay"
+  },
+  {
+   "name": "Iğdır"
+  },
+  {
+   "name": "Isparta"
+  },
+  {
+   "name": "İstanbul 1. Bölge"
+  },
+  {
+   "name": "İstanbul 2. Bölge"
+  },
+  {
+   "name": "İstanbul 3. Bölge"
+  },
+  {
+   "name": "İzmir 1. Bölge"
+  },
+  {
+   "name": "İzmir 2. Bölge"
+  },
+  {
+   "name": "Kahramanmaraş"
+  },
+  {
+   "name": "Karabük"
+  },
+  {
+   "name": "Karaman"
+  },
+  {
+   "name": "Kars"
+  },
+  {
+   "name": "Kastamonu"
+  },
+  {
+   "name": "Kayseri"
+  },
+  {
+   "name": "Kırıkkale"
+  },
+  {
+   "name": "Kırklareli"
+  },
+  {
+   "name": "Kırşehir"
+  },
+  {
+   "name": "Kilis"
+  },
+  {
+   "name": "Kocaeli"
+  },
+  {
+   "name": "Konya"
+  },
+  {
+   "name": "Kütahya"
+  },
+  {
+   "name": "Malatya"
+  },
+  {
+   "name": "Manisa"
+  },
+  {
+   "name": "Mardin"
+  },
+  {
+   "name": "Mersin"
+  },
+  {
+   "name": "Muğla"
+  },
+  {
+   "name": "Muş"
+  },
+  {
+   "name": "Nevşehir"
+  },
+  {
+   "name": "Niğde"
+  },
+  {
+   "name": "Ordu"
+  },
+  {
+   "name": "Osmaniye"
+  },
+  {
+   "name": "Rize"
+  },
+  {
+   "name": "Sakarya"
+  },
+  {
+   "name": "Samsun"
+  },
+  {
+   "name": "Siirt"
+  },
+  {
+   "name": "Sinop"
+  },
+  {
+   "name": "Sivas"
+  },
+  {
+   "name": "Şanlıurfa"
+  },
+  {
+   "name": "Şırnak"
+  },
+  {
+   "name": "Tekirdağ"
+  },
+  {
+   "name": "Tokat"
+  },
+  {
+   "name": "Trabzon"
+  },
+  {
+   "name": "Tunceli"
+  },
+  {
+   "name": "Uşak"
+  },
+  {
+   "name": "Van"
+  },
+  {
+   "name": "Yalova"
+  },
+  {
+   "name": "Yozgat"
+  },
+  {
+   "name": "Zonguldak"
+  }
+ ],
+ "gecerliOy": {
+  "Adana": 1329163,
+  "Adıyaman": 346793,
+  "Afyonkarahisar": 461198,
+  "Ağrı": 231207,
+  "Aksaray": 234002,
+  "Amasya": 227574,
+  "Ankara 1. Bölge": 1269540,
+  "Ankara 2. Bölge": 1072383,
+  "Ankara 3. Bölge": 1204827,
+  "Antalya": 1480324,
+  "Ardahan": 58428,
+  "Artvin": 115457,
+  "Aydın": 731496,
+  "Balıkesir": 864558,
+  "Bartın": 126904,
+  "Batman": 292850,
+  "Bayburt": 49111,
+  "Bilecik": 141460,
+  "Bingöl": 144760,
+  "Bitlis": 164454,
+  "Bolu": 201627,
+  "Burdur": 176429,
+  "Bursa 1. Bölge": 1002440,
+  "Bursa 2. Bölge": 949546,
+  "Çanakkale": 374066,
+  "Çankırı": 119120,
+  "Çorum": 358963,
+  "Denizli": 684543,
+  "Diyarbakır": 851810,
+  "Düzce": 247060,
+  "Edirne": 276373,
+  "Elazığ": 351373,
+  "Erzincan": 148492,
+  "Erzurum": 435901,
+  "Eskişehir": 581522,
+  "Gaziantep": 1051074,
+  "Giresun": 291616,
+  "Gümüşhane": 81298,
+  "Hakkari": 139761,
+  "Hatay": 939480,
+  "Iğdır": 93935,
+  "Isparta": 280011,
+  "İstanbul 1. Bölge": 3454040,
+  "İstanbul 2. Bölge": 2695681,
+  "İstanbul 3. Bölge": 3288702,
+  "İzmir 1. Bölge": 1415892,
+  "İzmir 2. Bölge": 1499618,
+  "Kahramanmaraş": 668867,
+  "Karabük": 154701,
+  "Karaman": 157706,
+  "Kars": 147478,
+  "Kastamonu": 249390,
+  "Kayseri": 874965,
+  "Kırıkkale": 175909,
+  "Kırklareli": 248815,
+  "Kırşehir": 144220,
+  "Kilis": 75696,
+  "Kocaeli": 1212043,
+  "Konya": 1353581,
+  "Kütahya": 389167,
+  "Malatya": 493499,
+  "Manisa": 958983,
+  "Mardin": 397204,
+  "Mersin": 1136677,
+  "Muğla": 648080,
+  "Muş": 188701,
+  "Nevşehir": 191118,
+  "Niğde": 212674,
+  "Ordu": 484698,
+  "Osmaniye": 312464,
+  "Rize": 224238,
+  "Sakarya": 645233,
+  "Samsun": 853339,
+  "Siirt": 150793,
+  "Sinop": 139476,
+  "Sivas": 409319,
+  "Şanlıurfa": 869974,
+  "Şırnak": 233754,
+  "Tekirdağ": 664437,
+  "Tokat": 386600,
+  "Trabzon": 513225,
+  "Tunceli": 55871,
+  "Uşak": 243310,
+  "Van": 527698,
+  "Yalova": 157185,
+  "Yozgat": 258978,
+  "Zonguldak": 389338
+ },
+ "votes": {
+  "Adana": {
+   "ak_parti": 461220,
+   "mhp": 156210,
+   "huda_par": 7043,
+   "vatan_partisi": 2502,
+   "dem_parti": 179741,
+   "chp": 346417,
+   "saadet": 14114,
+   "iyi_parti": 161503
+  },
+  "Adıyaman": {
+   "ak_parti": 191112,
+   "mhp": 31678,
+   "huda_par": 4262,
+   "vatan_partisi": 599,
+   "dem_parti": 53444,
+   "chp": 41797,
+   "saadet": 5624,
+   "iyi_parti": 18277
+  },
+  "Afyonkarahisar": {
+   "ak_parti": 255436,
+   "mhp": 64329,
+   "huda_par": 995,
+   "vatan_partisi": 1175,
+   "dem_parti": 5780,
+   "chp": 66702,
+   "saadet": 5103,
+   "iyi_parti": 61678
+  },
+  "Ağrı": {
+   "ak_parti": 66632,
+   "mhp": 5789,
+   "huda_par": 1740,
+   "vatan_partisi": 420,
+   "dem_parti": 143885,
+   "chp": 6734,
+   "saadet": 1890,
+   "iyi_parti": 3830
+  },
+  "Aksaray": {
+   "ak_parti": 131395,
+   "mhp": 48051,
+   "huda_par": 648,
+   "vatan_partisi": 460,
+   "dem_parti": 3678,
+   "chp": 23163,
+   "saadet": 1953,
+   "iyi_parti": 24654
+  },
+  "Amasya": {
+   "ak_parti": 106934,
+   "mhp": 28240,
+   "huda_par": 368,
+   "vatan_partisi": 465,
+   "dem_parti": 5165,
+   "chp": 56319,
+   "saadet": 2534,
+   "iyi_parti": 27549
+  },
+  "Ankara 1. Bölge": {
+   "ak_parti": 391470,
+   "mhp": 136019,
+   "huda_par": 1195,
+   "vatan_partisi": 3280,
+   "dem_parti": 112079,
+   "chp": 450520,
+   "saadet": 17368,
+   "iyi_parti": 156585
+  },
+  "Ankara 2. Bölge": {
+   "ak_parti": 547712,
+   "mhp": 160075,
+   "huda_par": 1267,
+   "vatan_partisi": 2038,
+   "dem_parti": 45211,
+   "chp": 187833,
+   "saadet": 16462,
+   "iyi_parti": 111785
+  },
+  "Ankara 3. Bölge": {
+   "ak_parti": 494961,
+   "mhp": 168804,
+   "huda_par": 1371,
+   "vatan_partisi": 2331,
+   "dem_parti": 69942,
+   "chp": 286991,
+   "saadet": 19099,
+   "iyi_parti": 160859
+  },
+  "Antalya": {
+   "ak_parti": 517545,
+   "mhp": 149740,
+   "huda_par": 3188,
+   "vatan_partisi": 3917,
+   "dem_parti": 108478,
+   "chp": 431631,
+   "saadet": 14208,
+   "iyi_parti": 250332
+  },
+  "Ardahan": {
+   "ak_parti": 21706,
+   "mhp": 3953,
+   "huda_par": 205,
+   "vatan_partisi": 207,
+   "dem_parti": 13662,
+   "chp": 15114,
+   "saadet": 587,
+   "iyi_parti": 2994
+  },
+  "Artvin": {
+   "ak_parti": 46771,
+   "mhp": 11770,
+   "huda_par": 329,
+   "vatan_partisi": 432,
+   "dem_parti": 5676,
+   "chp": 36977,
+   "saadet": 1679,
+   "iyi_parti": 11823
+  },
+  "Aydın": {
+   "ak_parti": 237748,
+   "mhp": 59187,
+   "huda_par": 1823,
+   "vatan_partisi": 2653,
+   "dem_parti": 68447,
+   "chp": 248367,
+   "saadet": 5137,
+   "iyi_parti": 108134
+  },
+  "Balıkesir": {
+   "ak_parti": 357935,
+   "mhp": 65364,
+   "huda_par": 1533,
+   "vatan_partisi": 2881,
+   "dem_parti": 36770,
+   "chp": 262580,
+   "saadet": 10071,
+   "iyi_parti": 127199
+  },
+  "Bartın": {
+   "ak_parti": 59687,
+   "mhp": 21601,
+   "huda_par": 350,
+   "vatan_partisi": 672,
+   "dem_parti": 2162,
+   "chp": 32332,
+   "saadet": 2689,
+   "iyi_parti": 7411
+  },
+  "Batman": {
+   "ak_parti": 72949,
+   "mhp": 3559,
+   "vatan_partisi": 444,
+   "dem_parti": 181848,
+   "chp": 5364,
+   "saadet": 9160,
+   "iyi_parti": 3528
+  },
+  "Bayburt": {
+   "ak_parti": 28216,
+   "mhp": 13462,
+   "huda_par": 79,
+   "vatan_partisi": 51,
+   "dem_parti": 593,
+   "chp": 2097,
+   "saadet": 1593,
+   "iyi_parti": 3020
+  },
+  "Bilecik": {
+   "ak_parti": 61259,
+   "mhp": 13213,
+   "huda_par": 459,
+   "vatan_partisi": 386,
+   "dem_parti": 4776,
+   "chp": 39824,
+   "saadet": 1582,
+   "iyi_parti": 19961
+  },
+  "Bingöl": {
+   "ak_parti": 80024,
+   "mhp": 8498,
+   "huda_par": 6302,
+   "vatan_partisi": 344,
+   "dem_parti": 38802,
+   "chp": 3311,
+   "saadet": 1569,
+   "iyi_parti": 5910
+  },
+  "Bitlis": {
+   "ak_parti": 73723,
+   "mhp": 6697,
+   "huda_par": 1815,
+   "vatan_partisi": 539,
+   "dem_parti": 69965,
+   "chp": 4499,
+   "saadet": 1822,
+   "iyi_parti": 5394
+  },
+  "Bolu": {
+   "ak_parti": 105109,
+   "mhp": 30113,
+   "huda_par": 382,
+   "vatan_partisi": 578,
+   "dem_parti": 4188,
+   "chp": 40951,
+   "saadet": 3070,
+   "iyi_parti": 17236
+  },
+  "Burdur": {
+   "ak_parti": 76122,
+   "mhp": 22058,
+   "huda_par": 571,
+   "vatan_partisi": 750,
+   "dem_parti": 3385,
+   "chp": 35688,
+   "saadet": 2699,
+   "iyi_parti": 35156
+  },
+  "Bursa 1. Bölge": {
+   "ak_parti": 433126,
+   "mhp": 99458,
+   "huda_par": 1723,
+   "vatan_partisi": 2393,
+   "dem_parti": 47685,
+   "chp": 258164,
+   "saadet": 16501,
+   "iyi_parti": 142505
+  },
+  "Bursa 2. Bölge": {
+   "ak_parti": 468411,
+   "mhp": 109968,
+   "huda_par": 2779,
+   "vatan_partisi": 2324,
+   "dem_parti": 63345,
+   "chp": 185233,
+   "saadet": 16987,
+   "iyi_parti": 100499
+  },
+  "Çanakkale": {
+   "ak_parti": 139795,
+   "mhp": 25936,
+   "huda_par": 713,
+   "vatan_partisi": 1245,
+   "dem_parti": 14014,
+   "chp": 126496,
+   "saadet": 2888,
+   "iyi_parti": 62716
+  },
+  "Çankırı": {
+   "ak_parti": 70533,
+   "mhp": 23373,
+   "huda_par": 208,
+   "vatan_partisi": 251,
+   "dem_parti": 1321,
+   "chp": 7986,
+   "saadet": 1310,
+   "iyi_parti": 14138
+  },
+  "Çorum": {
+   "ak_parti": 186924,
+   "mhp": 50373,
+   "huda_par": 634,
+   "vatan_partisi": 869,
+   "dem_parti": 13096,
+   "chp": 72951,
+   "saadet": 3907,
+   "iyi_parti": 30209
+  },
+  "Denizli": {
+   "ak_parti": 278925,
+   "mhp": 63095,
+   "huda_par": 1740,
+   "vatan_partisi": 2176,
+   "dem_parti": 27588,
+   "chp": 192011,
+   "saadet": 5725,
+   "iyi_parti": 112710
+  },
+  "Diyarbakır": {
+   "ak_parti": 182770,
+   "mhp": 11970,
+   "vatan_partisi": 1223,
+   "dem_parti": 558623,
+   "chp": 21305,
+   "saadet": 14302,
+   "iyi_parti": 23862
+  },
+  "Düzce": {
+   "ak_parti": 138505,
+   "mhp": 46226,
+   "huda_par": 312,
+   "vatan_partisi": 644,
+   "dem_parti": 5102,
+   "chp": 35929,
+   "saadet": 3673,
+   "iyi_parti": 16669
+  },
+  "Edirne": {
+   "ak_parti": 78980,
+   "mhp": 13956,
+   "huda_par": 617,
+   "vatan_partisi": 885,
+   "dem_parti": 10181,
+   "chp": 125480,
+   "saadet": 2845,
+   "iyi_parti": 43211
+  },
+  "Elazığ": {
+   "ak_parti": 191657,
+   "mhp": 47523,
+   "huda_par": 5210,
+   "vatan_partisi": 587,
+   "dem_parti": 35460,
+   "chp": 37750,
+   "saadet": 6196,
+   "iyi_parti": 26990
+  },
+  "Erzincan": {
+   "ak_parti": 66481,
+   "mhp": 27634,
+   "huda_par": 144,
+   "vatan_partisi": 160,
+   "dem_parti": 8387,
+   "chp": 37865,
+   "saadet": 1630,
+   "iyi_parti": 6191
+  },
+  "Erzurum": {
+   "ak_parti": 238963,
+   "mhp": 80750,
+   "huda_par": 850,
+   "vatan_partisi": 715,
+   "dem_parti": 52151,
+   "chp": 19281,
+   "saadet": 7686,
+   "iyi_parti": 35505
+  },
+  "Eskişehir": {
+   "ak_parti": 225562,
+   "mhp": 57728,
+   "huda_par": 780,
+   "vatan_partisi": 1445,
+   "dem_parti": 24820,
+   "chp": 187674,
+   "saadet": 6453,
+   "iyi_parti": 76783
+  },
+  "Gaziantep": {
+   "ak_parti": 540757,
+   "mhp": 133165,
+   "huda_par": 8744,
+   "vatan_partisi": 2031,
+   "dem_parti": 124858,
+   "chp": 158766,
+   "saadet": 12576,
+   "iyi_parti": 70177
+  },
+  "Giresun": {
+   "ak_parti": 156453,
+   "mhp": 31546,
+   "huda_par": 813,
+   "vatan_partisi": 835,
+   "dem_parti": 4499,
+   "chp": 51843,
+   "saadet": 3634,
+   "iyi_parti": 41993
+  },
+  "Gümüşhane": {
+   "ak_parti": 46231,
+   "mhp": 16703,
+   "huda_par": 223,
+   "vatan_partisi": 184,
+   "dem_parti": 1077,
+   "chp": 6057,
+   "saadet": 1606,
+   "iyi_parti": 9217
+  },
+  "Hakkari": {
+   "ak_parti": 28053,
+   "mhp": 5161,
+   "huda_par": 797,
+   "vatan_partisi": 282,
+   "dem_parti": 98063,
+   "chp": 4834,
+   "saadet": 746,
+   "iyi_parti": 1825
+  },
+  "Hatay": {
+   "ak_parti": 340147,
+   "mhp": 135628,
+   "huda_par": 1547,
+   "vatan_partisi": 1365,
+   "dem_parti": 103530,
+   "chp": 287485,
+   "saadet": 8441,
+   "iyi_parti": 61337
+  },
+  "Iğdır": {
+   "ak_parti": 19468,
+   "mhp": 22445,
+   "huda_par": 202,
+   "vatan_partisi": 211,
+   "dem_parti": 41546,
+   "chp": 2670,
+   "saadet": 1879,
+   "iyi_parti": 5514
+  },
+  "Isparta": {
+   "ak_parti": 133716,
+   "mhp": 36754,
+   "huda_par": 721,
+   "vatan_partisi": 919,
+   "dem_parti": 5959,
+   "chp": 46227,
+   "saadet": 4212,
+   "iyi_parti": 51503
+  },
+  "İstanbul 1. Bölge": {
+   "ak_parti": 1432479,
+   "mhp": 282989,
+   "huda_par": 4899,
+   "vatan_partisi": 7599,
+   "dem_parti": 390751,
+   "chp": 997909,
+   "saadet": 53536,
+   "iyi_parti": 281975
+  },
+  "İstanbul 2. Bölge": {
+   "ak_parti": 1218889,
+   "mhp": 218689,
+   "huda_par": 5424,
+   "vatan_partisi": 5242,
+   "dem_parti": 331406,
+   "chp": 668342,
+   "saadet": 41941,
+   "iyi_parti": 204578
+  },
+  "İstanbul 3. Bölge": {
+   "ak_parti": 1378023,
+   "mhp": 278155,
+   "huda_par": 6641,
+   "vatan_partisi": 6002,
+   "dem_parti": 473363,
+   "chp": 832351,
+   "saadet": 44375,
+   "iyi_parti": 268785
+  },
+  "İzmir 1. Bölge": {
+   "ak_parti": 407113,
+   "mhp": 82990,
+   "huda_par": 2331,
+   "vatan_partisi": 4336,
+   "dem_parti": 177357,
+   "chp": 581344,
+   "saadet": 11152,
+   "iyi_parti": 148310
+  },
+  "İzmir 2. Bölge": {
+   "ak_parti": 429475,
+   "mhp": 100274,
+   "huda_par": 2507,
+   "vatan_partisi": 4845,
+   "dem_parti": 157616,
+   "chp": 623026,
+   "saadet": 12110,
+   "iyi_parti": 168772
+  },
+  "Kahramanmaraş": {
+   "ak_parti": 391155,
+   "mhp": 109149,
+   "huda_par": 1557,
+   "vatan_partisi": 1377,
+   "dem_parti": 25729,
+   "chp": 65366,
+   "saadet": 10059,
+   "iyi_parti": 64475
+  },
+  "Karabük": {
+   "ak_parti": 83254,
+   "mhp": 21003,
+   "huda_par": 329,
+   "vatan_partisi": 565,
+   "dem_parti": 2290,
+   "chp": 25771,
+   "saadet": 2661,
+   "iyi_parti": 18828
+  },
+  "Karaman": {
+   "ak_parti": 84410,
+   "mhp": 23618,
+   "huda_par": 362,
+   "vatan_partisi": 534,
+   "dem_parti": 2491,
+   "chp": 25613,
+   "saadet": 2483,
+   "iyi_parti": 18195
+  },
+  "Kars": {
+   "ak_parti": 55914,
+   "mhp": 10659,
+   "huda_par": 430,
+   "vatan_partisi": 426,
+   "dem_parti": 47052,
+   "chp": 21134,
+   "saadet": 1013,
+   "iyi_parti": 10850
+  },
+  "Kastamonu": {
+   "ak_parti": 130289,
+   "mhp": 50049,
+   "huda_par": 736,
+   "vatan_partisi": 1095,
+   "dem_parti": 2821,
+   "chp": 38794,
+   "saadet": 2357,
+   "iyi_parti": 23249
+  },
+  "Kayseri": {
+   "ak_parti": 443064,
+   "mhp": 187874,
+   "huda_par": 1513,
+   "vatan_partisi": 1344,
+   "dem_parti": 20742,
+   "chp": 108269,
+   "saadet": 15034,
+   "iyi_parti": 96330
+  },
+  "Kırıkkale": {
+   "ak_parti": 76862,
+   "mhp": 42613,
+   "huda_par": 299,
+   "vatan_partisi": 314,
+   "dem_parti": 2796,
+   "chp": 26888,
+   "saadet": 2118,
+   "iyi_parti": 24019
+  },
+  "Kırklareli": {
+   "ak_parti": 66882,
+   "mhp": 12124,
+   "huda_par": 367,
+   "vatan_partisi": 695,
+   "dem_parti": 8416,
+   "chp": 118170,
+   "saadet": 1499,
+   "iyi_parti": 40601
+  },
+  "Kırşehir": {
+   "ak_parti": 59476,
+   "mhp": 24411,
+   "huda_par": 260,
+   "vatan_partisi": 294,
+   "dem_parti": 6779,
+   "chp": 36860,
+   "saadet": 1437,
+   "iyi_parti": 14602
+  },
+  "Kilis": {
+   "ak_parti": 38482,
+   "mhp": 15403,
+   "huda_par": 180,
+   "vatan_partisi": 131,
+   "dem_parti": 1741,
+   "chp": 11050,
+   "saadet": 1020,
+   "iyi_parti": 7689
+  },
+  "Kocaeli": {
+   "ak_parti": 585310,
+   "mhp": 137693,
+   "huda_par": 1890,
+   "vatan_partisi": 2111,
+   "dem_parti": 89162,
+   "chp": 243834,
+   "saadet": 26435,
+   "iyi_parti": 125108
+  },
+  "Konya": {
+   "ak_parti": 804226,
+   "mhp": 209622,
+   "huda_par": 2839,
+   "vatan_partisi": 2105,
+   "dem_parti": 50265,
+   "chp": 130968,
+   "saadet": 31610,
+   "iyi_parti": 121350
+  },
+  "Kütahya": {
+   "ak_parti": 213368,
+   "mhp": 71827,
+   "huda_par": 826,
+   "vatan_partisi": 931,
+   "dem_parti": 4701,
+   "chp": 49246,
+   "saadet": 6982,
+   "iyi_parti": 41286
+  },
+  "Malatya": {
+   "ak_parti": 265841,
+   "mhp": 79574,
+   "huda_par": 1638,
+   "vatan_partisi": 694,
+   "dem_parti": 34647,
+   "chp": 82654,
+   "saadet": 7397,
+   "iyi_parti": 21054
+  },
+  "Manisa": {
+   "ak_parti": 385107,
+   "mhp": 109769,
+   "huda_par": 2582,
+   "vatan_partisi": 2816,
+   "dem_parti": 67184,
+   "chp": 252593,
+   "saadet": 8939,
+   "iyi_parti": 129993
+  },
+  "Mardin": {
+   "ak_parti": 120853,
+   "mhp": 10426,
+   "huda_par": 8268,
+   "vatan_partisi": 673,
+   "dem_parti": 235722,
+   "chp": 13158,
+   "saadet": 3275,
+   "iyi_parti": 4479
+  },
+  "Mersin": {
+   "ak_parti": 325592,
+   "mhp": 144939,
+   "huda_par": 4530,
+   "vatan_partisi": 2482,
+   "dem_parti": 192573,
+   "chp": 304221,
+   "saadet": 7815,
+   "iyi_parti": 154151
+  },
+  "Muğla": {
+   "ak_parti": 182686,
+   "mhp": 42017,
+   "huda_par": 1403,
+   "vatan_partisi": 2667,
+   "dem_parti": 43647,
+   "chp": 264840,
+   "saadet": 3957,
+   "iyi_parti": 106863
+  },
+  "Muş": {
+   "ak_parti": 61202,
+   "mhp": 7039,
+   "huda_par": 2791,
+   "vatan_partisi": 406,
+   "dem_parti": 102725,
+   "chp": 4665,
+   "saadet": 1707,
+   "iyi_parti": 8166
+  },
+  "Nevşehir": {
+   "ak_parti": 101556,
+   "mhp": 34112,
+   "huda_par": 558,
+   "vatan_partisi": 433,
+   "dem_parti": 3329,
+   "chp": 31714,
+   "saadet": 2233,
+   "iyi_parti": 17183
+  },
+  "Niğde": {
+   "ak_parti": 93239,
+   "mhp": 44112,
+   "huda_par": 451,
+   "vatan_partisi": 630,
+   "dem_parti": 3530,
+   "chp": 42972,
+   "saadet": 2550,
+   "iyi_parti": 25190
+  },
+  "Ordu": {
+   "ak_parti": 236410,
+   "mhp": 81654,
+   "huda_par": 1263,
+   "vatan_partisi": 1784,
+   "dem_parti": 6789,
+   "chp": 110243,
+   "saadet": 5529,
+   "iyi_parti": 41026
+  },
+  "Osmaniye": {
+   "ak_parti": 113355,
+   "mhp": 98959,
+   "huda_par": 1169,
+   "vatan_partisi": 677,
+   "dem_parti": 11210,
+   "chp": 42319,
+   "saadet": 3075,
+   "iyi_parti": 41700
+  },
+  "Rize": {
+   "ak_parti": 145413,
+   "mhp": 27827,
+   "huda_par": 237,
+   "vatan_partisi": 372,
+   "dem_parti": 3214,
+   "chp": 29241,
+   "saadet": 4183,
+   "iyi_parti": 13475
+  },
+  "Sakarya": {
+   "ak_parti": 375399,
+   "mhp": 88010,
+   "huda_par": 881,
+   "vatan_partisi": 1232,
+   "dem_parti": 17403,
+   "chp": 88485,
+   "saadet": 13240,
+   "iyi_parti": 60583
+  },
+  "Samsun": {
+   "ak_parti": 443561,
+   "mhp": 138444,
+   "huda_par": 1314,
+   "vatan_partisi": 1816,
+   "dem_parti": 15082,
+   "chp": 147453,
+   "saadet": 12139,
+   "iyi_parti": 92815
+  },
+  "Siirt": {
+   "ak_parti": 58759,
+   "mhp": 5312,
+   "huda_par": 1782,
+   "vatan_partisi": 281,
+   "dem_parti": 77009,
+   "chp": 3844,
+   "saadet": 1409,
+   "iyi_parti": 2397
+  },
+  "Sinop": {
+   "ak_parti": 77084,
+   "mhp": 10063,
+   "huda_par": 449,
+   "vatan_partisi": 789,
+   "dem_parti": 2790,
+   "chp": 33794,
+   "saadet": 1560,
+   "iyi_parti": 12947
+  },
+  "Sivas": {
+   "ak_parti": 223611,
+   "mhp": 77729,
+   "huda_par": 548,
+   "vatan_partisi": 648,
+   "dem_parti": 8991,
+   "chp": 62374,
+   "saadet": 7190,
+   "iyi_parti": 27962
+  },
+  "Şanlıurfa": {
+   "ak_parti": 458594,
+   "mhp": 80449,
+   "huda_par": 13528,
+   "vatan_partisi": 997,
+   "dem_parti": 251779,
+   "chp": 33801,
+   "saadet": 11213,
+   "iyi_parti": 16165
+  },
+  "Şırnak": {
+   "ak_parti": 42517,
+   "mhp": 9366,
+   "huda_par": 4856,
+   "vatan_partisi": 363,
+   "dem_parti": 164184,
+   "chp": 6368,
+   "saadet": 1067,
+   "iyi_parti": 4625
+  },
+  "Tekirdağ": {
+   "ak_parti": 230728,
+   "mhp": 50249,
+   "huda_par": 930,
+   "vatan_partisi": 1642,
+   "dem_parti": 43728,
+   "chp": 253711,
+   "saadet": 5202,
+   "iyi_parti": 78018
+  },
+  "Tokat": {
+   "ak_parti": 192956,
+   "mhp": 63373,
+   "huda_par": 630,
+   "vatan_partisi": 695,
+   "dem_parti": 8009,
+   "chp": 79875,
+   "saadet": 4947,
+   "iyi_parti": 36115
+  },
+  "Trabzon": {
+   "ak_parti": 287312,
+   "mhp": 69406,
+   "huda_par": 635,
+   "vatan_partisi": 957,
+   "dem_parti": 6941,
+   "chp": 77657,
+   "saadet": 12707,
+   "iyi_parti": 57323
+  },
+  "Tunceli": {
+   "ak_parti": 8216,
+   "mhp": 3203,
+   "huda_par": 59,
+   "vatan_partisi": 67,
+   "dem_parti": 28509,
+   "chp": 14704,
+   "saadet": 178,
+   "iyi_parti": 920
+  },
+  "Uşak": {
+   "ak_parti": 105787,
+   "mhp": 25660,
+   "huda_par": 613,
+   "vatan_partisi": 744,
+   "dem_parti": 7460,
+   "chp": 68725,
+   "saadet": 3338,
+   "iyi_parti": 30983
+  },
+  "Van": {
+   "ak_parti": 167668,
+   "mhp": 16236,
+   "huda_par": 4773,
+   "vatan_partisi": 850,
+   "dem_parti": 313016,
+   "chp": 13921,
+   "saadet": 4204,
+   "iyi_parti": 6716
+  },
+  "Yalova": {
+   "ak_parti": 69372,
+   "mhp": 12239,
+   "huda_par": 292,
+   "vatan_partisi": 335,
+   "dem_parti": 12530,
+   "chp": 44987,
+   "saadet": 2045,
+   "iyi_parti": 15385
+  },
+  "Yozgat": {
+   "ak_parti": 138285,
+   "mhp": 63998,
+   "huda_par": 453,
+   "vatan_partisi": 451,
+   "dem_parti": 3446,
+   "chp": 30139,
+   "saadet": 3044,
+   "iyi_parti": 19162
+  },
+  "Zonguldak": {
+   "ak_parti": 179014,
+   "mhp": 42291,
+   "huda_par": 830,
+   "vatan_partisi": 1553,
+   "dem_parti": 7406,
+   "chp": 119801,
+   "saadet": 6868,
+   "iyi_parti": 30384
+  }
+ }
+}

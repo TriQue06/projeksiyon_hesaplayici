@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arayüz Önizlemeleri</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:#f6f7f9;color:#16181d;
+     padding:52px 28px;display:flex;flex-direction:column;align-items:center;}
+h1{font-size:26px;font-weight:900;letter-spacing:-.6px;}
+.lead{color:#6b7280;font-size:13.5px;margin:9px 0 32px;max-width:600px;text-align:center;line-height:1.6;}
+.row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;max-width:1180px;width:100%;}
+@media(max-width:1000px){.row{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.pick{position:relative;display:block;text-decoration:none;color:inherit;background:#fff;
+     border:1px solid #e5e7eb;border-radius:14px;padding:15px;transition:.16s;}
+.pick:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(16,24,40,.1);}
+.pick.new{border-color:#3060e8;box-shadow:0 0 0 3px rgba(48,96,232,.12);}
+.pick.new:after{content:'YENİ';position:absolute;top:-9px;right:12px;background:#3060e8;color:#fff;
+     font-size:9px;font-weight:900;letter-spacing:.8px;padding:3px 8px;border-radius:20px;}
+.thumb{height:108px;border-radius:9px;display:flex;overflow:hidden;margin-bottom:12px;}
+.thumb .side{width:34%;} .thumb .main{flex:1;}
+.t1{border:1px solid #e5e7eb}
+.t1 .side{background:#fff;border-right:1px solid #e5e7eb} .t1 .main{background:#f6f7f9}
+.t2{border:2.5px solid #20242c;box-shadow:3px 3px 0 #20242c}
+.t2 .side{background:#fffaf2;border-right:3px solid #20242c} .t2 .main{background:#fdf6ec}
+.t3{border:1px solid #e5e7eb}
+.t3 .side{background:#1d2432} .t3 .main{background:#eef1f6}
+.t4{border:1px solid #ece8e1;box-shadow:0 3px 10px rgba(43,38,30,.1)}
+.t4 .side{background:#fffdfa;border-right:1px solid #ece8e1} .t4 .main{background:#f7f5f1}
+.pick b{font-size:14.5px;font-weight:900;}
+.pick p{font-size:11.5px;color:#6b7280;line-height:1.55;margin:6px 0 10px;}
+.pick em{font-style:normal;font-size:10px;font-weight:800;color:#1a56db;letter-spacing:.4px;}
+</style></head><body>
+<h1>Arayüz Önizlemeleri</h1>
+<p class="lead">Dördü de aynı sahte veriyi, aynı düzende gösteriyor — tek fark tasarım dili.
+Ana uygulamaya hiç dokunulmadı; beğendiğini söyle, onu <b>index.html</b>'e uyarlayayım.</p>
+<div class="row"><a class="pick new" href="04_karma.html">
+  <div class="thumb t4"><span class="side"></span><span class="main"></span></div>
+  <b>4 · Karma</b><p>Yumuşağın yuvarlak geometrisi ve sıcak zemini, temizin sakin ayraçları ve okunur rakamlarıyla birleşti.</p><em>Sıcak ama ciddi</em></a><a class="pick " href="02_yumusak.html">
+  <div class="thumb t2"><span class="side"></span><span class="main"></span></div>
+  <b>2 · Yumuşak</b><p>Kalın siyah konturlar, sert ofset gölgeler, geniş yuvarlaklar, krem zemin.</p><em>Çizgi filmimsi, samimi</em></a><a class="pick " href="01_temiz.html">
+  <div class="thumb t1"><span class="side"></span><span class="main"></span></div>
+  <b>1 · Temiz</b><p>Sakin gri-mavi palet, ince ayraçlar, gölgesiz kartlar.</p><em>Ciddi, gazete grafiği gibi</em></a><a class="pick " href="03_kontrast.html">
+  <div class="thumb t3"><span class="side"></span><span class="main"></span></div>
+  <b>3 · Kontrast</b><p>Koyu kenar çubuğu, aydınlık tuval. Araç ile sonuç ayrışır.</p><em>Modern, uygulama gibi</em></a></div>
+</body></html>

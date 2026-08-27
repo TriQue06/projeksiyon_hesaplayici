@@ -1,0 +1,177 @@
+{
+ "_tool": "baz_secim",
+ "v": 1,
+ "aciklama": "Infografikteki degisim (delta) hesaplari icin resmi taban sonuclar: parti bazinda ulke geneli oy orani ve kazanilan milletvekili sayisi.",
+ "2023": {
+  "ad": "2023 Genel Seçimi",
+  "toplamKoltuk": 600,
+  "partiler": {
+   "AK PARTİ": {
+    "oy": 35.622,
+    "koltuk": 268,
+    "renk": "#F0A824"
+   },
+   "CHP": {
+    "oy": 25.3532,
+    "koltuk": 169,
+    "renk": "#E81E32"
+   },
+   "YEŞİL SOL PARTİ": {
+    "oy": 8.8237,
+    "koltuk": 61,
+    "renk": "#6A0DAD"
+   },
+   "MHP": {
+    "oy": 10.0725,
+    "koltuk": 50,
+    "renk": "#C8102E"
+   },
+   "İYİ PARTİ": {
+    "oy": 9.6895,
+    "koltuk": 43,
+    "renk": "#2AAFE8"
+   },
+   "YENİDEN REFAH": {
+    "oy": 2.805,
+    "koltuk": 5,
+    "renk": "#0B5D3B"
+   },
+   "ZAFER PARTİSİ": {
+    "oy": 2.234,
+    "koltuk": 0,
+    "renk": "#F27E1F"
+   },
+   "TİP": {
+    "oy": 1.7562,
+    "koltuk": 4,
+    "renk": "#B01116"
+   },
+   "MEMLEKET": {
+    "oy": 0.9233,
+    "koltuk": 0,
+    "renk": "#1B3F8B"
+   },
+   "BBP": {
+    "oy": 0.9749,
+    "koltuk": 0,
+    "renk": "#8B0000"
+   },
+   "SOL PARTİ": {
+    "oy": 0.1433,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "TKP": {
+    "oy": 0.1172,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "TKH": {
+    "oy": 0.0321,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "GENÇPARTİ": {
+    "oy": 0.2075,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "MİLLET": {
+    "oy": 0.0964,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "HAK-PAR": {
+    "oy": 0.0781,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "ANAP": {
+    "oy": 0.1214,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "AP": {
+    "oy": 0.2006,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "HKP": {
+    "oy": 0.0585,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "VATAN PARTİSİ": {
+    "oy": 0.0968,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "AB": {
+    "oy": 0.0757,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "YP": {
+    "oy": 0.0205,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "MİLLİ YOL": {
+    "oy": 0.0326,
+    "koltuk": 0,
+    "renk": "#777777"
+   },
+   "GBP": {
+    "oy": 0.0484,
+    "koltuk": 0,
+    "renk": "#777777"
+   }
+  }
+ },
+ "2018": {
+  "ad": "2018 Genel Seçimi",
+  "toplamKoltuk": 600,
+  "partiler": {
+   "AK PARTİ": {
+    "oy": 42.5638,
+    "koltuk": 295,
+    "renk": "#F0A824"
+   },
+   "MHP": {
+    "oy": 11.0966,
+    "koltuk": 49,
+    "renk": "#C8102E"
+   },
+   "HÜDA PAR": {
+    "oy": 0.3102,
+    "koltuk": 0,
+    "renk": "#4B0082"
+   },
+   "VATAN PARTİSİ": {
+    "oy": 0.2291,
+    "koltuk": 0,
+    "renk": "#B01116"
+   },
+   "HDP": {
+    "oy": 11.7027,
+    "koltuk": 67,
+    "renk": "#6A0DAD"
+   },
+   "CHP": {
+    "oy": 22.6471,
+    "koltuk": 146,
+    "renk": "#E81E32"
+   },
+   "SAADET": {
+    "oy": 1.3404,
+    "koltuk": 0,
+    "renk": "#0B5D3B"
+   },
+   "İYİ PARTİ": {
+    "oy": 9.9592,
+    "koltuk": 43,
+    "renk": "#2AAFE8"
+   }
+  }
+ }
+}

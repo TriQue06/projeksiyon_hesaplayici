@@ -1,0 +1,97 @@
+{
+  "_tool": "parti_sablonu",
+  "v": 2,
+  "label": "2018 Partileri",
+  "esikVarsayilan": 10,
+  "ittifakModeli": "2018",
+  "partiler": [
+    {
+      "ad": "AK Parti",
+      "kod": "ak_parti",
+      "nat": 42.563822,
+      "renk": "#F0A824",
+      "ikon": "ak_parti_icon.svg",
+      "ikonRenk": "#FFFFFF"
+    },
+    {
+      "ad": "MHP",
+      "kod": "mhp",
+      "nat": 11.096558,
+      "renk": "#A63260",
+      "ikon": "mhp_icon.svg",
+      "ikonRenk": "#FFFFFF"
+    },
+    {
+      "ad": "HÜDA PAR",
+      "kod": "huda_par",
+      "nat": 0.310225,
+      "renk": "#9EBA4A",
+      "ikon": "huda_par_icon.svg",
+      "ikonRenk": "#FFFFFF"
+    },
+    {
+      "ad": "Vatan Partisi",
+      "kod": "vatan_partisi",
+      "nat": 0.229112,
+      "renk": "#000000",
+      "ikonRenk": "#FFFFFF"
+    },
+    {
+      "ad": "HDP",
+      "kod": "dem_parti",
+      "nat": 11.702732,
+      "renk": "#9F3AC9",
+      "ikon": "hdp_icon.svg",
+      "ikonRenk": "#FFFFFF"
+    },
+    {
+      "ad": "CHP",
+      "kod": "chp",
+      "nat": 22.647103,
+      "renk": "#E81E32",
+      "ikon": "chp_icon.svg",
+      "ikonRenk": "#FFFFFF"
+    },
+    {
+      "ad": "Saadet",
+      "kod": "saadet",
+      "nat": 1.340433,
+      "renk": "#C26242",
+      "ikon": "saadet_icon.svg",
+      "ikonRenk": "#FFFFFF"
+    },
+    {
+      "ad": "İYİ Parti",
+      "kod": "iyi_parti",
+      "nat": 9.959166,
+      "renk": "#2AAFE8",
+      "ikon": "iyi_parti_icon.svg",
+      "ikonRenk": "#FFFFFF"
+    }
+  ],
+  "ittifaklar": {
+    "Cumhur İttifakı": [
+      "ak_parti",
+      "mhp"
+    ],
+    "Millet İttifakı": [
+      "chp",
+      "saadet",
+      "iyi_parti"
+    ]
+  },
+  "ittifakRenkleri": {
+    "Cumhur İttifakı": "#F0A824",
+    "Millet İttifakı": "#E81E32"
+  },
+  "aciklamaDuzenleme": "partiler[].ad ve partiler[].renk serbestçe değiştirilebilir; ittifaklar / fermuarListeleri üyeleri parti KODUYLA yazıldığı için ad değişikliği hiçbir bağı koparmaz. partiler[].kod ve partiler[].nat oy sayılarını taşır, değiştirilmemelidir. İttifak adı ittifaklar başlığının anahtarıdır; adı değiştirirken ittifakRenkleri anahtarını da aynı şekilde güncelleyin. parlamentoSirasi da parti KODLARIYLA yazilir; listede olmayan partiler koltuk sayisina gore arkaya eklenir.",
+  "parlamentoSirasi": [
+    "dem_parti",
+    "chp",
+    "iyi_parti",
+    "saadet",
+    "ak_parti",
+    "mhp",
+    "huda_par"
+  ]
+}
