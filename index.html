@@ -982,6 +982,106 @@
         html[data-parlaklik="koyu"][data-tema="cizgi"],
         html[data-parlaklik="oled"][data-tema="cizgi"] { --outline: #6b7280; }
 
+        /* ═══ MOBİL ═══════════════════════════════════════════════════════
+           Aynı DOM, farklı yerleşim: paneller çekmeceye, navigasyon alta.
+           Masaüstünde yapılabilen her şey mobilde de yapılabilir. */
+        #mobilNav { display: none; }
+        #mobilOrtu { display: none; }
+
+        @media (max-width: 900px) {
+            body { display: block; height: 100dvh; overflow: hidden; }
+
+            /* Yan paneller: soldan/sağdan kayan tam yükseklikte çekmeceler.
+               min/max-width masaüstü değerlerini ezmeli, yoksa 405 px'te kalıp
+               ekranı taşırıyorlar. */
+            .left-panel, .side-panel {
+                position: fixed; top: 0; bottom: var(--mobil-nav-h);
+                width: min(92vw, 460px) !important;
+                min-width: 0 !important; max-width: none !important;
+                z-index: 80; padding: 14px;
+                transition: transform .26s cubic-bezier(.4,0,.2,1);
+                overscroll-behavior: contain;
+                box-shadow: 0 0 24px rgba(0,0,0,0.18);
+            }
+            .left-panel { left: 0; transform: translateX(-102%); }
+            .side-panel { right: 0; transform: translateX(102%); }
+            .left-panel.mobil-acik, .side-panel.mobil-acik { transform: translateX(0); }
+            /* Masaüstünün katlama durumu mobilde anlamsız; çekmece kendi
+               durumunu yönetir. */
+            .left-panel.is-collapsed, .side-panel.is-collapsed {
+                min-width: 0 !important; max-width: none !important;
+                padding: 14px !important; opacity: 1 !important;
+            }
+            .panel-toggle { display: none !important; }
+
+            .right-panel {
+                padding: 12px 12px calc(var(--mobil-nav-h) + 12px);
+                height: 100dvh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            }
+
+            /* Çekmece açıkken arkayı karartan örtü */
+            #mobilOrtu {
+                display: block; position: fixed; inset: 0; z-index: 75;
+                background: rgba(0,0,0,0.42); opacity: 0; pointer-events: none;
+                transition: opacity .26s ease;
+            }
+            #mobilOrtu.acik { opacity: 1; pointer-events: auto; }
+
+            /* Alt navigasyon */
+            #mobilNav {
+                display: flex; position: fixed; left: 0; right: 0; bottom: 0;
+                z-index: 90; height: var(--mobil-nav-h);
+                padding-bottom: env(safe-area-inset-bottom, 0);
+                background: var(--surface); border-top: 1px solid var(--border);
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.07);
+            }
+            #mobilNav button {
+                flex: 1; display: flex; flex-direction: column; align-items: center;
+                justify-content: center; gap: 3px;
+                background: none; border: none; box-shadow: none; border-radius: 0;
+                color: var(--text-secondary); font-size: 9.5px; font-weight: 800;
+                letter-spacing: .2px; cursor: pointer; padding: 0;
+                /* Dokunma hedefi kılavuz değeri 44 px; yükseklik onu sağlıyor. */
+                min-height: 44px; transition: color .15s;
+            }
+            #mobilNav button i { font-style: normal; font-size: 19px; line-height: 1; }
+            #mobilNav button.aktif { color: var(--primary); }
+            #mobilNav button:hover { transform: none; filter: none; }
+
+            /* Mod yaprağı: dördüncü düğmenin üstünde açılır */
+            #modeSwitch {
+                position: fixed; left: 10px; right: 10px; bottom: calc(var(--mobil-nav-h) + 10px);
+                top: auto; transform: none; z-index: 88;
+                display: none; gap: 6px; padding: 8px;
+                border-radius: var(--r-card);
+            }
+            #modeSwitch.mobil-acik { display: flex; }
+            #modeSwitch button { flex: 1; padding: 13px 0; font-size: 13px; }
+
+            /* Dokunma hedeflerini büyüt */
+            button.status-btn { width: 34px; height: 34px; }
+            .toggle-btn { min-width: 32px; min-height: 32px; }
+
+            /* Parti/ittifak satırları masaüstünde tek sıraya kuruluydu; 353 px'te
+               son düğme paneli taşırıyordu. Satır sarmasına izin verilir. */
+            .data-row > div { flex-wrap: wrap; }
+            .data-row input[type="text"], .data-row select { min-width: 0; }
+            .editable-name { min-width: 90px; }
+
+            /* Detay paneli: harita üstte, liste altta */
+            #slideDetay .do-container { flex-direction: column !important; align-items: stretch !important; }
+            #doDistrictMap { flex: 0 0 auto !important; max-width: 100% !important; height: auto !important; }
+            #doDistrictMap svg { max-height: 240px; }
+            #doMainContent { padding-top: 8px; }
+
+            /* Izgara: yatay kaydırma zaten var, sabit ilk sütun dar tutulur */
+            .gz-tablo td.gz-ad { max-width: 128px; }
+
+            /* Renk penceresi tek sütuna iner */
+            .style-cols { flex-direction: column; }
+        }
+        @media (max-width: 900px) { :root { --mobil-nav-h: 56px; } }
+
         .tema-secici { display: flex; gap: 0; margin: 0 0 14px 0; border: 1px solid var(--border); }
         .tema-secici button {
             flex: 1; padding: 6px 4px; font-size: 10.5px; font-weight: 800; cursor: pointer;
@@ -1000,6 +1100,16 @@
     <button id="modeBtn2023" onclick="switchProjectionMode('2023')">2023</button>
     <button id="modeBtn2018" onclick="switchProjectionMode('2018')">2018</button>
 </div>
+
+<div id="mobilOrtu" onclick="mobilKapat()"></div>
+
+<!-- Alt navigasyon: yalnız dar ekranda görünür -->
+<nav id="mobilNav">
+    <button data-mobil="sol"  onclick="mobilPanel('sol')"><i>&#9776;</i>Ayarlar</button>
+    <button data-mobil="ana"  onclick="mobilPanel('ana')" class="aktif"><i>&#128202;</i>Projeksiyon</button>
+    <button data-mobil="sag"  onclick="mobilPanel('sag')"><i>&#9881;</i>Araçlar</button>
+    <button data-mobil="mod"  onclick="mobilPanel('mod')"><i>&#128197;</i>Mod</button>
+</nav>
 
 <div id="chartTooltip"></div>
 <div id="mapTooltip"></div>
@@ -7838,6 +7948,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }, true);
     });
 });
+
+/* ═══ Mobil kabuk ═══════════════════════════════════════════════════════════
+   Masaüstü düzeni üç sütun; mobilde aynı düğümler çekmeceye alınır. Tek bir
+   "açık olan" durumu tutulur: sol panel, sağ panel, mod yaprağı ya da hiçbiri
+   (ana panel). Böylece iki çekmece aynı anda açılamaz. */
+const MOBIL_ESIK = 900;
+let mobilAcik = null;   // 'sol' | 'sag' | 'mod' | null
+
+function mobilMi() { return window.innerWidth <= MOBIL_ESIK; }
+
+function mobilDurumUygula() {
+    const sol = document.querySelector('.left-panel');
+    const sag = document.querySelector('.side-panel');
+    const mod = document.getElementById('modeSwitch');
+    const ortu = document.getElementById('mobilOrtu');
+    if (sol) sol.classList.toggle('mobil-acik', mobilAcik === 'sol');
+    if (sag) sag.classList.toggle('mobil-acik', mobilAcik === 'sag');
+    if (mod) mod.classList.toggle('mobil-acik', mobilAcik === 'mod');
+    if (ortu) ortu.classList.toggle('acik', mobilAcik !== null);
+    document.querySelectorAll('#mobilNav button').forEach(b => {
+        const k = b.getAttribute('data-mobil');
+        b.classList.toggle('aktif', k === (mobilAcik || 'ana'));
+    });
+}
+
+window.mobilPanel = function(hangi) {
+    if (hangi === 'ana') mobilAcik = null;
+    else mobilAcik = (mobilAcik === hangi) ? null : hangi;   // aynı düğme kapatır
+    mobilDurumUygula();
+    // Ana panele dönerken en üste al; kullanıcı çekmeceden çıkınca nerede
+    // kaldığını aramasın.
+    if (mobilAcik === null) {
+        const rp = document.querySelector('.right-panel');
+        if (rp) rp.scrollTop = 0;
+    }
+};
+
+window.mobilKapat = function() { mobilAcik = null; mobilDurumUygula(); };
+
+// Mod seçilince yaprak kendiliğinden kapansın.
+document.addEventListener('click', ev => {
+    if (!mobilMi()) return;
+    const b = ev.target.closest('#modeSwitch button');
+    if (b) setTimeout(() => { mobilAcik = null; mobilDurumUygula(); }, 60);
+});
+
+// Masaüstüne dönülünce çekmece durumu temizlenir, yoksa sınıflar takılı kalır.
+window.addEventListener('resize', () => {
+    if (!mobilMi() && mobilAcik !== null) { mobilAcik = null; mobilDurumUygula(); }
+});
+document.addEventListener('DOMContentLoaded', mobilDurumUygula);
 
 // ─── Panel aç/kapa ───────────────────────────────────────────────────────────
 // Butonlar panellerin kenarına yapışır; panel kapanınca ekran kenarına kayar.
