@@ -27,6 +27,13 @@
    "label": "2018 Sonucu",
    "weight": 0.05,
    "builtin": true
+  },
+  {
+   "id": "2002",
+   "file": "veri_2002_tam.json",
+   "label": "2002 Sonucu",
+   "weight": 0,
+   "builtin": true
   }
  ],
  "population": "nufus_verisi.json",

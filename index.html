@@ -1099,6 +1099,7 @@
     <button id="modeBtnGenel" class="active" onclick="switchProjectionMode('genel')">Genel</button>
     <button id="modeBtn2023" onclick="switchProjectionMode('2023')">2023</button>
     <button id="modeBtn2018" onclick="switchProjectionMode('2018')">2018</button>
+    <button id="modeBtn2002" onclick="switchProjectionMode('2002')">2002</button>
 </div>
 
 <div id="mobilOrtu" onclick="mobilKapat()"></div>
@@ -1146,6 +1147,19 @@
                     <option value="haziran3_2026.json">Haziran #3</option>
                 </select>
                 <button onclick="loadFromArchive()" class="purple" style="flex:1;">Buluttan Getir ☁️</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header-row" onclick="toggleCardCollapse(this)">
+            <label>Cumhurbaşkanlığı Projeksiyonu</label>
+        </div>
+        <div class="card-body">
+            <button onclick="cumhurbaskanligiAktar()" class="purple" style="width:100%;">&#128499;&#65039; Cumhurbaşkanlığına Aktar</button>
+            <div style="font-size:10px; font-weight:800; color:var(--text-secondary); margin-top:7px; line-height:1.5;">
+                Bu projeksiyonu yeni sekmede cumhurbaşkanlığı projeksiyonuna gönderir.
+                Orada partilerin tabanını adaylara bölüp ayrı bir kayıt alabilirsiniz.
             </div>
         </div>
     </div>
@@ -2478,8 +2492,9 @@ function updateMapColors() {
     }
 
     const normalizedDict = {};
-    for(let key in mapDictionary) {
-        normalizedDict[key.trim().toLowerCase()] = mapDictionary[key].trim().toLowerCase();
+    const aktifSozluk = aktifHaritaSozlugu();
+    for(let key in aktifSozluk) {
+        normalizedDict[key.trim().toLowerCase()] = aktifSozluk[key].trim().toLowerCase();
     }
 
     let paintedCount = 0; 
@@ -2505,6 +2520,17 @@ function updateMapColors() {
         let targetDistrictNameLower = normalizedDict[rawId] || normalizedDict[cleanId];
         
         if(!targetDistrictNameLower) {
+            // O anki modun sozlugunde karsiligi olmayan parca (orn. 2002'de
+            // Ankara 3. Bolge) onceki moddan kalan boyayi ve etiketi tasiyor
+            // olabilir; temizlenmezse eski rengiyle asili kaliyor.
+            if (el.hasAttribute('data-district-name')) {
+                el.removeAttribute('data-district-name');
+                const bos = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--map-default').trim() || '#e4e6eb';
+                el.style.setProperty('fill', bos, 'important');
+                el.querySelectorAll('path, polygon, polyline, rect')
+                  .forEach(p => p.style.setProperty('fill', bos, 'important'));
+            }
             unmatchedIds.add(originalRawId);
             return; 
         }
@@ -2758,6 +2784,31 @@ let maxMvs = -1;
     }
 
     if (isSelectionModeActive) updateSelectionUI();
+    haritaCerceveAyarla();
+    updateKiyasPanelVisibility();
+}
+
+/* Büyütülmüş İstanbul/Kocaeli parçaları gizlendiğinde haritanın altında
+   koca bir boşluk kalıyordu: viewBox hep tüm çizimin çerçevesiydi. Görünür
+   içeriğin gerçek sınırları ölçülüp viewBox ona göre daraltılır; harita hem
+   ortalanır hem de aynı genişlikte biraz büyümüş görünür. Gizleme
+   kapatılınca ilk ölçü geri yüklenir. */
+function haritaCerceveAyarla() {
+    const svg = document.querySelector('#svgMapWrapper svg');
+    if (!svg) return;
+    if (!svg.dataset.ilkCerceve) {
+        const vb = svg.getAttribute('viewBox');
+        if (!vb) return;                       // viewBox yoksa dokunulmaz
+        svg.dataset.ilkCerceve = vb;
+    }
+    const gizli = $('hideBuyukInp') && $('hideBuyukInp').checked;
+    if (!gizli) { svg.setAttribute('viewBox', svg.dataset.ilkCerceve); return; }
+    let k;
+    try { k = svg.getBBox(); } catch (e) { return; }   // display:none öğeler dışarda kalır
+    if (!k || !(k.width > 0) || !(k.height > 0)) return;
+    const pay = Math.max(k.width, k.height) * 0.02;    // konturlar kırpılmasın
+    svg.setAttribute('viewBox', (k.x - pay) + ' ' + (k.y - pay) + ' '
+                              + (k.width + pay * 2) + ' ' + (k.height + pay * 2));
 }
 
 // --- İNTERAKTİF DÜZENLEME MODU (DRAG & DROP) ---
@@ -3168,6 +3219,36 @@ function buildDistrictIlceSvg(dName) {
 function renderDistrictMapPanel(dName) {
     const kap = $('doDistrictMap');
     if (!kap) return;
+    // İlçe verisi olmayan modlarda (2002) parçalı ilçe haritası yerine ilin
+    // kendi şekli gösterilir; ilçe hoverı da böylece hiç devreye girmez.
+    if (!ilceKullanilabilir()) {
+        const ham = globalResults[dName];
+        let kazanan = null;
+        if (ham) {
+            const dd = getDisplayData(ham);
+            let enMv = -1, enOy = -1;
+            Object.entries(dd.mvs || {}).forEach(([p, mv]) => {
+                const v = dd.rawVotes[p] || 0;
+                if (mv > enMv || (mv === enMv && v > enOy)) { enMv = mv; enOy = v; kazanan = p; }
+            });
+            if (!kazanan) Object.entries(dd.rawVotes || {}).forEach(([p, v]) => {
+                if (v > enOy) { enOy = v; kazanan = p; }
+            });
+        }
+        kap.innerHTML = getMiniMapSvg(dName, kazanan ? getPartyColor(kazanan) : 'var(--map-default)');
+        // getMiniMapSvg baslik ikonu icin yazilmis: SVG'ye satir ici 180x180
+        // yaziyor. Satir ici stil, #doDistrictMap svg { width:100% } kuralini
+        // yendigi icin il haritasi bu buyuk panelde minicik kaliyordu. Olcuyu
+        // panele birakiyoruz; ilce haritasiyla ayni boyda cikar.
+        const kucukSvg = kap.querySelector('svg');
+        if (kucukSvg) {
+            kucukSvg.style.removeProperty('width');
+            kucukSvg.style.removeProperty('height');
+            kucukSvg.style.display = 'block';
+            kucukSvg.style.margin = '0 auto';
+        }
+        return;
+    }
     const svg = buildDistrictIlceSvg(dName);
     if (!svg) {
         // Harita YÜKLÜ DEĞİLSE yüklenince bir kez daha denenir. Yüklüyse ve
@@ -3551,6 +3632,7 @@ const DEFAULT_DATASETS = [
     { id: 'pgm',  file: 'universal_veri.json', label: 'PGM Verisi',   weight: 0.75, builtin: true },
     { id: '2024', file: 'veri_2024_tam.json',  label: '2024 Yerel',   weight: 0.05, builtin: true },
     { id: '2023', file: 'veri_2023_tam.json',  label: '2023 Sonucu',  weight: 0.15, builtin: true },
+    { id: '2002', file: 'veri_2002_tam.json',  label: '2002 Sonucu',  weight: 0,    builtin: true },
     { id: '2018', file: 'veri_2018_tam.json',  label: '2018 Sonucu',  weight: 0.05, builtin: true }
 ];
 
@@ -5285,6 +5367,7 @@ function renderFermuar() {
                 <button class="toggle-btn" onclick="fermuarListes[${idx}].isOpen=!fermuarListes[${idx}].isOpen;renderFermuar()">${fl.isOpen ? '▲' : '▼'}</button>
                 <button class="status-btn ${fl.isEnabled !== false ? 'active' : 'pasif'}"  onclick="fermuarListes[${idx}].isEnabled=!(fermuarListes[${idx}].isEnabled!==false);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();" title="${fl.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${fl.isEnabled !== false ? 'A' : 'P'}</button>
                 <input type="text" class="editable-name" value="${escapeStr(fl.name)}" onchange="renameFermuar(${idx},this.value)" onkeyup="if(event.key==='Enter')this.blur()">
+                <button onclick="fermuarOtomatik(${idx})" style="flex-shrink:0;padding:2.5px 6px;background:var(--surface-alt);color:var(--text-secondary);border:1px solid var(--border);border-radius:5px;font-size:10px;font-weight:bold;cursor:pointer;white-space:nowrap;" title="Çevreleri üyeler arasında otomatik paylaştır">&#9889; Otomatik</button>
                 <button onclick="toggleFermuarMapEdit(${idx})" style="flex-shrink:0;padding:3.5px 7px;background:${fermuarMapEditIdx === idx ? 'var(--primary)' : 'var(--highlight-bg)'};color:${fermuarMapEditIdx === idx ? '#fff' : 'var(--primary)'};border:1px solid var(--primary);border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;" title="Haritadan tıklayarak ata">🗺️ ${fermuarMapEditIdx === idx ? 'Haritada: AÇIK' : 'Haritadan Ayarla'}</button>
                 <button class="danger" onclick="takeSnapshot();fermuarListes.splice(${idx},1);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();">✖</button>
             </div>
@@ -5310,6 +5393,115 @@ function renderFermuar() {
         if (scrollSave[el.dataset.fgGrid] !== undefined) el.scrollTop = scrollSave[el.dataset.fgGrid];
     });
 }
+
+/* Fermuar listesindeki çevreleri üyeler arasında otomatik paylaştırır.
+
+   Kaba ama açıklanabilir bir hesap: bir partinin bir çevredeki tahmini oyu,
+   ülke oranı × o çevredeki güç katsayısı × çevrenin seçmeni. Güç katsayısı
+   districtPerf'ten gelir; yani etkin veri setlerinin ağırlıklı harmanı —
+   varsayılan kurulumda ağırlığın çoğu PGM verisindedir. Partinin bugünkü
+   ülke oranı ile veri setindeki tabanı arasındaki toplam değişim, katsayı
+   1 = ülke ortalaması olacak biçimde normalize edildiği için doğrudan bu
+   çarpımın içindedir: büyüyen parti her çevrede aynı oranda büyütülür.
+
+   Paylaştırma "en yüksek oyu alan alsın" değil: o zaman listenin büyük
+   ortağı neredeyse bütün çevreleri alırdı. Her üyeye ülke oranı payınca
+   çevre kotası verilir (en az 1), sonra (çevre, üye) çiftleri GÖRECELİ
+   üstünlüğe göre sıralanıp kotalar dolana dek dağıtılır. Böylece küçük
+   ortak, kendi için en avantajlı çevreleri alır.                          */
+window.fermuarOtomatik = function(idx) {
+    const fl = fermuarListes[idx];
+    if (!fl) return;
+    const uyeler = (fl.members || []).filter(m => extraParties.some(p => p.name === m));
+    if (uyeler.length < 2) { alert('Otomatik paylaştırma için listede en az iki üye parti olmalı.'); return; }
+    const cevreler = getMasterDistricts();
+    if (!cevreler.length) { alert('Önce veri yükleyin.'); return; }
+
+    const partiOf = {};
+    uyeler.forEach(m => { partiOf[m] = extraParties.find(p => p.name === m); });
+
+    // Üyenin bir çevredeki güç katsayısı: benzerlik eşlemesinin ağırlıklı
+    // ortalaması. Hiçbir bağı çözülemezse ülke ortalaması (1) varsayılır.
+    function katsayi(m, d) {
+        const sim = (partiOf[m] && partiOf[m].similarity) || {};
+        let top = 0, agir = 0;
+        Object.keys(sim).forEach(k => {
+            const w = parseFloat(sim[k]) || 0;
+            if (w <= 0) return;
+            const v = getDistrictPerf(d, k);
+            if (v === undefined) return;
+            top += v * w; agir += w;
+        });
+        return agir > 0 ? top / agir : 1;
+    }
+
+    const nat = {};
+    uyeler.forEach(m => { nat[m] = Math.max(parseFloat(partiOf[m].nat) || 0, 0); });
+    const natToplam = uyeler.reduce((a, m) => a + nat[m], 0);
+    if (natToplam <= 0) { alert('Üye partilerin ülke oranı sıfır; paylaştırma yapılamaz.'); return; }
+
+    // Tahmini oy ve göreceli üstünlük
+    const tahmin = {};
+    cevreler.forEach(d => {
+        const secmen = districtElectorate[d] || 0;
+        const satir = {};
+        let t = 0;
+        uyeler.forEach(m => { const v = nat[m] * katsayi(m, d) * secmen; satir[m] = v; t += v; });
+        tahmin[d] = { satir, toplam: t };
+    });
+
+    // Kota: ülke oranı payınca, her üyeye en az 1 (çevre sayısı yeterliyse)
+    const kota = {};
+    if (cevreler.length >= uyeler.length) {
+        const kalan = cevreler.length - uyeler.length;
+        const ham = {};
+        uyeler.forEach(m => { ham[m] = kalan * nat[m] / natToplam; });
+        uyeler.forEach(m => { kota[m] = 1 + Math.floor(ham[m]); });
+        let acik = cevreler.length - uyeler.reduce((a, m) => a + kota[m], 0);
+        uyeler.slice().sort((a, b) => (ham[b] - Math.floor(ham[b])) - (ham[a] - Math.floor(ham[a])))
+              .forEach(m => { if (acik > 0) { kota[m]++; acik--; } });
+    } else {
+        uyeler.forEach(m => { kota[m] = 0; });
+        cevreler.forEach((d, i) => { kota[uyeler[i % uyeler.length]]++; });
+    }
+
+    // (çevre, üye) çiftleri göreceli üstünlüğe göre
+    const ciftler = [];
+    cevreler.forEach(d => {
+        const { satir, toplam } = tahmin[d];
+        uyeler.forEach(m => {
+            const payYerel = toplam > 0 ? satir[m] / toplam : 0;
+            const payUlke = nat[m] / natToplam;
+            ciftler.push({ d, m, skor: payUlke > 0 ? payYerel / payUlke : 0, mutlak: satir[m] });
+        });
+    });
+    ciftler.sort((a, b) => (b.skor - a.skor) || (b.mutlak - a.mutlak));
+
+    const atanan = {}, dolu = {};
+    uyeler.forEach(m => { dolu[m] = 0; });
+    ciftler.forEach(c => {
+        if (atanan[c.d] !== undefined) return;
+        if (dolu[c.m] >= kota[c.m]) return;
+        atanan[c.d] = c.m; dolu[c.m]++;
+    });
+    // Kotalar yüzünden boşta kalan çevre: en yüksek mutlak tahmine gider
+    cevreler.forEach(d => {
+        if (atanan[d] !== undefined) return;
+        let en = -1, k = uyeler[0];
+        uyeler.forEach(m => { if (tahmin[d].satir[m] > en) { en = tahmin[d].satir[m]; k = m; } });
+        atanan[d] = k; dolu[k]++;
+    });
+
+    takeSnapshot();
+    fl.districtMap = {};
+    uyeler.forEach(m => { fl.districtMap[m] = []; });
+    cevreler.forEach(d => { fl.districtMap[atanan[d]].push(d); });
+    // Listede olup ülke oranı çözülemeyen üyeler boş kalır (saf destekçi)
+    (fl.members || []).forEach(m => { if (!fl.districtMap[m]) fl.districtMap[m] = []; });
+
+    renderFermuar();
+    if (Object.keys(globalResults).length > 0) runProjection();
+};
 
 window.renameFermuar = function(idx, newName) {
     newName = newName.trim();
@@ -6676,7 +6868,7 @@ function renderResults(res){
     const hepsiAcik = genisletilebilirIller.size > 0
         && [...genisletilebilirIller].every(d => acikIller.has(d));
 
-    const kapsamSecici = `<div style="margin-top:5px;">
+    const kapsamSecici = !ilceKullanilabilir() ? '' : `<div style="margin-top:5px;">
         <select onchange="setGridScope(this.value)" title="Izgarada hangi birimler listelensin"
                 style="width:100%; font-size:10px; padding:2px 4px; font-weight:700; color:var(--text);
                        background:var(--input-bg); border:1.5px solid var(--outline); border-radius:6px; cursor:pointer;">
@@ -7503,7 +7695,25 @@ function restoreModeState(st) {
     runProjection();
 }
 
-const MOD_BTN = { genel: 'modeBtnGenel', '2023': 'modeBtn2023', '2018': 'modeBtn2018' };
+const MOD_BTN = { genel: 'modeBtnGenel', '2023': 'modeBtn2023',
+                  '2018': 'modeBtn2018', '2002': 'modeBtn2002' };
+
+/* 2002 modunda ilçe verisi YOK: o seçimin ilçe sonuçlarını taşıyan bir
+   dosyamız olmadığı gibi, 2002'nin ilçe sınırları da bugünküyle örtüşmüyor.
+   Harita katmanı düğmesi ve ızgaranın ilçe seçenekleri bu modda kapanır. */
+function ilceKullanilabilir() {
+    return typeof currentMode === 'undefined' || currentMode !== '2002';
+}
+function ilceArayuzunuTazele() {
+    const acik = ilceKullanilabilir();
+    const btn = $('mapLayerBtn');
+    if (btn) btn.style.display = acik ? '' : 'none';
+    if (!acik) {
+        window._gridScope = 'il';
+        if (window._gridExpanded) window._gridExpanded.clear();
+        if (typeof mapLayer !== 'undefined' && mapLayer === 'ilce') toggleMapLayer();
+    }
+}
 function markModeButton(mode) {
     Object.entries(MOD_BTN).forEach(([m, id]) => {
         const b = $(id); if (b) b.classList.toggle('active', m === mode);
@@ -7517,20 +7727,24 @@ window.switchProjectionMode = async function(mode) {
     currentMode = mode;
     markModeButton(mode);
     updateIndependentPanelVisibility();
+    updateKiyasPanelVisibility();
     // İlçe verisi yıla özgü: mod değişince yeniden yüklenir ve ona bağlı
     // görünümler (harita boyası, ızgara, açık detay) tazelenir.
-    if (ilceMapLoaded) {
+    ilceArayuzunuTazele();
+    if (ilceMapLoaded && ilceKullanilabilir()) {
+        // İlçe dosyası yüklenince YALNIZ ilçe boyası tazelenir. Eskiden burada
+        // renderResults da çağrılıyordu; oysa mod kurulumu zaten runProjection
+        // üzerinden ızgarayı çiziyor. İki fazladan tam çizim, geçişin en pahalı
+        // kısmıydı (973 satır × 28 sütun).
         loadIlceMap(true).then(() => {
-            try {
-                refreshIlcePaint();
-                if (Object.keys(globalResults).length) renderResults(globalResults);
-            } catch (e) {}
+            try { refreshIlcePaint(); } catch (e) {}
         });
     }
     try {
         if (modeStates[mode]) restoreModeState(modeStates[mode]);
         else if (mode === '2023') await apply2023Mode(true);
         else if (mode === '2018') await apply2018Mode(true);
+        else if (mode === '2002') await apply2002Mode(true);
         // 'genel' ilk kez seçilemez (açılışta zaten o), yedek durum hep vardır
     } catch (err) {
         currentMode = onceki;
@@ -7555,6 +7769,7 @@ window.apply2023Mode = async function(sessiz) {
             fetch('bagimsiz_2023.json', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
             fetch('koltuk_2023.json', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
         ]);
+        if (!await veriSetiSagla('2023', 'veri_2023_tam.json', '2023 Sonucu')) return;
         takeSnapshot();
 
         // 1) Veri setleri: yalnız 2023 seti etkin kalır.
@@ -7647,6 +7862,94 @@ window.apply2023Mode = async function(sessiz) {
     }
 };
 
+/* Proje dosyalari kendi veri setlerini TASIR ve yuklenince datasets dizisini
+   tamamen degistirir. Bu yuzden acilistaki config.json'dan gelen bir set,
+   onu icermeyen bir proje yuklendikten sonra ortadan kalkabiliyor: 2002 modu
+   acildiginda "2002" seti bulunamayinca butun setlerin agirligi sifirlaniyor
+   ve projeksiyon bombos kaliyordu. Mod kurulumundan once set garanti altina
+   alinir. */
+async function veriSetiSagla(id, dosya, etiket) {
+    if (datasets.some(d => d.id === id)) return true;
+    try {
+        const r = await fetch(dosya, { cache: 'no-store' });
+        if (!r.ok) throw new Error(dosya + ' bulunamadi');
+        registerDataset({ id, file: dosya, label: etiket, weight: 0, builtin: true }, await r.json());
+        return true;
+    } catch (e) {
+        alert('Gerekli veri seti yuklenemedi: ' + dosya + '\n' + e.message);
+        return false;
+    }
+}
+
+// ═══ 2002 Modu ═══════════════════════════════════════════════════════════════
+// 3 Kasım 2002: baraj %10, ittifak yok, D'Hondt doğrudan parti oylarına
+// uygulanır ve Meclis 550 sandalyedir. İlçe görünümü kapalı — o seçimin ilçe
+// sonucu elimizde yok, sınırlar da bugünküyle örtüşmüyor.
+window.apply2002Mode = async function(sessiz) {
+    if (!sessiz && !confirm('2002 Modu kurulacak: partiler, veri seti ağırlıkları, çevre '
+               + 'oyları, sandalye dağılımı ve bağımsız blok 2002 değerleriyle değiştirilecek.\n\n'
+               + 'Mevcut parti listesi ve ayarlar kaybolur. Devam edilsin mi?')) return;
+    try {
+        const [sab, nuf, koltuk] = await Promise.all([
+            fetch('parti_sablonu_2002.json', { cache: 'no-store' }).then(r => r.json()),
+            fetch('nufus_2002.json', { cache: 'no-store' }).then(r => r.json()),
+            fetch('koltuk_2002.json', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
+        ]);
+        if (!await veriSetiSagla('2002', 'veri_2002_tam.json', '2002 Sonucu')) return;
+        takeSnapshot();
+
+        // 1) Yalnız 2002 veri seti
+        datasets.forEach(d => { d.weight = (d.id === '2002') ? 1 : 0; d.isEnabled = (d.id === '2002'); });
+        rebuildDistrictPerf(); renderDatasets();
+
+        // 2) Çevre ağırlığı: 2002 geçerli oyu
+        loadPopulationData(nuf); renderPopulationPanel();
+
+        // 3) Bağımsız yok. Kaynak tablo bağımsızları aday aday değil tek toplam
+        //    sütunu halinde veriyor; o sütun veri setinden tamamen çıkarıldı,
+        //    parti oranları kendi aralarında yüzde yüze normalize edildi.
+        independentShares = {}; independentsEnabled = false; renderIndependentPanel();
+
+        // 4) Sandalyeler: 550
+        if (koltuk) customSeatOverrides = JSON.parse(JSON.stringify(koltuk));
+
+        // 5) Partiler — benzerlik birebir kendi koduna
+        extraParties = sab.partiler.map(p => ({
+            name: p.ad, nat: p.nat, color: p.renk,
+            similarity: { [p.kod]: 1 },
+            compareParty: '', isOpen: false, isEnabled: true,
+            icon: p.ikon || null,
+            iconColor: p.ikonRenk || '#FFFFFF',
+            accent: p.vurgu || 'bg',
+            accentColor: p.vurguRenk || ''
+        }));
+
+        // 6) 2002'de ittifak ya da fermuar listesi yok
+        electoralAlliances = []; fermuarListes = [];
+        coalitions = []; digerGroups = [];
+        localDisabledParties = {};
+        const _koddan = {};
+        sab.partiler.forEach(p => { _koddan[p.kod] = p.ad; });
+        parliamentOrderOverride = (sab.parlamentoSirasi || []).map(k => _koddan[k]).filter(Boolean);
+        ensureDigerGroup();
+
+        // 7) Seçim ayarları: %10 baraj, klasik D'Hondt
+        $('thresholdInp').value = fmtPctInput(sab.esikVarsayilan || 10);
+        $('mathMethodInp').value = 'dhondt';
+        $('calcMethodInp').value = 'classic';
+        if ($('sharpnessInp')) $('sharpnessInp').value = fmtPctInput(1);
+        $('mbEnabledInp').checked = false;
+        if ($('linEnabledInp')) $('linEnabledInp').checked = false;
+
+        ilceArayuzunuTazele();
+        refreshAllEntityViews(); renderDiger(); updateTotalTracker();
+        runProjection();
+        if (!sessiz) alert('2002 Modu hazır. Bu modda ilçe görünümü yoktur.');
+    } catch (err) {
+        alert('2002 Modu kurulamadı: ' + err.message);
+    }
+};
+
 // ═══ 2018 Modu ═══════════════════════════════════════════════════════════════
 // 2023 ile aynı iskelet; ayrım sandalye dağıtımında. 2018'de çevre D'Hondt'u
 // ittifak toplamı üzerinden işler ve ittifakın sandalyeleri üyeler arasında
@@ -7666,6 +7969,7 @@ window.apply2018Mode = async function(sessiz) {
             //  Denizli, Eskişehir, Muş, Tunceli, İstanbul 2 artmış).
             fetch('koltuk_2018.json', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
         ]);
+        if (!await veriSetiSagla('2018', 'veri_2018_tam.json', '2018 Sonucu')) return;
         takeSnapshot();
 
         // 1) Veri seti: yalnız 2018 seti etkin kalır (config'teki '2018'
@@ -7896,6 +8200,24 @@ window.uploadIndependentData = async function(inp) {
 
 // Bağımsız adaylar yalnız gerçek seçim modlarında anlamlı; Genel projeksiyonda
 // böyle bir kavram yok, panel tamamen gizlenir.
+/* Kiyas projeksiyonu yalniz Genel modda anlamli. 2002/2018/2023 modlari
+   zaten gercek bir secimin kendisini yeniden uretiyor; bir de ustune ikinci
+   bir projeksiyonla fark almak, o modun butun sayilarini "degisim" gibi
+   gostererek yaniltiyor. Yil modlarina gecerken kiyas temizlenir ve karti
+   gizlenir. */
+function kiyasKullanilabilir() {
+    return typeof currentMode === 'undefined' || currentMode === 'genel';
+}
+function updateKiyasPanelVisibility() {
+    const kart = $('cardKiyas');
+    if (kart) kart.style.display = kiyasKullanilabilir() ? '' : 'none';
+    if (!kiyasKullanilabilir() && (compareResults || compareEnabled)) {
+        compareEnabled = false; compareResults = null; compareRaw = null;
+        compareLabel = ''; compareParties = [];
+        renderComparePanel();
+    }
+}
+
 function updateIndependentPanelVisibility() {
     const kart = $('cardBagimsiz');
     if (kart) kart.style.display = (currentMode === 'genel') ? 'none' : '';
@@ -8058,24 +8380,46 @@ function setupTableScroll(area, restoreLeft) {
     const table = area.querySelector('[data-ttable]');
     if (!scrollEl || !topEl || !spacer || !table) return;
 
-    const syncWidth = () => {
-        // Panel animasyonu sürerken ölçüm alınmaz: her karede scrollWidth okuyup
-        // hemen ardından genişlik yazmak, 2304 hücreli tabloyu kare başına bir kez
-        // yeniden yerleştirmeye zorlar (oku-yaz-oku kilitlenmesi).
-        if (document.body.classList.contains('panels-animating')) return;
-        spacer.style.width = table.scrollWidth + 'px';
-        // Taşma yoksa üst çubuk gizlenir
-        topEl.style.display = table.scrollWidth > scrollEl.clientWidth + 1 ? 'block' : 'none';
+    // Ölçüm PAHALI: table.scrollWidth okumak 973 satırlık tabloyu yeniden
+    // yerleşime sokuyor (~800 ms). Eskiden her kurulumda üç kez (anında, rAF,
+    // setTimeout) çağrılıyor, üstelik ResizeObserver hem sarıcıyı hem tabloyu
+    // izlediği için her çizimde birkaç kez daha tetikleniyordu. Artık:
+    //   · ölçümler tek bir rAF'ta birleştirilir,
+    //   · scrollWidth bir kez okunur,
+    //   · değer değişmediyse hiçbir şey yazılmaz (yaz-oku döngüsü kopar),
+    //   · yalnız kaydırma sarıcısı izlenir; tablonun kendi boyu ondan türer.
+    let sonGenislik = -1, olcumBekliyor = false;
+    const olc = () => {
+        olcumBekliyor = false;
+        // Panel animasyonu sürüyorsa ölçüm ERTELENİR, atlanmaz: tek denemeyi
+        // düşürmek üst kaydırma çubuğunu ölü bırakıyordu.
+        if (document.body.classList.contains('panels-animating')) { syncWidth(); return; }
+        const w = table.scrollWidth;
+        if (w === sonGenislik) return;
+        sonGenislik = w;
+        spacer.style.width = w + 'px';
+        topEl.style.display = w > scrollEl.clientWidth + 1 ? 'block' : 'none';
     };
-    area._tSync = syncWidth;           // animasyon bitince dışarıdan bir kez çağrılır
-    syncWidth();                       // rAF'ı beklemeden ilk ölçüm
-    requestAnimationFrame(syncWidth);  // yazı tipi/düzen oturduktan sonra tekrar
-    setTimeout(syncWidth, 0);
+    const syncWidth = () => {
+        if (olcumBekliyor) return;
+        olcumBekliyor = true;
+        requestAnimationFrame(olc);
+    };
+    // İlk ölçüm SENKRON: sekme arka planda ya da pencere çizim yapmıyorken
+    // requestAnimationFrame hiç tetiklenmeyebiliyor; ölçümü tamamen rAF'a
+    // bırakmak üst kaydırma çubuğunu ölü bırakıyordu. rAF yalnız ardışık
+    // çağrıları birleştirmek için kullanılıyor.
+    area._tSync = () => { sonGenislik = -1; olc(); };          // dışarıdan zorla
+    olc();
+    // Yazı tipi ve düzen oturduktan sonra bir kez daha bakılır. Bu ikinci
+    // bakış rAF üzerinden: senkron ölçüm zaten yapıldığı için çizim yapmayan
+    // bir sekmede hiç tetiklenmemesi sorun değil, tetiklendiğinde de genişlik
+    // değişmemişse hiçbir şey yazmıyor.
+    syncWidth();
     if (window.ResizeObserver) {
         if (area._tRO) area._tRO.disconnect();   // önceki render'ın (artık kopmuş) düğümünü bırak
-        area._tRO = new ResizeObserver(() => syncWidth());
+        area._tRO = new ResizeObserver(() => { sonGenislik = -1; syncWidth(); });
         area._tRO.observe(scrollEl);
-        area._tRO.observe(table);
     }
 
     let lock = false;
@@ -8153,6 +8497,26 @@ window.navigateDistrict = function(dir) {
     
     openDistrictOverlay(names[nextIdx]);
 };
+
+/* Harita sözlüğünün o anki moda uyarlanmış hali.
+
+   2002'de Ankara iki, Bursa tek seçim çevresiydi. Bugünkü Ankara 3. Bölge o
+   seçimde yok: sözlükten çıkarılır ve haritada boyanmadan kalır. Bursa'nın
+   iki parçası ise tek "Bursa" çevresine bağlanır; ikisi de aynı sonucu
+   gösterir. */
+function aktifHaritaSozlugu() {
+    if (typeof currentMode === 'undefined' || currentMode !== '2002') return mapDictionary;
+    const d = {};
+    Object.keys(mapDictionary).forEach(k => {
+        const anahtar = k.trim().toLowerCase();
+        if (anahtar === 'ankara3') return;                       // 2002'de yoktu
+        // 2002'de Bursa tek cevreydi. Kendi 2002 haritamiz gelene dek ilin iki
+        // parcasi da tek cevreye baglanir; ad olarak bugunku "Bursa 1. Bolge"
+        // kullaniliyor, yani o ad ilin TAMAMINI temsil ediyor.
+        d[k] = (anahtar === 'bursa1' || anahtar === 'bursa2') ? 'Bursa 1. Bölge' : mapDictionary[k];
+    });
+    return d;
+}
 
 function getMiniMapSvg(dName, fillColor) {
     const svg = document.querySelector('#svgMapWrapper svg');
@@ -9396,8 +9760,11 @@ async function captureDistrictPanelFallback() {
 // Seçim verileri (txt içerikleri) sunucudan zaten çekildiği için
 // kaydedilen JSON'da sadece dosya adı ve katsayı tutulur.
 
-function saveProject() {
-    const projectData = {
+/* Proje verisini uretir. Hem dosyaya kaydetme hem cumhurbaskanligi
+   aktarimi ayni ciktiyi kullanir; ikisi ayri yerlerde kurulursa
+   zamanla birbirinden kopuyor. */
+function projeVerisiUret() {
+    return {
         meta: { version: "10.1-lean", date: new Date().toISOString() },
         extraParties, coalitions, electoralAlliances, fermuarListes, digerGroups, digerDisplayEnabled, customSeatOverrides, customDotPositions, parliamentOrderOverride,
         // Bağımsız blok verisi ve durumu
@@ -9445,6 +9812,26 @@ function saveProject() {
             mapColorMode: mapColorMode
         }
     };
+}
+
+/* Cumhurbaşkanlığı projeksiyonuna aktarım.
+   Kullanıcı dosya indirip yüklemek zorunda kalmasın diye proje, kaydetme
+   çıktısının AYNISI olarak localStorage'a yazılır; yeni sekme açılışta onu
+   okuyup siler. Aynı köken olduğu için sunucu gerekmez. */
+window.cumhurbaskanligiAktar = function() {
+    if (!Object.keys(globalResults).length) { alert('Önce bir projeksiyon hesaplayın.'); return; }
+    try {
+        localStorage.setItem('pgm_cb_aktarim', JSON.stringify(projeVerisiUret()));
+    } catch (e) {
+        alert('Aktarım hazırlanamadı: ' + e.message
+            + ' — projeyi indirip cumhurbaşkanlığı sayfasına elle yükleyebilirsiniz.');
+        return;
+    }
+    window.open('cumhurbaskanligi_projeksiyonu.html', '_blank');
+};
+
+function saveProject() {
+    const projectData = projeVerisiUret();
     const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);

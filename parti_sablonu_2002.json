@@ -1,0 +1,170 @@
+{
+ "_tool": "parti_sablonu",
+ "v": 1,
+ "label": "2002 Partileri",
+ "esikVarsayilan": 10,
+ "partiler": [
+  {
+   "ad": "AK Parti",
+   "kod": "ak_parti",
+   "renk": "#F0A824",
+   "nat": 34.6319,
+   "ikon": "ak_parti_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "CHP",
+   "kod": "chp",
+   "renk": "#E81E32",
+   "nat": 19.5724,
+   "ikon": "chp_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "DYP",
+   "kod": "dyp",
+   "renk": "#5931B5",
+   "nat": 9.6585,
+   "ikon": "dp_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "MHP",
+   "kod": "mhp",
+   "renk": "#A63260",
+   "nat": 8.4385,
+   "ikon": "mhp_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "Genç Parti",
+   "kod": "genc",
+   "renk": "#2AA5E8",
+   "nat": 7.3285,
+   "ikon": "genc_parti_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "DEHAP",
+   "kod": "dehap",
+   "renk": "#9F3AC9",
+   "nat": 6.2887,
+   "ikon": "hdp_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "ANAP",
+   "kod": "anap",
+   "renk": "#F5D000",
+   "nat": 5.172,
+   "ikon": "anap_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "Saadet",
+   "kod": "saadet",
+   "renk": "#C7724E",
+   "nat": 2.5121,
+   "ikon": "saadet_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "DSP",
+   "kod": "dsp",
+   "renk": "#2AD5E8",
+   "nat": 1.2284,
+   "ikon": "dsp_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "YTP",
+   "kod": "ytp",
+   "renk": "#0076D6",
+   "nat": 1.1612,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "BBP",
+   "kod": "bbp",
+   "renk": "#2EB88E",
+   "nat": 1.0327,
+   "ikon": "buyuk_birlik_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "YURT-P",
+   "kod": "yurt_p",
+   "renk": "#3FB545",
+   "nat": 0.9459,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "İP",
+   "kod": "ip",
+   "renk": "#7D201B",
+   "nat": 0.5124,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "BTP",
+   "kod": "btp",
+   "renk": "#AB312B",
+   "nat": 0.4827,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "ÖDP",
+   "kod": "odp",
+   "renk": "#000000",
+   "nat": 0.3395,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "LDP",
+   "kod": "ldp",
+   "renk": "#000000",
+   "nat": 0.2862,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "Millet",
+   "kod": "millet_p",
+   "renk": "#000000",
+   "nat": 0.219,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "TKP",
+   "kod": "tkp",
+   "renk": "#000000",
+   "nat": 0.1895,
+   "vurgu": "bg"
+  }
+ ],
+ "ittifaklar": {},
+ "ittifakRenkleri": {},
+ "fermuarListeleri": {},
+ "parlamentoSirasi": [
+  "dehap",
+  "chp",
+  "ytp",
+  "dsp",
+  "genc",
+  "anap",
+  "dyp",
+  "ak_parti",
+  "mhp",
+  "saadet",
+  "bbp"
+ ]
+}
