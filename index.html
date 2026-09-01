@@ -440,6 +440,24 @@
             padding:6.5px 9px; box-shadow:var(--shadow); font-size:11px; font-weight:bold; color:var(--text); }
         #fermuarEditBanner button { background:var(--primary); color:#fff; border:none; border-radius:5px;
             padding:3.5px 9px; font-size:10px; font-weight:bold; cursor:pointer; }
+        /* Müdahale katmanı satırları */
+        .mk-satir { display: flex; align-items: center; gap: 6px; padding: 5px 0;
+                    border-bottom: 1px dashed var(--border-subtle); }
+        .mk-satir:last-of-type { border-bottom: none; }
+        .mk-nokta { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .mk-ad { flex: 1; min-width: 0; }
+        .mk-ust { font-size: 11px; font-weight: 800; color: var(--text);
+                  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .mk-alt { font-size: 9.5px; font-weight: 700; color: var(--text-secondary);
+                  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .mk-seviye { font-size: 11px; font-weight: 900; white-space: nowrap;
+                     font-variant-numeric: tabular-nums; flex-shrink: 0; }
+        .mk-seviye small { font-size: 9px; font-weight: 700; opacity: .8; }
+        .mk-dgm { width: 20px; height: 20px; padding: 0; font-size: 11px; font-weight: 900;
+                  line-height: 1; flex-shrink: 0; background: var(--surface-alt);
+                  color: var(--text); border: 1px solid var(--border); }
+        .mk-dgm.sil { color: var(--danger); }
+
         #mapTooltip { position: absolute; background: var(--tooltip-bg); color: var(--text); padding:10px 12px; border-radius: var(--r-card); font-size:11.5px; pointer-events: none; z-index: 9999; display: none; box-shadow: var(--shadow-modal); border: 1px solid var(--border); min-width:234px; line-height: 1.4; transition: opacity 0.1s; }
         #mapTooltip h4 { margin:0 0 7px 0; border-bottom: 1px solid var(--border); padding-bottom:5.5px; color: var(--text); font-size:11.5px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; }
 
@@ -1657,6 +1675,23 @@
             </div>
         </div>
 
+        <div class="card collapsed" id="cardMudahale">
+            <div class="card-header-row" onclick="toggleCardCollapse(this)">
+                <label>Müdahale Katmanları</label>
+            </div>
+            <div class="card-body">
+                <div style="display:flex; align-items:center; gap:9px; margin-bottom:10px;">
+                    <input type="checkbox" id="mudahaleAcikInp" checked onchange="mudahaleAcikDegistir(this.checked)"
+                           style="width:18px; height:18px; flex-shrink:0;">
+                    <div style="flex:1; min-width:0; font-size:11px; font-weight:700; color:var(--text-secondary); line-height:1.45;">
+                        Açıkken il ve ilçe detay panelinde parti satırlarında
+                        <b style="color:var(--aktif);">+</b> ve <b style="color:var(--pasif);">−</b> düğmeleri belirir.
+                    </div>
+                </div>
+                <div id="mudahaleArea"></div>
+            </div>
+        </div>
+
         <!-- Kıyas Projeksiyonu — sağ panelin en sonu -->
         <div class="card collapsed" id="cardKiyas">
             <div class="card-header-row" onclick="toggleCardCollapse(this)">
@@ -1967,6 +2002,10 @@ window.closeIconModal = function() { closeColorModal(); };
 
 let dragCtx = { type: null, idx: null };
 let activePartyFilter = null;
+/* Izgarada bir ittifak başlığına tıklanınca çevreler o ittifakın TOPLAM
+   oyuna göre sıralanır. Parti filtresiyle aynı anda olamaz; ikisi de aynı
+   sıralama yuvasını kullanıyor. */
+let activeAllianceFilter = null;
 let filterSortMode = 'mv';
 let savedScrollPosition = 0;
 let mapDictionary = {};
@@ -2093,7 +2132,7 @@ function hasEntityPassed(entityName, passedSet) {
 
 function toggleMapMode() {
     mapMode = mapMode === 'party' ? 'alliance' : 'party';
-    activePartyFilter = null;
+    activePartyFilter = null; activeAllianceFilter = null;
 
     const btn = $('mapModeToggleBtn');
     if (mapMode === 'party') {
@@ -2785,6 +2824,7 @@ let maxMvs = -1;
 
     if (isSelectionModeActive) updateSelectionUI();
     haritaCerceveAyarla();
+    renderMudahale();
     updateKiyasPanelVisibility();
 }
 
@@ -2948,6 +2988,7 @@ function entityStatRow(p, seats, pct, cmp, cmpOn, maxPct, opts) {
     const aralik = dar ? 9.5 : 4;
     return `<div style="display:flex; align-items:center; gap:${px(6)}; margin-bottom:${px(aralik)};
                  font-size:${px(11.5)}; font-weight:bold; white-space:nowrap; opacity:${pasif ? '0.6' : '1'};">
+        ${opts.mudahale ? mudahaleDugmeleri(opts.mudahale.tip, opts.mudahale.hedef, p, ol) : ''}
         ${partyBadge(p, Math.round(19 * ol))}
         <span style="color:var(--text); overflow:hidden; text-overflow:ellipsis; width:${px(dar ? 63 : 78)}; flex-shrink:0; ${cizik}" title="${escapeStr(p)}">${escapeStr(p)}</span>
         ${cmpOn ? `<span style="width:${px(dar ? 28 : 34)}; text-align:right; flex-shrink:0;">${dMv}</span>` : ''}
@@ -2989,10 +3030,177 @@ function partiKodu(pName) {
     return enIyi;
 }
 
+/* ═══ MÜDAHALE KATMANLARI ══════════════════════════════════════
+   Bir partiyi tek bir çevrede ya da tek bir ilçede güçlendirip zayıflatmak.
+
+   SAYISAL KONSEPT
+   Her tıklama çarpansal bir kademe: partinin o birimdeki güç katsayısı
+   MUDAHALE_ADIM (1,18) ile çarpılır ya da bölünür. Toplama değil çarpma
+   olması önemli: "+1" küçük partiye de büyük partiye de kendi ölçeğinde
+   dokunur ve oran hiçbir zaman eksiye düşmez.
+
+   Kaba karşılığı (%9 alan bir parti, tek çevrede):
+       +1 → ~%10,4      +2 → ~%12,0      +3 → ~%13,6
+       -1 → ~%7,7       -2 → ~%6,6
+   Tam sayılar bundan biraz düşük çıkar: çift-oranlı uyarlama partinin ULKE
+   oranını sabit tuttuğu için, bir çevrede kazanılan pay diğer çevrelerden
+   çok azıcık geri alınır. İstenen de budur: müdahale yerel bir tercihtir,
+   ülke geneli girdisini bozmaz.
+
+   Kademe sınırı ±10; o noktada katsayı ~5,6 kat ya da 1/5,6.
+
+   İLÇE MÜDAHALESİ
+   İlçe oyları, çevre sonucunun ilçelere pay edilmesiyle bulunuyor. Bir
+   ilçede partiyi güçlendirmek, o partinin ÇEVRE toplamını değiştirmemeli;
+   yalnız ilçeler arasındaki dağılımı değiştirmeli. Bu yüzden paylar
+   çarpıldıktan sonra çevre içinde yeniden normalize edilir: bir ilçede artan
+   pay, aynı çevrenin diğer ilçelerinden düşer. Kullanıcının dediği
+   "ilçede değiştirmek dolaylı etki eder" tam olarak budur.               */
+const MUDAHALE_ADIM = 1.18;
+// Kademe sınırı: ±30'da katsayı ~230 kat ya da 1/230. Pratikte çok öncesinde
+// parti çevrenin tamamına yakınını alıyor; sınır yalnız taşma koruması.
+const MUDAHALE_SINIR = 30;
+// Varsayılan AÇIK. Katman yokken hiçbir hesabı değiştirmiyor, yalnız detay
+// panelinde +/− düğmelerini görünür kılıyor; kapalı başlaması özelliği
+// görünmez yapıyordu. Arşivdeki eski projelerde de alan bulunmadığı için
+// açık varsayılır; isteyen kartın üstündeki kutucukla kapatır.
+let mudahaleAcik = true;
+let mudahaleKatmanlari = [];   // [{tip:'il'|'ilce', hedef, parti, seviye}]
+let _mudahaleDizin = null;     // 'tip\u0000hedef\u0000parti' -> seviye
+
+function mudahaleDizinKur() {
+    _mudahaleDizin = {};
+    mudahaleKatmanlari.forEach(k => {
+        if (!k || !k.seviye) return;
+        _mudahaleDizin[k.tip + '\u0000' + k.hedef + '\u0000' + k.parti] = k.seviye;
+    });
+}
+function mudahaleSeviyesi(tip, hedef, parti) {
+    if (!mudahaleAcik) return 0;
+    if (!_mudahaleDizin) mudahaleDizinKur();
+    return _mudahaleDizin[tip + '\u0000' + hedef + '\u0000' + parti] || 0;
+}
+function mudahaleCarpani(tip, hedef, parti) {
+    const n = mudahaleSeviyesi(tip, hedef, parti);
+    return n ? Math.pow(MUDAHALE_ADIM, n) : 1;
+}
+
+/* Bir kademe ekler/çıkarır. Artı üstüne eksi basılırsa seviye 0 olur ve
+   katman listeden düşer — nötr hale döndüğünde panelde asılı kalmasın. */
+window.mudahaleUygula = function (tip, hedef, parti, yon) {
+    takeSnapshot();
+    let k = mudahaleKatmanlari.find(x => x.tip === tip && x.hedef === hedef && x.parti === parti);
+    if (!k) { k = { tip, hedef, parti, seviye: 0 }; mudahaleKatmanlari.push(k); }
+    k.seviye = Math.max(-MUDAHALE_SINIR, Math.min(MUDAHALE_SINIR, k.seviye + yon));
+    if (!k.seviye) mudahaleKatmanlari = mudahaleKatmanlari.filter(x => x !== k);
+    _mudahaleDizin = null;
+    if (!mudahaleAcik) { mudahaleAcik = true; const c = $('mudahaleAcikInp'); if (c) c.checked = true; }
+    renderMudahale();
+    scheduleProjection(0);
+};
+window.mudahaleKaldir = function (i) {
+    takeSnapshot();
+    mudahaleKatmanlari.splice(i, 1);
+    _mudahaleDizin = null;
+    renderMudahale(); scheduleProjection(0);
+};
+window.mudahaleTemizle = function () {
+    if (!mudahaleKatmanlari.length) return;
+    if (!confirm('Tüm müdahale katmanları kaldırılacak. Devam edilsin mi?')) return;
+    takeSnapshot();
+    mudahaleKatmanlari = []; _mudahaleDizin = null;
+    renderMudahale(); scheduleProjection(0);
+};
+window.mudahaleAcikDegistir = function (v) {
+    mudahaleAcik = !!v; _mudahaleDizin = null;
+    renderMudahale(); scheduleProjection(0);
+    if (currentOverlayData && $('districtOverlay').style.display === 'block') refreshOpenDetail();
+};
+
+function renderMudahale() {
+    const alan = $('mudahaleArea');
+    if (!alan) return;
+    const c = $('mudahaleAcikInp');
+    if (c) c.checked = mudahaleAcik;
+    if (!mudahaleKatmanlari.length) {
+        alan.innerHTML = '<div style="font-size:10.5px; color:var(--text-secondary); font-weight:700; line-height:1.5;">'
+            + 'Henüz katman yok. Açıkken bir il ya da ilçenin detay panelini açıp '
+            + 'parti satırındaki <b>+</b> ve <b>−</b> düğmeleriyle katman oluşturun.</div>';
+        return;
+    }
+    const sirali = mudahaleKatmanlari.map((k, i) => ({ k, i }))
+        .sort((a, b) => Math.abs(b.k.seviye) - Math.abs(a.k.seviye));
+    alan.innerHTML = sirali.map(({ k, i }) => {
+        const ad = k.tip === 'ilce' ? ((ilceSonuc[k.hedef] && ilceSonuc[k.hedef].ad) || k.hedef) : k.hedef;
+        const alt = k.tip === 'ilce'
+            ? ((ilceSonuc[k.hedef] && ilceSonuc[k.hedef].cevre) || '') + ' · ilçe' : 'çevre';
+        const art = k.seviye > 0;
+        const yuzde = Math.round((Math.pow(MUDAHALE_ADIM, k.seviye) - 1) * 100);
+        return `<div class="mk-satir">
+            <span class="mk-nokta" style="background:${getPartyColor(k.parti)};"></span>
+            <div class="mk-ad">
+                <div class="mk-ust" title="${escapeStr(ad)}">${escapeStr(ad)}</div>
+                <div class="mk-alt">${escapeStr(alt)} · ${escapeStr(k.parti)}</div>
+            </div>
+            <span class="mk-seviye" style="color:${art ? 'var(--aktif)' : 'var(--pasif)'};">
+                ${art ? '+' : ''}${k.seviye} <small>(${yuzde > 0 ? '+' : ''}%${yuzde})</small></span>
+            <button class="mk-dgm" onclick="mudahaleUygula('${escapeStr(k.tip)}','${escapeStr(k.hedef)}','${escapeStr(k.parti)}',-1)" title="Bir kademe azalt">−</button>
+            <button class="mk-dgm" onclick="mudahaleUygula('${escapeStr(k.tip)}','${escapeStr(k.hedef)}','${escapeStr(k.parti)}',1)" title="Bir kademe artır">+</button>
+            <button class="mk-dgm sil" onclick="mudahaleKaldir(${i})" title="Katmanı kaldır">✖</button>
+        </div>`;
+    }).join('')
+    + `<button onclick="mudahaleTemizle()" style="width:100%; margin-top:8px; background:var(--surface-alt); color:var(--text-secondary); border:1px solid var(--border); font-size:10.5px;">Tümünü Temizle (${mudahaleKatmanlari.length})</button>`;
+}
+
+/* Detay panelindeki + / − düğmeleri. */
+function mudahaleDugmeleri(tip, hedef, parti, ol) {
+    if (!mudahaleAcik || !hedef) return '';
+    const n = mudahaleSeviyesi(tip, hedef, parti);
+    const b = (16 * ol).toFixed(1) + 'px';
+    const f = (11 * ol).toFixed(1) + 'px';
+    const stil = `width:${b}; height:${b}; min-width:${b}; padding:0; font-size:${f};`
+               + ' font-weight:900; line-height:1; border:1px solid var(--border);'
+               + ' display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;';
+    return `<span style="display:inline-flex; align-items:center; gap:${(3 * ol).toFixed(1)}px; flex-shrink:0;">
+        <button onclick="event.stopPropagation();mudahaleUygula('${tip}','${escapeStr(hedef)}','${escapeStr(parti)}',-1)"
+                style="${stil} background:var(--pasif); color:#fff; border-color:var(--pasif);" title="Zayıflat">−</button>
+        <button onclick="event.stopPropagation();mudahaleUygula('${tip}','${escapeStr(hedef)}','${escapeStr(parti)}',1)"
+                style="${stil} background:var(--aktif); color:#fff; border-color:var(--aktif);" title="Güçlendir">+</button>
+        <span style="width:${(20 * ol).toFixed(1)}px; text-align:center; font-size:${f}; font-weight:900;
+              color:${n > 0 ? 'var(--aktif)' : (n < 0 ? 'var(--pasif)' : 'var(--text-dim)')};">${n > 0 ? '+' + n : (n || '')}</span>
+    </span>`;
+}
+
 // İlçenin parti bazlı oyu: ilin güncel sonucundan payı kadarı.
 // Paylar 1'e toplandığı için il toplamı korunur.
 // Parti düzeyinde ilçe oyu. Hem ilçe detayı hem büyük ızgara bunu kullanır;
 // tek fark sonrasında uygulanan gruplamadır.
+/* İlçe müdahalesinin normalize edilmiş çarpanı.
+   Ham çarpan c ise, aynı çevredeki tüm ilçelerin pay-ağırlıklı ortalamasına
+   bölünür. Hiç müdahale yoksa ortalama 1'dir ve hiçbir şey değişmez. */
+let _ilceMudahaleOnbellek = null;
+function ilceMudahaleCarpani(svgId, cevre, partiAdi) {
+    if (!mudahaleAcik) return 1;
+    const ham = mudahaleCarpani('ilce', svgId, partiAdi);
+    const anahtar = cevre + '\u0000' + partiAdi;
+    if (!_ilceMudahaleOnbellek) _ilceMudahaleOnbellek = {};
+    let ort = _ilceMudahaleOnbellek[anahtar];
+    if (ort === undefined) {
+        const kod = partiKodu(partiAdi);
+        let toplamPay = 0, agirlikli = 0;
+        Object.keys(ilceSonuc).forEach(id => {
+            const b = ilceSonuc[id];
+            if (!b || b.cevre !== cevre) return;
+            const pay = (kod && b.kodlar && b.kodlar.has(kod)) ? (b.pay[kod] || 0) : b.gecerliPay;
+            toplamPay += pay;
+            agirlikli += pay * mudahaleCarpani('ilce', id, partiAdi);
+        });
+        ort = toplamPay > 0 ? agirlikli / toplamPay : 1;
+        _ilceMudahaleOnbellek[anahtar] = ort || 1;
+    }
+    return ort > 0 ? ham / ort : ham;
+}
+
 function ilceHamOylari(svgId) {
     const bilgi = ilceSonuc[svgId];
     if (!bilgi) return null;
@@ -3012,7 +3220,10 @@ function ilceHamOylari(svgId) {
         const pay = (kod && bilgi.kodlar.has(kod)) ? (bilgi.pay[kod] || 0) : bilgi.gecerliPay;
         // Yurt içi ölçeği önce partinin kendi katsayısından; yoksa çevre ortalaması.
         const f = (pp && kod && typeof pp[kod] === 'number') ? pp[kod] : olcek;
-        return oy * pay * f;
+        // Müdahale: bu ilçede partinin payı çarpılır, ardından çevre içinde
+        // normalize edilir; böylece partinin ÇEVRE toplamı hiç değişmez,
+        // yalnız ilçeler arası dağılım kayar.
+        return oy * pay * f * ilceMudahaleCarpani(svgId, bilgi.cevre, kaynakAdi);
     };
     // Fermuar listesinde devredilen oy, DEVREDEN partinin seçmenine aittir;
     // alıcının değil onun ilçe dağılımını izlemeli. Aksi halde il genelinde
@@ -5631,61 +5842,9 @@ function kiyasKaydi() {
     return null;
 }
 
-function saveProject() {
-    const projectData = {
-        meta: { version: "10.1", date: new Date().toISOString() },
-        extraParties, coalitions, electoralAlliances, fermuarListes, digerGroups, digerDisplayEnabled, customSeatOverrides, customDotPositions, parliamentOrderOverride,
-        // Bağımsız blok verisi ve durumu
-        independents: { enabled: independentsEnabled, cevreler: independentShares },
-        // Kıyas projeksiyonu da projeyle birlikte taşınır.
-        // project: kıyas bir proje dosyasından geldiyse o dosyanın kendisi
-        //          (açılırken yeniden hesaplanır, ayarları da geri gelir).
-        // sonuc:   2018/2023 seçimi gibi doğrudan hesaplanmış kıyaslarda
-        //          proje dosyası yoktur; sonucun kendisi saklanır. Eskiden bu
-        //          durumda kıyas hiç kaydedilmiyordu.
-        compare: kiyasKaydi(),
-        // Nüfus verisi ve modu da projeyle taşınır
-        population: { mode: populationMode, total: populationTotal, cevreler: populationData },
-        // Veri setleri tam içerikleriyle saklanır: kullanıcının yüklediği özel veri
-        // tabanları da projeyle birlikte taşınsın diye. Dosya büyür, buna değer.
-        datasets: datasets.map(d => (d.format === 'votes'
-            ? { id: d.id, label: d.label, weight: d.weight, isEnabled: d.isEnabled,
-                builtin: d.builtin, format: 'votes',
-                parties: d.partyNames.map(n => ({ name: n })),
-                districts: d.raw.districts || [],
-                gecerliOy: d.raw.gecerliOy, votes: d.cells, kaynak: d.raw.kaynak }
-            : { id: d.id, label: d.label, weight: d.weight, isEnabled: d.isEnabled,
-                builtin: d.builtin,
-                parties: d.partyNames.map(n => ({ name: n })),
-                districts: d.raw.districts || [],
-                cells: d.cells, totalElectorate: d.raw.totalElectorate })),
-        localDisabledParties: (() => {
-            let obj = {};
-            for(let k in localDisabledParties) obj[k] = Array.from(localDisabledParties[k]);
-            return obj;
-        })(),
-        settings: {
-            threshold: parsePctInputOrZero($('thresholdInp').value),
-            sharpness: currentSharpness(),
-            calcMethod: $('calcMethodInp').value,
-            mathMethod: $('mathMethodInp').value,
-            mbEnabled: $('mbEnabledInp').checked,
-            linEnabled: $('linEnabledInp').checked,
-            linSeats: parseInt($('linSeatsInp').value) || 0,
-            linMath: $('linMathInp').value,
-            mbSeats: parseInt($('mbSeatsInp').value) || 0,
-            dominantWhite: parseFloat($('dominantWhiteInp').value) ?? 20,
-            pluralityWhite: parseFloat($('pluralityWhiteInp').value) ?? 40,
-            showMVDots: $('showMVDotsInp').checked,
-            mapColorMode: mapColorMode
-        }
-    };
-    const blob = new Blob([JSON.stringify(projectData, null, 2)], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'secim_projesi_' + new Date().toISOString().slice(0,10) + '.json';
-    a.click();
-}
+/* Eski saveProject buradaydi. Ayni adla ikinci bir tanim daha vardi ve
+   fonksiyon bildirimleri birbirini ezdigi icin YALNIZ sonraki calisiyordu;
+   burasi olu koddu. Kaydetme mantigi tek yerde: projeVerisiUret(). */
 
 async function loadProject(inp) {
     const file = inp.files[0];
@@ -5695,7 +5854,12 @@ async function loadProject(inp) {
         applyProjectData(data);
         inp.value = '';
         runProjection();
-    } catch(err) {}
+    } catch(err) {
+        // Sessiz yutmak en kotusuydu: bozuk ya da uyumsuz bir dosyada hicbir
+        // sey olmuyor, kullanici dosyayi tekrar tekrar suruklyordu.
+        inp.value = '';
+        alert('Proje dosyasi okunamadi: ' + err.message);
+    }
 }
 
 async function loadFromArchive() {
@@ -5865,6 +6029,18 @@ function applyProjectData(data) {
     }
 
 
+    if (data.mudahale) {
+        // Alan varsa kullanıcının kaydı geçerli; yoksa (eski/arşiv projeleri) açık.
+        mudahaleAcik = data.mudahale.enabled !== false;
+        mudahaleKatmanlari = Array.isArray(data.mudahale.katmanlar)
+            ? data.mudahale.katmanlar.filter(k => k && k.tip && k.hedef && k.parti && k.seviye)
+            : [];
+    } else {
+        mudahaleAcik = true; mudahaleKatmanlari = [];
+    }
+    _mudahaleDizin = null;
+    renderMudahale();
+
     if(data.settings) {
         const s = data.settings;
         if(s.threshold !== undefined && !isNaN(s.threshold)) $('thresholdInp').value = fmtPctInput(s.threshold);
@@ -5881,6 +6057,7 @@ function applyProjectData(data) {
         if(s.showMVDots !== undefined) {
             $('showMVDotsInp').checked = s.showMVDots;
         }
+        if(s.hideBuyuk !== undefined && $('hideBuyukInp')) $('hideBuyukInp').checked = !!s.hideBuyuk;
         if(s.mapColorMode !== undefined) {
             mapColorMode = (s.mapColorMode === 'seats') ? 'seats' : 'first';
             if ($('mapColorModeInp')) $('mapColorModeInp').value = mapColorMode;
@@ -5978,7 +6155,32 @@ window.removeParlOrder = function(idx) {
     if (Object.keys(globalResults).length > 0) renderResults(globalResults);
 };
 
+/* Bir ittifakın çevre bazında toplam oy payı. Üyeler "Diğer" grubuna
+   maplenmişse rawVotes'ta kendi adlarıyla bulunmaz; görünen anahtar aranır. */
+function ittifakPayi(dd, uyeler) {
+    if (!dd || !(dd.totalVotes > 0)) return 0;
+    let t = 0;
+    uyeler.forEach(m => {
+        const k = (typeof partyToDisplayKey !== 'undefined' && partyToDisplayKey[m]) || m;
+        t += (dd.rawVotes[k] || 0);
+    });
+    return t / dd.totalVotes;
+}
+
+window.toggleAllianceFilter = function(ad) {
+    activePartyFilter = null;
+    if (activeAllianceFilter === ad) {
+        if (filterSortMode === 'pct_desc') filterSortMode = 'pct_asc';
+        else { activeAllianceFilter = null; filterSortMode = 'pct_desc'; }
+    } else {
+        activeAllianceFilter = ad;
+        filterSortMode = 'pct_desc';
+    }
+    renderResults(globalResults);
+};
+
 window.togglePartyFilter = function(party) {
+    activeAllianceFilter = null;
     if (activePartyFilter === party) {
         if (filterSortMode === 'pct_desc') {
             filterSortMode = 'pct_asc';
@@ -6110,9 +6312,21 @@ function ekKoltukDagit(havuz, koltuk, mathOverride) {
     return sonuc;
 }
 
-function runProjection() {
-    if(!Object.keys(districtPerf).length) return alert("Seçim veri tabanı yüklenemedi!");
-    if(extraParties.length === 0) return alert("Simülasyona girecek en az 1 parti oluşturmalısınız!");
+/* elle: kullanici dogrudan "Hesapla" dedi mi? Otomatik yeniden hesaplama
+   (scheduleProjection) her girdi/degisiklik olayinda tetikleniyor; projeksiyon
+   sifirlanip parti listesi bosaldiginda bu uyari saniyede bir kez cikip parti
+   eklemeyi imkansiz hale getiriyordu. Otomatik cagrilarda sessizce cikilir. */
+function runProjection(elle) {
+    _ilceMudahaleOnbellek = null;
+    if(!Object.keys(districtPerf).length) {
+        if (elle) alert("Seçim veri tabanı yüklenemedi!");
+        return;
+    }
+    if(extraParties.length === 0) {
+        if (elle) alert("Simülasyona girecek en az 1 parti oluşturmalısınız!");
+        globalResults = {};
+        return;
+    }
 
     const threshold = parsePctInputOrZero($('thresholdInp').value);
     const sharpness = currentSharpness();
@@ -6242,6 +6456,11 @@ function runProjection() {
             // Bölgesel keskinlik: 1 = veri tabanındaki dağılım, 0 = il farkları tamamen silinir
             // (her çevre ülke geneli oranına döner), >1 = farklar abartılır.
             if (sharpness !== 1) epScore = Math.pow(Math.max(0, epScore), sharpness);
+            // Müdahale katmanı: bu çevrede partiyi güçlendir/zayıflat.
+            // Keskinlikten SONRA uygulanır; keskinlik veri tabanının kendi
+            // farklarını ölçekler, müdahale ise kullanıcının elle koyduğu
+            // bir tercihtir ve o ölçeklemeye tabi olmamalı.
+            if (mudahaleAcik) epScore *= mudahaleCarpani('il', dName, ep.name);
             scoreMap[ep.name] = epScore * ((baseTargetNat[ep.name] || 0) / 100);
         });
 
@@ -6758,10 +6977,21 @@ function renderResults(res){
         });
     }
 
+    // İttifak sıralaması: çevreler ittifakın toplam oy payına göre dizilir.
+    if (activeAllianceFilter) {
+        const it = electoralAlliances.find(a => a.name === activeAllianceFilter);
+        const uyeler = it ? (it.members || []) : [];
+        sortedNames.sort((a, b) => {
+            const pa = ittifakPayi(getPartyModeData(res[a]), uyeler);
+            const pb = ittifakPayi(getPartyModeData(res[b]), uyeler);
+            return filterSortMode === 'pct_desc' ? pb - pa : pa - pb;
+        });
+    }
+
     const mbKey = '🌟 Milli Bakiye (Türkiye Geneli)';
     let normalNames = sortedNames.filter(n => n !== mbKey);
 
-    if (!activePartyFilter) {
+    if (!activePartyFilter && !activeAllianceFilter) {
         normalNames.sort((a,b) => a.localeCompare(b, 'tr'));
     }
 
@@ -6881,7 +7111,10 @@ function renderResults(res){
     allianceOrder.forEach(key => {
         const g = allianceGroupMap[key];
         if (g.name) {
-            allianceHeaderHtml += `<th colspan="${g.cols.length}" style="${ths} border-bottom:3px solid ${g.color}; color:${g.color}; font-weight:900; font-size:11.5px; letter-spacing:0.3px;">${g.name}</th>`;
+            const itAktif = activeAllianceFilter === g.name;
+            const itOk = itAktif ? (filterSortMode === 'pct_desc' ? ' ▼' : ' ▲') : '';
+            const itVurgu = itAktif ? `background:${g.color}22; outline:2px solid ${g.color};` : '';
+            allianceHeaderHtml += `<th colspan="${g.cols.length}" onclick="toggleAllianceFilter('${escapeStr(g.name)}')" title="Çevreleri bu ittifakın toplam oyuna göre sırala" style="${ths} border-bottom:3px solid ${g.color}; color:${g.color}; font-weight:900; font-size:11.5px; letter-spacing:0.3px; cursor:pointer; ${itVurgu}">${g.name}${itOk}</th>`;
         } else {
             allianceHeaderHtml += `<th colspan="${g.cols.length}" style="${ths} border-bottom:3px solid var(--border);"></th>`;
         }
@@ -6921,6 +7154,13 @@ function renderResults(res){
     // Sıralama anahtarı da bir kez çıkarılır (Schwartz dönüşümü): karşılaştırıcı
     // yalnızca hazır sayıları kıyaslar.
     function ilceSirala(liste) {
+        if (activeAllianceFilter) {
+            const it = electoralAlliances.find(a => a.name === activeAllianceFilter);
+            const uyeler = it ? (it.members || []) : [];
+            const yon = filterSortMode === 'pct_desc' ? -1 : 1;
+            return liste.map(id => ({ id, k: ittifakPayi(ilceSatirVerisi(id), uyeler) }))
+                .sort((a, b) => (a.k - b.k) * yon).map(x => x.id);
+        }
         if (!activePartyFilter) {
             return liste.map(id => ({ id, k: (ilceSonuc[id].ad || '') }))
                 .sort((a, b) => a.k.localeCompare(b.k, 'tr'))
@@ -8709,7 +8949,8 @@ function renderIlceDetail() {
         sirali.map(p => {
             const pct = d.oylar[p] / gorunenToplam * 100;
             return entityStatRow(p, 0, pct, null, false, liderPct, {
-                ol: DETAY_OL, votes: d.oylar[p], hideSeats: true, basamak: 2
+                ol: DETAY_OL, votes: d.oylar[p], hideSeats: true, basamak: 2,
+                mudahale: { tip: 'ilce', hedef: currentIlce }
             });
         }).join('');
 }
@@ -8891,7 +9132,8 @@ function renderDistrictOverlay() {
         const pasif = !!(localDisabledParties[dName] && localDisabledParties[dName].has(p));
         const realPct = displayPctOf(p);
         return entityStatRow(p, s, realPct, compareStatsFor(p, [dName]), cmpOn, leaderPct, {
-            ol: DETAY_OL, votes: v, pasif, basamak: 2
+            ol: DETAY_OL, votes: v, pasif, basamak: 2,
+            mudahale: { tip: 'il', hedef: dName }
         });
     }).join('');
 
@@ -8978,7 +9220,7 @@ function updateSelectionUI() {
             const v = partyVotes[p];
             if (v < 10) return;
             const pct = totalVotes > 0 ? (v / totalVotes) * 100 : 0;
-            html += entityStatRow(p, partySeats[p] || 0, pct, compareStatsFor(p, null), cmpOn, maxPct);
+            html += entityStatRow(p, partySeats[p] || 0, pct, compareStatsFor(p, null), cmpOn, maxPct, { votes: v });
         });
         body.innerHTML = html;
     } else {
@@ -9019,7 +9261,7 @@ function updateSelectionUI() {
             const v = partyVotes[p];
             if (v < 10) return;
             const pct = totalVotes > 0 ? (v / totalVotes) * 100 : 0;
-            html += entityStatRow(p, partySeats[p] || 0, pct, compareStatsFor(p, selList), cmpOnSel, maxPctSel);
+            html += entityStatRow(p, partySeats[p] || 0, pct, compareStatsFor(p, selList), cmpOnSel, maxPctSel, { votes: v });
         });
         body.innerHTML = html;
     }
@@ -9111,6 +9353,9 @@ function _captureState() {
             dominantWhite: $('dominantWhiteInp') ? $('dominantWhiteInp').value : undefined,
             pluralityWhite: $('pluralityWhiteInp') ? $('pluralityWhiteInp').value : undefined,
             showMVDots: $('showMVDotsInp') ? $('showMVDotsInp').checked : undefined,
+            mudahaleAcik: mudahaleAcik,
+            mudahaleKatmanlari: JSON.parse(JSON.stringify(mudahaleKatmanlari)),
+            hideBuyuk: $('hideBuyukInp') ? $('hideBuyukInp').checked : undefined,
             mapColorMode
         }
     };
@@ -9149,6 +9394,12 @@ function restoreSnapshot(snap) {
     if (s.dominantWhite !== undefined && $('dominantWhiteInp')) $('dominantWhiteInp').value = s.dominantWhite;
     if (s.pluralityWhite !== undefined && $('pluralityWhiteInp')) $('pluralityWhiteInp').value = s.pluralityWhite;
     if (s.showMVDots !== undefined && $('showMVDotsInp')) $('showMVDotsInp').checked = s.showMVDots;
+    if (s.mudahaleKatmanlari) {
+        mudahaleAcik = !!s.mudahaleAcik;
+        mudahaleKatmanlari = JSON.parse(JSON.stringify(s.mudahaleKatmanlari));
+        _mudahaleDizin = null; renderMudahale();
+    }
+    if (s.hideBuyuk !== undefined && $('hideBuyukInp')) $('hideBuyukInp').checked = s.hideBuyuk;
     if (s.mapColorMode) {
         mapColorMode = s.mapColorMode;
         if ($('mapColorModeInp')) $('mapColorModeInp').value = mapColorMode;
@@ -9776,6 +10027,9 @@ function projeVerisiUret() {
         //          proje dosyası yoktur; sonucun kendisi saklanır. Eskiden bu
         //          durumda kıyas hiç kaydedilmiyordu.
         compare: kiyasKaydi(),
+        // Müdahale katmanları ayrı bir katman olarak taşınır; motorun girdisi
+        // değil, kullanıcının üzerine koyduğu yerel tercihlerdir.
+        mudahale: { enabled: mudahaleAcik, katmanlar: mudahaleKatmanlari },
         // Nüfus verisi ve modu da projeyle taşınır
         population: { mode: populationMode, total: populationTotal, cevreler: populationData },
         // Veri setleri tam içerikleriyle saklanır: kullanıcının yüklediği özel veri
@@ -9809,6 +10063,7 @@ function projeVerisiUret() {
             dominantWhite: parseFloat($('dominantWhiteInp').value) ?? 20,
             pluralityWhite: parseFloat($('pluralityWhiteInp').value) ?? 40,
             showMVDots: $('showMVDotsInp').checked,
+            hideBuyuk: $('hideBuyukInp') ? $('hideBuyukInp').checked : false,
             mapColorMode: mapColorMode
         }
     };
