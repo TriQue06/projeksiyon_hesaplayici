@@ -129,6 +129,13 @@ function kiyasKaydi(ad) {
     try { return compareStatsFor(ad, null); } catch (e) { return null; }
 }
 
+/* Dar bölge modu index.html'de yaşıyor; infografik onu okur ama zorunlu
+   kılmaz (eski sürümlerde tanımsız olabilir). */
+function darBolgeMu() {
+    return typeof darBolgeAcik !== 'undefined' && darBolgeAcik
+        && typeof darBolgeSandalyeleri === 'function';
+}
+
 IG.veriTopla = function () {
     const res = g.sonuc;
     let toplamOy = 0, toplamKoltuk = 0;
@@ -144,6 +151,17 @@ IG.veriTopla = function () {
         }
         Object.entries(dd.mvs || {}).forEach(([p, s]) => { partiKoltuk[p] = (partiKoltuk[p] || 0) + s; });
     });
+
+    // Dar bölge: sandalye = ilçe sayısı, her ilçe kendi birincisine.
+    // Nispi temsil sonucunun üstüne yazılır; oy toplamları değişmez.
+    if (darBolgeMu()) {
+        const db = darBolgeSandalyeleri();
+        if (db && db.toplam) {
+            Object.keys(partiKoltuk).forEach(k => { delete partiKoltuk[k]; });
+            Object.assign(partiKoltuk, db.say);
+            toplamKoltuk = db.toplam;
+        }
+    }
 
     const yap = ad => {
         const oy = partiOy[ad] || 0;
@@ -432,6 +450,25 @@ function blokBaslik() {
 
 /* Harita: uygulamadaki canlı SVG klonlanır, il renkleri tam doygun yapılır. */
 function haritaSvg() {
+    // Dar bölgede sonuç ilçe ilçe belirlendiği için infografikte de ilçe
+    // haritası yer alır. İlçe SVG'si zaten uygulamada boyanmış durumda
+    // (paintIlceMap), o yüzden burada yeniden renklendirmeye gerek yok.
+    if (darBolgeMu()) {
+        const ilce = document.querySelector('#svgIlceWrapper svg');
+        if (ilce) {
+            const k = ilce.cloneNode(true);
+            k.removeAttribute('width'); k.removeAttribute('height');
+            k.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+            k.style.cssText = 'width:100%;height:100%;display:block;';
+            // Kontur stil sayfasından geliyordu; kopyada satır içi yazılır.
+            k.querySelectorAll('path,polygon,polyline,rect').forEach(x => {
+                x.style.stroke = '#ffffff';
+                x.style.strokeWidth = '0.4px';
+                x.style.transition = 'none';
+            });
+            return k.outerHTML;
+        }
+    }
     const kaynak = document.querySelector('#svgMapWrapper svg');
     if (!kaynak) return '<div style="color:#c00;font-size:12px;">Harita yüklenmedi</div>';
     const kopya = kaynak.cloneNode(true);

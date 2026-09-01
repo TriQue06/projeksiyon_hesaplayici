@@ -1675,6 +1675,23 @@
             </div>
         </div>
 
+        <div class="card" id="cardDarBolge">
+            <div class="card-header-row" onclick="toggleCardCollapse(this)">
+                <label>Dar Bölge Modu</label>
+            </div>
+            <div class="card-body">
+                <div style="display:flex; align-items:center; gap:9px;">
+                    <input type="checkbox" id="darBolgeInp" onchange="darBolgeDegistir(this.checked)"
+                           style="width:18px; height:18px; flex-shrink:0;">
+                    <div style="flex:1; min-width:0; font-size:11px; font-weight:700; color:var(--text-secondary); line-height:1.45;">
+                        Her ilçe <b>tek</b> milletvekili çıkarır, o ilçenin birincisi
+                        sandalyenin tamamını alır. Harita ilçe katmanına kilitlenir.
+                    </div>
+                </div>
+                <div id="darBolgeOzet" style="margin-top:9px;"></div>
+            </div>
+        </div>
+
         <div class="card collapsed" id="cardMudahale">
             <div class="card-header-row" onclick="toggleCardCollapse(this)">
                 <label>Müdahale Katmanları</label>
@@ -2825,6 +2842,7 @@ let maxMvs = -1;
     if (isSelectionModeActive) updateSelectionUI();
     haritaCerceveAyarla();
     renderMudahale();
+    if (darBolgeAcik) darBolgeOzetCiz(null);
     updateKiyasPanelVisibility();
 }
 
@@ -3276,6 +3294,74 @@ function ilceOylari(svgId) {
     return { oylar: out, toplam, ad: bilgi.ad, cevre: bilgi.cevre };
 }
 
+/* ═══ DAR BÖLGE MODU ═══════════════════════════════════════════
+   Her ilçe tek milletvekili çıkarır ve o ilçede en çok oyu alan parti
+   sandalyeyi tümüyle alır (kazanan hepsini alır). Nispi temsil, baraj,
+   çevre D'Hondt'u ve çevre başına sandalye sayısı devre dışı kalır; toplam
+   sandalye, ilçe sayısına eşittir.
+
+   Mod yalnız GÖRÜNÜMÜ değiştirir: alttaki oy hesabı (çift-oranlı uyarlama,
+   ilçe pay dağılımı, müdahale katmanları) aynen işler. Kapatıldığında
+   hiçbir kalıcı iz bırakmaz.                                              */
+let darBolgeAcik = false;
+
+window.darBolgeDegistir = function (v) {
+    darBolgeAcik = !!v;
+    const btn = $('mapLayerBtn');
+    if (btn) {
+        btn.disabled = darBolgeAcik;
+        btn.style.opacity = darBolgeAcik ? '0.45' : '';
+        btn.style.cursor = darBolgeAcik ? 'not-allowed' : '';
+        btn.title = darBolgeAcik
+            ? 'Dar bölge modunda harita ilçe katmanında sabittir'
+            : 'İl ve ilçe haritası arasında geçiş yap';
+    }
+    if (darBolgeAcik) {
+        // Harita ilçe katmanına kilitlenir.
+        if (mapLayer === 'detay') closeDistrictOverlay();
+        if (mapLayer !== 'ilce') toggleMapLayer();
+        else loadIlceMap();
+    }
+    if (!darBolgeAcik) darBolgeOzetCiz(null);
+    if (Object.keys(globalResults).length) renderResults(globalResults);
+};
+
+/* Dar bölge sandalyeleri: ilçe ilçe kazananı say. İlçe verisi henüz
+   yüklenmemişse boş döner; yükleme bitince renderResults yeniden çağrılır. */
+function darBolgeOzetCiz(db) {
+    const k = $('darBolgeOzet');
+    if (!k) return;
+    if (!darBolgeAcik) { k.innerHTML = ''; return; }
+    if (!db) db = darBolgeSandalyeleri();
+    if (!db.toplam) {
+        k.innerHTML = '<div style="font-size:10.5px; color:var(--text-secondary); font-weight:700;">İlçe verisi yükleniyor…</div>';
+        return;
+    }
+    const sirali = Object.keys(db.say).sort((a, b) => db.say[b] - db.say[a]);
+    k.innerHTML = `<div style="font-size:10px; font-weight:900; letter-spacing:.4px; text-transform:uppercase;
+            color:var(--text-secondary); margin-bottom:6px;">${db.toplam} dar bölge</div>`
+        + sirali.map(p => `<div class="mk-satir" style="padding:3.5px 0;">
+            <span class="mk-nokta" style="background:${getPartyColor(p)};"></span>
+            <div class="mk-ad"><div class="mk-ust" title="${escapeStr(p)}">${escapeStr(p)}</div></div>
+            <span class="mk-seviye">${db.say[p]}</span>
+            <span style="font-size:9.5px; font-weight:700; color:var(--text-secondary); width:38px; text-align:right;">
+                %${(db.say[p] / db.toplam * 100).toFixed(1).replace('.', ',')}</span>
+        </div>`).join('');
+}
+
+function darBolgeSandalyeleri() {
+    const say = {};
+    let toplam = 0;
+    Object.keys(ilceSonuc).forEach(id => {
+        if (ilceBagli[id]) return;                 // o tarihte ayrı ilçe değil
+        const k = ilceKazanan(id);
+        if (!k) return;
+        say[k.parti] = (say[k.parti] || 0) + 1;
+        toplam++;
+    });
+    return { say, toplam };
+}
+
 function ilceKazanan(svgId) {
     const d = ilceOylari(svgId);
     if (!d || !d.toplam) return null;
@@ -3505,6 +3591,9 @@ function refreshIlcePaint() {
 
 window.toggleMapLayer = function() {
     if (mapLayer === 'detay') { closeDistrictOverlay(); return; }
+    // Dar bölge modunda harita ilçe katmanında kilitli. Düğmeyi devre dışı
+    // bırakmak yetmiyor: klavye kısayolu ve kod içi çağrılar da buradan geçiyor.
+    if (darBolgeAcik && mapLayer === 'ilce') return;
     refreshIlcePaint();
     mapLayer = (mapLayer === 'il') ? 'ilce' : 'il';
     const slides = $('mapSlides');
@@ -6029,6 +6118,10 @@ function applyProjectData(data) {
     }
 
 
+    if (data.darBolge !== undefined && $('darBolgeInp')) {
+        $('darBolgeInp').checked = !!data.darBolge;
+        darBolgeAcik = !!data.darBolge;
+    }
     if (data.mudahale) {
         // Alan varsa kullanıcının kaydı geçerli; yoksa (eski/arşiv projeleri) açık.
         mudahaleAcik = data.mudahale.enabled !== false;
@@ -6910,7 +7003,19 @@ function renderResults(res){
 
     let totalMvs = {};
     let globalSeatCount = 0;
-    
+
+    if (darBolgeAcik) {
+        // Dar bölge: sandalye = ilçe sayısı, her ilçe kendi kazananına.
+        const db = darBolgeSandalyeleri();
+        totalMvs = db.say; globalSeatCount = db.toplam;
+        darBolgeOzetCiz(db);
+        if (!globalSeatCount && !ilceMapLoaded) {
+            // İlçe verisi henüz yok: yükleyip bir kez daha çiz.
+            loadIlceMap().then(() => {
+                if (darBolgeAcik && Object.keys(globalResults).length) renderResults(globalResults);
+            });
+        }
+    } else
     Object.keys(res).forEach(d => {
         const displayData = getDisplayData(res[d]);
         Object.keys(displayData.mvs).forEach(p => {
@@ -9191,6 +9296,13 @@ function updateSelectionUI() {
             }
             Object.entries(dd.mvs).forEach(([p, s]) => { partySeats[p] = (partySeats[p] || 0) + s; });
         }
+        // Dar bölge: sandalyeler ilçe kazananlarından gelir. Bu blok
+        // renderResults'tan SONRA çalışıp diyagramı yeniden çizdiği için
+        // burada da değiştirilmezse nispi temsil sonucu geri geliyordu.
+        if (darBolgeAcik) {
+            const db = darBolgeSandalyeleri();
+            if (db.toplam) { partySeats = db.say; totalSeats = db.toplam; }
+        }
         const sorted = Object.keys(partyVotes).sort((a, b) => partyVotes[b] - partyVotes[a]);
 
         const label = $('parliamentChartLabel');
@@ -9354,6 +9466,7 @@ function _captureState() {
             pluralityWhite: $('pluralityWhiteInp') ? $('pluralityWhiteInp').value : undefined,
             showMVDots: $('showMVDotsInp') ? $('showMVDotsInp').checked : undefined,
             mudahaleAcik: mudahaleAcik,
+            darBolge: darBolgeAcik,
             mudahaleKatmanlari: JSON.parse(JSON.stringify(mudahaleKatmanlari)),
             hideBuyuk: $('hideBuyukInp') ? $('hideBuyukInp').checked : undefined,
             mapColorMode
@@ -9394,6 +9507,10 @@ function restoreSnapshot(snap) {
     if (s.dominantWhite !== undefined && $('dominantWhiteInp')) $('dominantWhiteInp').value = s.dominantWhite;
     if (s.pluralityWhite !== undefined && $('pluralityWhiteInp')) $('pluralityWhiteInp').value = s.pluralityWhite;
     if (s.showMVDots !== undefined && $('showMVDotsInp')) $('showMVDotsInp').checked = s.showMVDots;
+    if (s.darBolge !== undefined) {
+        darBolgeAcik = !!s.darBolge;
+        if ($('darBolgeInp')) $('darBolgeInp').checked = darBolgeAcik;
+    }
     if (s.mudahaleKatmanlari) {
         mudahaleAcik = !!s.mudahaleAcik;
         mudahaleKatmanlari = JSON.parse(JSON.stringify(s.mudahaleKatmanlari));
@@ -10030,6 +10147,7 @@ function projeVerisiUret() {
         // Müdahale katmanları ayrı bir katman olarak taşınır; motorun girdisi
         // değil, kullanıcının üzerine koyduğu yerel tercihlerdir.
         mudahale: { enabled: mudahaleAcik, katmanlar: mudahaleKatmanlari },
+        darBolge: darBolgeAcik,
         // Nüfus verisi ve modu da projeyle taşınır
         population: { mode: populationMode, total: populationTotal, cevreler: populationData },
         // Veri setleri tam içerikleriyle saklanır: kullanıcının yüklediği özel veri
