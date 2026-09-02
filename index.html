@@ -461,6 +461,13 @@
                   color: var(--text); border: 1px solid var(--border); }
         .mk-dgm.sil { color: var(--danger); }
 
+        /* Otomatik paylaştırma düğmesi: harita düğmesinin mavi-yeşil tonuna
+           karşılık sıcak sarı-turuncu. */
+        :root { --oto-bg: #FFF4DB; --oto-fg: #9A6400; --oto-bd: #E8B44A; }
+        html[data-parlaklik="koyu"], html[data-parlaklik="oled"] {
+            --oto-bg: #3A2E13; --oto-fg: #F2C260; --oto-bd: #7A5E1E;
+        }
+
         #mapTooltip { position: absolute; background: var(--tooltip-bg); color: var(--text); padding:10px 12px; border-radius: var(--r-card); font-size:11.5px; pointer-events: none; z-index: 9999; display: none; box-shadow: var(--shadow-modal); border: 1px solid var(--border); min-width:234px; line-height: 1.4; transition: opacity 0.1s; }
         #mapTooltip h4 { margin:0 0 7px 0; border-bottom: 1px solid var(--border); padding-bottom:5.5px; color: var(--text); font-size:11.5px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; }
 
@@ -1225,15 +1232,7 @@
                     <button id="mapModeToggleBtn" class="settings-toggle-btn" onclick="toggleMapMode()">🔄 Görünüm: Partiler</button>
                 </div>
 
-                <div class="settings-row">
-                    <div class="settings-row-info">
-                        <div>
-                            <div class="settings-row-title">"Diğer" Grubunu Göster</div>
-                            <div class="settings-row-desc">Diğer'de gruplanan partiler harita ve tabloda tek kalem olarak gösterilir.</div>
-                        </div>
-                    </div>
-                    <button id="digerDisplayBtn" class="settings-toggle-btn" onclick="toggleDigerDisplay()" style="background:var(--danger); color:white; border-color:var(--danger);">🗂️ Diğer</button>
-                </div>
+                <!-- "Diger" gosterim dugmesi kategorinin kendi satirina tasindi. -->
 
                 <div class="settings-row">
                     <div class="settings-row-info">
@@ -2188,22 +2187,10 @@ function toggleMapMode() {
 
 function toggleDigerDisplay() {
     digerDisplayEnabled = !digerDisplayEnabled;
-    const btn = $('digerDisplayBtn');
-    if (digerDisplayEnabled) {
-        btn.style.background = 'var(--danger)';
-        btn.style.color = 'white';
-        btn.style.borderColor = 'var(--danger)';
-        btn.innerHTML = '🗂️ Diğer';
-    } else {
-        btn.style.background = 'var(--surface)';
-        btn.style.color = 'var(--text-secondary)';
-        btn.style.borderColor = 'var(--border)';
-        btn.innerHTML = '🗂️ Diğer';
-    }
-    if (Object.keys(globalResults).length > 0) {
-        renderResults(globalResults);
-        refreshOpenDetail();
-    }
+    // Görünüm artık çizim sırasında belirleniyor; elle stil yazmak yerine
+    // kategori satırı yeniden çizilir.
+    renderExtraParties();
+    if (Object.keys(globalResults).length > 0) runProjection();
 }
 
 window.handleManualSvgLoad = async function(input) {
@@ -2315,20 +2302,22 @@ window.addEventListener('DOMContentLoaded', async () => {
         renderDatasets();
 
         setStatus('Nüfus verisi yükleniyor...', 78);
-        const popRes = await fetch(cfg.population || 'nufus_verisi.json');
+        const popRes = await fetch(cfg.population || 'nufus_verisi.json', { cache: 'no-store' });
         if (!popRes.ok) throw new Error('Nüfus verisi bulunamadı: ' + (cfg.population || 'nufus_verisi.json'));
         loadPopulationData(await popRes.json());
         renderPopulationPanel();
 
         try {
-            const bRes = await fetch(cfg.independents || 'bagimsiz_2023.json');
+            const bRes = await fetch(cfg.independents || 'bagimsiz_2023.json', { cache: 'no-store' });
             if (bRes.ok) loadIndependentData(await bRes.json());
         } catch (e) {}
         renderIndependentPanel();
 
         if (cfg.defaultProject) {
             setStatus(`Proje yükleniyor: ${cfg.defaultProject}`, 85);
-            const projRes = await fetch(cfg.defaultProject);
+            // Onbellekten servis edilirse güncellenen varsayılan proje kullanıcıya hiç
+            // ulaşmıyor; veri setlerinde olduğu gibi burada da atlanır.
+            const projRes = await fetch(cfg.defaultProject, { cache: 'no-store' });
             if (!projRes.ok) throw new Error(`Proje dosyası bulunamadı: ${cfg.defaultProject}`);
             applyProjectData(await projRes.json());   // içindeki dataset bilgisi yoksayılır
 
@@ -3020,20 +3009,20 @@ function entityStatRow(p, seats, pct, cmp, cmpOn, maxPct, opts) {
     // Buyuk panelde satirlar arasi nefes payi iki kattan fazla: hover menusunde
     // liste kisa oldugu icin sikisik durabiliyor, panelde okunakliligi bozuyordu.
     const aralik = dar ? 9.5 : 4;
-    return `<div style="display:flex; align-items:center; gap:${px(6)}; margin-bottom:${px(aralik)};
+    return `<div style="display:flex; align-items:center; gap:${px(5)}; margin-bottom:${px(aralik)};
                  font-size:${px(11.5)}; font-weight:bold; white-space:nowrap; opacity:${pasif ? '0.6' : '1'};">
         ${opts.mudahale ? mudahaleDugmeleri(opts.mudahale.tip, opts.mudahale.hedef, p, ol) : ''}
         ${partyBadge(p, Math.round(19 * ol))}
-        <span style="color:var(--text); overflow:hidden; text-overflow:ellipsis; width:${px(dar ? 63 : 78)}; flex-shrink:0; ${cizik}" title="${escapeStr(p)}">${escapeStr(p)}</span>
-        ${cmpOn ? `<span style="width:${px(dar ? 28 : 34)}; text-align:right; flex-shrink:0;">${dMv}</span>` : ''}
+        <span style="color:var(--text); overflow:hidden; text-overflow:ellipsis; width:${px(dar ? 55 : 57)}; flex-shrink:0; ${cizik}" title="${escapeStr(p)}">${escapeStr(p)}</span>
+        ${cmpOn ? `<span style="min-width:${px(dar ? 20 : 24)}; text-align:right; flex-shrink:0;">${dMv}</span>` : ''}
         ${opts.hideSeats ? '' : `<span style="background:#2c3038; color:#fff; display:inline-flex; align-items:center; justify-content:center; width:${px(34)}; height:${px(19)}; flex-shrink:0;">${seats}</span>`}
-        <div style="flex:1; min-width:${px(70)}; position:relative; height:${px(21)}; background:var(--track); border-radius:${px(9)}; overflow:hidden; border:${px(1.5)} solid var(--outline);">
+        <div style="flex:1 1 ${px(70)}; min-width:${px(70)}; position:relative; height:${px(21)}; background:var(--track); border-radius:${px(9)}; overflow:hidden; border:${px(1.5)} solid var(--outline);">
             <div style="position:absolute; left:0; top:0; bottom:0; width:${barW}%; background:${cubukZemin};"></div>
             <span style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); padding-left:${px(6)}; color:${color}; clip-path:inset(0 0 0 ${barW}%); overflow:hidden; ${cizik}">&thinsp;${pctStr}</span>
             <span style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); padding-left:${px(6)}; color:#fff; clip-path:inset(0 ${100 - barW}% 0 0); overflow:hidden; ${cizik}">&thinsp;${pctStr}</span>
         </div>
-        ${cmpOn ? `<span style="width:${px(dar ? 34 : 40)}; text-align:right; flex-shrink:0;">${dPct}</span>` : ''}
-        ${opts.votes !== undefined ? `<span style="width:${px(dar ? 57.5 : 66)}; text-align:right; flex-shrink:0; font-size:${px(9.5)}; color:var(--text-secondary); font-variant-numeric:tabular-nums;">${Math.round(opts.votes).toLocaleString('tr-TR')}</span>` : ''}
+        ${cmpOn ? `<span style="min-width:${px(dar ? 30 : 34)}; text-align:right; flex-shrink:0;">${dPct}</span>` : ''}
+        ${opts.votes !== undefined ? `<span style="width:${px(dar ? 54 : 58)}; text-align:right; flex-shrink:0; font-size:${px(9.5)}; color:var(--text-secondary); font-variant-numeric:tabular-nums;">${Math.round(opts.votes).toLocaleString('tr-TR')}</span>` : ''}
     </div>`;
 }
 
@@ -3276,12 +3265,13 @@ function mudahaleDugmeleri(tip, hedef, parti, ol) {
     const stil = `width:${b}; height:${b}; min-width:${b}; padding:0; font-size:${f};`
                + ' font-weight:900; line-height:1; border:1px solid var(--border);'
                + ' display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;';
-    return `<span style="display:inline-flex; align-items:center; gap:${(3 * ol).toFixed(1)}px; flex-shrink:0;">
+    return `<span style="display:inline-flex; align-items:center; gap:${(2.5 * ol).toFixed(1)}px;
+            flex-shrink:0; margin-right:${(-2 * ol).toFixed(1)}px;">
         <button onclick="event.stopPropagation();mudahaleUygula('${tip}','${escapeStr(hedef)}','${escapeStr(parti)}',-1)"
                 style="${stil} background:var(--pasif); color:#fff; border-color:var(--pasif);" title="Zayıflat">−</button>
         <button onclick="event.stopPropagation();mudahaleUygula('${tip}','${escapeStr(hedef)}','${escapeStr(parti)}',1)"
                 style="${stil} background:var(--aktif); color:#fff; border-color:var(--aktif);" title="Güçlendir">+</button>
-        <span style="width:${(20 * ol).toFixed(1)}px; text-align:center; font-size:${f}; font-weight:900;
+        <span style="width:${(13 * ol).toFixed(1)}px; text-align:center; font-size:${f}; font-weight:900;
               color:${n > 0 ? 'var(--aktif)' : (n < 0 ? 'var(--pasif)' : 'var(--text-dim)')};">${n > 0 ? '+' + n : (n || '')}</span>
     </span>`;
 }
@@ -3966,8 +3956,9 @@ function parsePctInputOrZero(str) {
 // Sayıyı arayüzde göstermek için virgüllü ondalık string'e çevirir (gereksiz sıfırları kırpar).
 function fmtPctInput(num) {
     if (num === null || num === undefined || isNaN(num)) return '';
-    const rounded = Math.round(num * 100) / 100;
-    return String(rounded).replace('.', ',');
+    // Basamaklar HER ZAMAN iki hane. String(4.1) "4.1" verip sondaki sıfırı
+    // yutuyordu: kullanıcı "4,10" yazıp alandan çıkınca "4,1" görüyordu.
+    return (Math.round(num * 100) / 100).toFixed(2).replace('.', ',');
 }
 
 // Partilerin etkin ülke geneli toplamı: "Diğer" kategorisinin hedef toplamı
@@ -3980,10 +3971,17 @@ function partiNatMap() {
     });
     digerGroups.forEach(dg => {
         if (dg.isEnabled === false) return;
+        // Boş alan "hedef yok" demek; açıkça 0 yazılması ise "bu grubun tümü
+        // sıfır" demek. Eskiden ikisi aynı sayılıyor, 0 yazmak hiçbir işe yaramıyordu.
+        if (dg.targetPct === '' || dg.targetPct === null || dg.targetPct === undefined) return;
         const targetPct = parseFloat(dg.targetPct);
-        if (!targetPct || targetPct <= 0) return;
+        if (!isFinite(targetPct) || targetPct < 0) return;
         let currentSum = 0;
         dg.members.forEach(m => { if (natMap[m] !== undefined) currentSum += natMap[m]; });
+        if (targetPct === 0) {
+            dg.members.forEach(m => { if (natMap[m] !== undefined) natMap[m] = 0; });
+            return;
+        }
         if (currentSum <= 0) return;
         const scale = targetPct / currentSum;
         dg.members.forEach(m => { if (natMap[m] !== undefined) natMap[m] *= scale; });
@@ -5264,8 +5262,14 @@ function renderExtraParties(){
                 <span>${escapeStr(g.name)}</span>
                 <span class="diger-zone-say">${oteki.length}</span>
                 <button class="status-btn ${g.isEnabled !== false ? 'active' : 'pasif'}"  style="width:22px; height:22px; font-size:10px;" onclick="digerGroups[0].isEnabled=!(digerGroups[0].isEnabled!==false); renderExtraParties(); scheduleProjection(0);" title="${g.isEnabled !== false ? 'Gruplama açık' : 'Gruplama kapalı'}">${g.isEnabled !== false ? 'A' : 'P'}</button>
+                <button id="digerDisplayBtn" onclick="toggleDigerDisplay()"
+                        style="width:22px; height:22px; padding:0; font-size:11px; line-height:1; flex-shrink:0;
+                               background:${digerDisplayEnabled ? 'var(--danger)' : 'var(--surface)'};
+                               color:${digerDisplayEnabled ? '#fff' : 'var(--text-secondary)'};
+                               border:1px solid ${digerDisplayEnabled ? 'var(--danger)' : 'var(--border)'};"
+                        title="${digerDisplayEnabled ? 'Harita ve tabloda tek kalem gösteriliyor' : 'Harita ve tabloda ayrı ayrı gösteriliyor'}">&#128451;&#65039;</button>
                 <span style="margin-left:auto; font-size:9.5px; font-weight:700; color:var(--text-dim); text-transform:none; letter-spacing:0;">Toplam Oy %</span>
-                <input type="text" inputmode="decimal" placeholder="—" value="${g.targetPct ? fmtPctInput(g.targetPct) : ''}"
+                <input type="text" inputmode="decimal" placeholder="—" value="${(g.targetPct === '' || g.targetPct === null || g.targetPct === undefined) ? '' : fmtPctInput(g.targetPct)}"
                        style="width:56px; margin:0; padding:4px 6px; font-size:11px; font-weight:bold; color:var(--danger); flex:0 0 auto;"
                        title="Doldurulursa üye partilerin oyları bu toplama orantılı ölçeklenir"
                        onchange="digerGroups[0].targetPct=parsePctInput(this.value); updateTotalTracker(); scheduleProjection(0);"
@@ -5715,9 +5719,15 @@ window.fermuarMenuToggle = function(partyName, dName) {
     const fl = fermuarListes[fermuarMapEditIdx];
     if (!fl) return;
     takeSnapshot();
-    if (!fl.districtMap) fl.districtMap = {};
     fl.districtMap = fl.districtMap || {};
-    if (!fl.districtMap[partyName]) fl.districtMap[partyName] = [];
+    // ÖNEMLİ: kaydı olmayan üye "her çevrede yarışıyor" demek. Boş diziyle
+    // başlatmak onu bir anda HER YERDEN çekiyor, ardından tıklanan çevre
+    // eklenince "yalnız burada yarışıyor"a dönüşüyordu — tikini kaldırdığınız
+    // çevre işaretli kalıp diğerleri boşaltılıyordu. Mevcut etkin durumla
+    // başlatılır: tüm çevreler.
+    if (!Array.isArray(fl.districtMap[partyName])) {
+        fl.districtMap[partyName] = getMasterDistricts().slice();
+    }
     const arr = fl.districtMap[partyName];
     const pos = arr.indexOf(dName);
     if (pos >= 0) arr.splice(pos, 1); else arr.push(dName);
@@ -5797,7 +5807,7 @@ function renderFermuar() {
                     <div style="width:9px;height:9px;border-radius:50%;background:${getPartyColor(m)};flex-shrink:0;"></div>
                     <span style="font-weight:bold;font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m}</span>
                     <span style="font-size:10px;color:var(--text-secondary);white-space:nowrap;">${assigned.length} çevre</span>
-                    <button onclick="electoralAlliances[${idx}].districtMap['${escapeStr(m)}']=[];renderFermuar();if(Object.keys(globalResults).length>0)runProjection();" style="font-size:9px;padding:2px 4.5px;background:var(--surface-alt);color:var(--text-secondary);border:1px solid var(--border);border-radius:4px;cursor:pointer;white-space:nowrap;">Temizle</button>
+                    <button onclick="electoralAlliances[${idx}].districtMap['${escapeStr(m)}']=[];renderFermuar();if(Object.keys(globalResults).length>0)runProjection();" style="font-size:9px;padding:2px 4.5px;background:var(--surface-alt);color:var(--text-secondary);border:1px solid var(--border);border-radius:4px;cursor:pointer;white-space:nowrap;" title="Bu üyenin çevre atamalarını boşalt">✖</button>
                     <button onclick="toggleFermuarPartyOpen(${idx},'${escapeStr(m)}')" style="font-size:11px;width:20px;height:20px;padding:0;background:var(--highlight-bg);color:var(--primary);border:1px solid var(--primary);border-radius:4px;cursor:pointer;flex-shrink:0;">${isDistOpen ? '▲' : '▼'}</button>
                 </div>
                 ${distGrid}
@@ -5811,8 +5821,9 @@ function renderFermuar() {
                 <div title="Rengi Değiştir" style="width:22px; height:22px; border-radius:50%; background:${fl.color || '#888888'}; cursor:pointer; flex-shrink:0;" onclick="updateColorModal('alliance', ${idx})"></div>
                 <button class="status-btn ${fl.isEnabled !== false ? 'active' : 'pasif'}"  onclick="electoralAlliances[${idx}].isEnabled=!(electoralAlliances[${idx}].isEnabled!==false);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();" title="${fl.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${fl.isEnabled !== false ? 'A' : 'P'}</button>
                 <input type="text" class="editable-name" value="${escapeStr(fl.name)}" onchange="renameAlliance(${idx},this.value)" onkeyup="if(event.key==='Enter')this.blur()">
-                <button onclick="fermuarOtomatik(${idx})" style="flex-shrink:0;padding:2.5px 6px;background:var(--surface-alt);color:var(--text-secondary);border:1px solid var(--border);border-radius:5px;font-size:10px;font-weight:bold;cursor:pointer;white-space:nowrap;" title="Çevreleri üyeler arasında otomatik paylaştır">&#9889; Otomatik</button>
-                <button onclick="toggleFermuarMapEdit(${idx})" style="flex-shrink:0;padding:3.5px 7px;background:${fermuarMapEditIdx === idx ? 'var(--primary)' : 'var(--highlight-bg)'};color:${fermuarMapEditIdx === idx ? '#fff' : 'var(--primary)'};border:1px solid var(--primary);border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;" title="Haritadan tıklayarak ata">🗺️ ${fermuarMapEditIdx === idx ? 'Haritada: AÇIK' : 'Haritadan Ayarla'}</button>
+                <button onclick="fermuarOtomatik(${idx})" style="flex-shrink:0;padding:2.5px 7px;border-radius:5px;font-size:10px;font-weight:bold;cursor:pointer;white-space:nowrap;line-height:1.35;background:var(--oto-bg);color:var(--oto-fg);border:1px solid var(--oto-bd);" title="Çevreleri üyeler arasında otomatik paylaştır (müdahale katmanları hesaba katılır)">&#9889; Oto</button>
+                <button onclick="toggleFermuarMapEdit(${idx})" style="flex-shrink:0;padding:2.5px 7px;border-radius:5px;font-size:10px;font-weight:bold;cursor:pointer;white-space:nowrap;line-height:1.35;background:${fermuarMapEditIdx === idx ? 'var(--primary)' : 'var(--highlight-bg)'};color:${fermuarMapEditIdx === idx ? '#fff' : 'var(--primary)'};border:1px solid var(--primary);" title="Haritadan tıklayarak ata">🗺️</button>
+                <button onclick="fermuarSifirla(${idx})" style="flex-shrink:0;padding:2.5px 7px;border-radius:5px;font-size:10px;font-weight:bold;cursor:pointer;white-space:nowrap;line-height:1.35;background:var(--surface-alt);color:var(--text-secondary);border:1px solid var(--border);" title="Çevre atamalarını ve destek hedeflerini varsayılana döndür: tüm üyeler her çevrede yarışır">&#8634;</button>
                 <button class="danger" onclick="takeSnapshot();fermuarListes.splice(${idx},1);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();">✖</button>
             </div>
             ${fl.isOpen ? `
@@ -5853,6 +5864,19 @@ function renderFermuar() {
    çevre kotası verilir (en az 1), sonra (çevre, üye) çiftleri GÖRECELİ
    üstünlüğe göre sıralanıp kotalar dolana dek dağıtılır. Böylece küçük
    ortak, kendi için en avantajlı çevreleri alır.                          */
+/* İttifakı varsayılana döndürür: çevre haritası ve destek hedefleri silinir,
+   yani tüm üyeler her çevrede kendi listesiyle yarışır — klasik ittifak. */
+window.fermuarSifirla = function(idx) {
+    const fl = electoralAlliances[idx];
+    if (!fl) return;
+    // Onay sorulmuyor: işlem anında geri alınabilir (takeSnapshot).
+    takeSnapshot();
+    fl.districtMap = null;
+    fl.destek = {};
+    renderFermuar();
+    if (Object.keys(globalResults).length > 0) runProjection();
+};
+
 window.fermuarOtomatik = function(idx) {
     const fl = fermuarListes[idx];
     if (!fl) return;
@@ -5876,7 +5900,24 @@ window.fermuarOtomatik = function(idx) {
             if (v === undefined) return;
             top += v * w; agir += w;
         });
-        return agir > 0 ? top / agir : 1;
+        let kat = agir > 0 ? top / agir : 1;
+        // Müdahale katmanları da hesaba katılır: elle güçlendirdiğiniz çevre,
+        // otomatik paylaştırmada da o parti için daha cazip olmalı. İlçe
+        // katmanları çevre düzeyine pay-ağırlıklı ortalamayla yansıtılır.
+        if (typeof mudahaleAcik !== 'undefined' && mudahaleAcik) {
+            kat *= mudahaleCarpani('il', d, m);
+            let toplamPay = 0, agirlikli = 0;
+            const kod = partiKodu(m);
+            Object.keys(ilceSonuc).forEach(id => {
+                const b = ilceSonuc[id];
+                if (!b || b.cevre !== d) return;
+                const pay = (kod && b.kodlar && b.kodlar.has(kod)) ? (b.pay[kod] || 0) : b.gecerliPay;
+                toplamPay += pay;
+                agirlikli += pay * mudahaleCarpani('ilce', id, m);
+            });
+            if (toplamPay > 0) kat *= (agirlikli / toplamPay);
+        }
+        return kat;
     }
 
     const nat = {};
@@ -5990,9 +6031,15 @@ window.toggleFermuarPartyOpen = function(flIdx, partyName) {
 
 window.toggleFermuarDistrict = function(flIdx, partyName, distName) {
     const fl = fermuarListes[flIdx];
-    if (!fl.districtMap) fl.districtMap = {};
     fl.districtMap = fl.districtMap || {};
-    if (!fl.districtMap[partyName]) fl.districtMap[partyName] = [];
+    // ÖNEMLİ: kaydı olmayan üye "her çevrede yarışıyor" demek. Boş diziyle
+    // başlatmak onu bir anda HER YERDEN çekiyor, ardından tıklanan çevre
+    // eklenince "yalnız burada yarışıyor"a dönüşüyordu — tikini kaldırdığınız
+    // çevre işaretli kalıp diğerleri boşaltılıyordu. Mevcut etkin durumla
+    // başlatılır: tüm çevreler.
+    if (!Array.isArray(fl.districtMap[partyName])) {
+        fl.districtMap[partyName] = getMasterDistricts().slice();
+    }
     const arr = fl.districtMap[partyName];
     const pos = arr.indexOf(distName);
     if (pos >= 0) arr.splice(pos, 1);
@@ -6103,7 +6150,7 @@ async function loadFromArchive() {
     if(!fileName) return;
 
     try {
-        const response = await fetch(fileName);
+        const response = await fetch(fileName, { cache: 'no-store' });
         if(!response.ok) throw new Error("Sunucu Hatası");
 
         const data = await response.json();
@@ -6602,10 +6649,17 @@ function runProjection(elle) {
     // Diğer grup oy ölçekleme: targetPct varsa üye partilerin oylarını orantılı ayarla
     digerGroups.forEach(dg => {
         if (dg.isEnabled === false) return;
+        // Boş alan "hedef yok" demek; açıkça 0 yazılması ise "bu grubun tümü
+        // sıfır" demek. Eskiden ikisi aynı sayılıyor, 0 yazmak hiçbir işe yaramıyordu.
+        if (dg.targetPct === '' || dg.targetPct === null || dg.targetPct === undefined) return;
         const targetPct = parseFloat(dg.targetPct);
-        if (!targetPct || targetPct <= 0) return;
+        if (!isFinite(targetPct) || targetPct < 0) return;
         let currentSum = 0;
         dg.members.forEach(m => { if (baseTargetNat[m] !== undefined) currentSum += baseTargetNat[m]; });
+        if (targetPct === 0) {
+            dg.members.forEach(m => { if (baseTargetNat[m] !== undefined) baseTargetNat[m] = 0; });
+            return;
+        }
         if (currentSum <= 0) return;
         const scale = targetPct / currentSum;
         dg.members.forEach(m => { if (baseTargetNat[m] !== undefined) baseTargetNat[m] *= scale; });
@@ -6813,8 +6867,21 @@ function runProjection(elle) {
     // Fermuar listesi üyeleri tek satır grubu: oyunu devreden üyenin payı grubun
     // içinde kalır, dışarı sızmaz. Grubun toplamı girilen değerlerin toplamına eşittir.
     const _grupOf = {};
-    fermuarListes.forEach((fl, fi) => {
-        if (fl.isEnabled === false) return;
+    // YALNIZ gerçekten oy aktarımı olan ittifaklar tek satır grubu olur.
+    // Klasik ittifakta (çevre haritası yok ya da tüm üyeler her çevrede
+    // yarışıyor) üyeler arasında oy geçişi yoktur; gruplamak, üyelerin kendi
+    // ülke hedeflerini tek bir toplam hedefe kilitleyip aralarındaki dağılımı
+    // bölgesel çekime bırakıyordu. Sonuç: ittifak açılıp kapandıkça üyelerin
+    // oy oranları girdiden sapıyordu (büyük ortak düşüp küçükler yükseliyordu).
+    // İttifakın baraj ve 2018 sandalye modeline etkisi bundan bağımsız, devam ediyor.
+    const _tumCevreSayisi = masterDistrictNames.length;
+    electoralAlliances.forEach((fl, fi) => {
+        if (fl.isEnabled === false || !fl.districtMap) return;
+        const aktarimVar = (fl.members || []).some(m => {
+            const liste = fl.districtMap[m];
+            return Array.isArray(liste) && liste.length < _tumCevreSayisi;
+        });
+        if (!aktarimVar) return;
         fl.members.forEach(m => { if (_grupOf[m] === undefined) _grupOf[m] = '__f' + fi; });
     });
     const _hedefOy = {};
@@ -9372,17 +9439,12 @@ function renderDistrictOverlay() {
     // Bar normalizasyonu için lider oranı
     const leaderPct = Math.max(...sortedParties.map(p => displayPctOf(p)), 0.01);
     
-    let winnerParty = null;
-    let maxMvs = -1;
-    let maxVotes = -1;
-    
-    // Gelişmiş kazanan algoritması: Önce MP, eşitse Oy
-    Object.entries(displayData.mvs).forEach(([p, s]) => {
-        let v = displayData.rawVotes[p] || 0;
-        if (s > maxMvs || (s === maxMvs && v > maxVotes)) {
-            maxMvs = s; maxVotes = v; winnerParty = p;
-        }
-    });
+    // Başlıktaki kazanan etiketi, haritanın kazanan kuralıyla AYNI olmalı:
+    // ayarlardaki "İl Rengini Belirleyen" seçimi (birinci parti / milletvekili
+    // çoğunluğu) burayı da bağlar. Eskiden burada her zaman sandalye öncelikli
+    // hesap yapılıyordu, dolayısıyla il rengi ile etiket çelişebiliyordu.
+    let winnerParty = cevreKazanani(displayData);
+    let maxVotes = winnerParty ? (displayData.rawVotes[winnerParty] || 0) : -1;
     if (!winnerParty) {
         Object.entries(displayData.rawVotes).forEach(([p, v]) => {
             if(v > maxVotes) { maxVotes = v; winnerParty = p; }
@@ -10204,11 +10266,8 @@ async function captureDistrictPanelFallback() {
         });
 
     // Winner + colors (same logic as renderDistrictOverlay)
-    let winnerParty = null, maxMvs = -1, maxVotes = -1;
-    Object.entries(displayData.mvs).forEach(([p,s]) => {
-        const v = displayData.rawVotes[p] || 0;
-        if (s > maxMvs || (s === maxMvs && v > maxVotes)) { maxMvs=s; maxVotes=v; winnerParty=p; }
-    });
+    // Kazanan kuralı haritayla ortak (bkz. cevreKazanani).
+    const winnerParty = cevreKazanani(displayData);
     const wColor = winnerParty ? getPartyColor(winnerParty) : '#888888';
     const domRatioRaw = parseFloat($('dominantWhiteInp').value);
     const pluRatioRaw = parseFloat($('pluralityWhiteInp').value);
