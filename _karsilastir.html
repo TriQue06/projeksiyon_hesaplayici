@@ -435,9 +435,6 @@
         /* Düzenleme modunda haritada imleç: bu bir tıklanabilir atama yüzeyi */
         #svgMapWrapper.fermuar-edit path, #svgMapWrapper.fermuar-edit polygon,
         #svgMapWrapper.fermuar-edit polyline, #svgMapWrapper.fermuar-edit rect { cursor: pointer; }
-        .fm-destek { max-width: 116px; flex-shrink: 0; font-size: 10px; font-weight: 700;
-                     padding: 1px 3px; background: var(--input-bg); color: var(--text);
-                     border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
         #fermuarEditBanner { position:absolute; top:9px; left:9px; z-index:20; display:none; align-items:center;
             gap:9px; background:var(--surface); border:1px solid var(--primary); border-radius:var(--r-input);
             padding:6.5px 9px; box-shadow:var(--shadow); font-size:11px; font-weight:bold; color:var(--text); }
@@ -1344,8 +1341,19 @@
         </div>
     </div>
 
-    <!-- Fermuar kartı kaldırıldı: fermuar artık ittifakın bir özelliği;
-         çevre atamaları ve destek hedefi İttifaklar kartının içinde. -->
+    <!-- 5. Fermuar Liste -->
+    <div class="card collapsed">
+        <div class="card-header-row" onclick="toggleCardCollapse(this)">
+            <label>Fermuar Liste</label>
+        </div>
+        <div class="card-body">
+            <div class="flex-row">
+                <input id="fermuarName" placeholder="Liste Adı (Örn: Sol Federasyon)">
+                <button onclick="addFermuar()" class="blue" style="width:36px; font-size:14.5px;">+</button>
+            </div>
+            <div id="fermuarArea" class="scroll-area"></div>
+        </div>
+    </div>
 
     <!-- 6. Ortak Liste -->
     <div class="card collapsed">
@@ -1697,24 +1705,6 @@
                         <b style="color:var(--aktif);">+</b> ve <b style="color:var(--pasif);">−</b> düğmeleri belirir.
                     </div>
                 </div>
-                <div style="margin-bottom:10px;">
-                    <div style="font-size:10px; font-weight:900; letter-spacing:.4px; text-transform:uppercase;
-                                color:var(--text-secondary); margin-bottom:4px;">İlçe müdahalesinin telafisi</div>
-                    <select id="mudahaleTelafiInp" onchange="mudahaleTelafiSec(this.value)"
-                            style="width:100%; font-size:10.5px; font-weight:700; padding:3px 4px;
-                                   background:var(--input-bg); color:var(--text); border:1px solid var(--border);">
-                        <option value="il">Aynı ilin diğer ilçelerinden (sert)</option>
-                        <option value="ulke">Tüm ülkeden (yumuşak)</option>
-                    </select>
-                </div>
-                <div style="display:flex; gap:6px; margin-bottom:10px;">
-                    <button style="flex:1; font-size:10.5px;" onclick="mudahaleIndir()"
-                            title="Katmanları ayrı bir dosyaya kaydet">&#11015;&#65039; İndir</button>
-                    <button style="flex:1; font-size:10.5px;" onclick="mudahaleYukleAc()"
-                            title="Başka bir projeksiyonda oluşturulmuş katmanları yükle">&#11014;&#65039; Yükle</button>
-                    <input type="file" id="mudahaleDosya" accept=".json,application/json"
-                           style="display:none;" onchange="mudahaleDosyaOku(this)">
-                </div>
                 <div id="mudahaleArea"></div>
             </div>
         </div>
@@ -1891,13 +1881,7 @@ let extraParties = [];
 let coalitions = []; 
 let electoralAlliances = [];
 let digerGroups = [];
-/* Geriye dönük ad: artık ayrı bir dizi değil, ittifak dizisinin ta kendisi.
-   Tüm eski okuyucular aynı nesneleri görür; bir ittifakın districtMap'i yoksa
-   bütün üyeleri her çevrede yarışıyor demektir. */
-Object.defineProperty(window, 'fermuarListes', {
-    get() { return electoralAlliances; },
-    set(v) { if (Array.isArray(v)) electoralAlliances = v; }
-});
+let fermuarListes = [];
 let globalParties = new Set();
 let customSeatOverrides = {};
 let globalResults = {};
@@ -3099,21 +3083,6 @@ const MUDAHALE_SINIR = 30;
 // görünmez yapıyordu. Arşivdeki eski projelerde de alan bulunmadığı için
 // açık varsayılır; isteyen kartın üstündeki kutucukla kapatır.
 let mudahaleAcik = true;
-/* İlçe müdahalesinin telafisi nereden karşılansın?
-   'il'   — aynı çevrenin diğer ilçelerinden. Partinin ÇEVRE toplamı sabit
-            kalır; kazanılan pay komşu ilçelerden düşer. Sert etki: büyük bir
-            kademe tek ilçeyi şişirirken diğerlerini çökertir.
-   'ulke' — tüm ülkeden. İlçenin payı komşularına dokunmadan artar, artış
-            çevrenin toplamına yansır ve çift-oranlı uyarlama partinin ülke
-            oranını sabit tuttuğu için fark 87 çevreye dağılır. Görünür
-            değişim çok daha az olur. */
-let mudahaleTelafi = 'il';
-
-window.mudahaleTelafiSec = function (v) {
-    mudahaleTelafi = (v === 'ulke') ? 'ulke' : 'il';
-    _ilceMudahaleOnbellek = null;
-    renderMudahale(); scheduleProjection(0);
-};
 let mudahaleKatmanlari = [];   // [{tip:'il'|'ilce', hedef, parti, seviye}]
 let _mudahaleDizin = null;     // 'tip\u0000hedef\u0000parti' -> seviye
 
@@ -3166,77 +3135,11 @@ window.mudahaleAcikDegistir = function (v) {
     if (currentOverlayData && $('districtOverlay').style.display === 'block') refreshOpenDetail();
 };
 
-/* Katmanları tek başına dosyaya yazar/okur.
-   Gerekçe: katmanlar çevre ve parti ADINA bağlıdır, projeksiyonun kendisine
-   değil. Yeni bir projeksiyon kurup partileri aynı adlarla yeniden
-   oluşturduğunuzda katmanlar tekrar oturur — ama proje dosyasıyla taşınmadığı
-   için eskiden kaybolup gidiyordu. Ayrı dosya bu yüzünden var. */
-window.mudahaleIndir = function () {
-    if (!mudahaleKatmanlari.length) { alert('İndirilecek müdahale katmanı yok.'); return; }
-    const veri = {
-        tip: 'pgm-mudahale-katmanlari', surum: 1,
-        tarih: new Date().toISOString(),
-        enabled: mudahaleAcik,
-        katmanlar: JSON.parse(JSON.stringify(mudahaleKatmanlari))
-    };
-    const blob = new Blob([JSON.stringify(veri, null, 1)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'mudahale_katmanlari_' + new Date().toISOString().slice(0, 10) + '.json';
-    document.body.appendChild(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-};
-
-window.mudahaleYukleAc = function () { $('mudahaleDosya').click(); };
-
-window.mudahaleDosyaOku = async function (inp) {
-    const f = inp.files[0];
-    inp.value = '';
-    if (!f) return;
-    try {
-        const v = JSON.parse(await f.text());
-        const gelen = (Array.isArray(v) ? v : (v.katmanlar || []))
-            .filter(k => k && k.tip && k.hedef && k.parti && k.seviye);
-        if (!gelen.length) { alert('Dosyada geçerli müdahale katmanı bulunamadı.'); return; }
-
-        let birlestir = false;
-        if (mudahaleKatmanlari.length) {
-            birlestir = confirm('Yüklü ' + mudahaleKatmanlari.length + ' katman var.\n\n'
-                + 'TAMAM: gelenlerle birleştir (aynı hedef+parti gelenle değişir)\n'
-                + 'İPTAL: mevcutları sil, yalnız gelenleri kullan');
-        }
-        takeSnapshot();
-        if (!birlestir) mudahaleKatmanlari = [];
-        gelen.forEach(g => {
-            const v0 = mudahaleKatmanlari.find(k => k.tip === g.tip && k.hedef === g.hedef && k.parti === g.parti);
-            if (v0) v0.seviye = g.seviye;
-            else mudahaleKatmanlari.push({ tip: g.tip, hedef: g.hedef, parti: g.parti, seviye: g.seviye });
-        });
-        if (v.enabled !== undefined) mudahaleAcik = v.enabled !== false;
-        _mudahaleDizin = null;
-        renderMudahale(); scheduleProjection(0);
-
-        // Karşılığı olmayan hedef/parti sessizce durur; kullanıcı bilsin.
-        const partiler = new Set(extraParties.map(p => p.name));
-        const cevreler = new Set(getMasterDistricts());
-        const bosta = mudahaleKatmanlari.filter(k =>
-            !partiler.has(k.parti) || (k.tip === 'il' && !cevreler.has(k.hedef))
-            || (k.tip === 'ilce' && !ilceSonuc[k.hedef]));
-        alert(gelen.length + ' katman yüklendi.'
-            + (bosta.length ? '\n\nBunların ' + bosta.length + ' tanesinin bu projeksiyonda karşılığı yok '
-                + '(parti adı ya da çevre/ilçe bulunamadı); listede duruyorlar ama etki etmiyorlar.' : ''));
-    } catch (e) {
-        alert('Dosya okunamadı: ' + e.message);
-    }
-};
-
 function renderMudahale() {
     const alan = $('mudahaleArea');
     if (!alan) return;
     const c = $('mudahaleAcikInp');
     if (c) c.checked = mudahaleAcik;
-    const t = $('mudahaleTelafiInp');
-    if (t) t.value = mudahaleTelafi;
     if (!mudahaleKatmanlari.length) {
         alan.innerHTML = '<div style="font-size:10.5px; color:var(--text-secondary); font-weight:700; line-height:1.5;">'
             + 'Henüz katman yok. Açıkken bir il ya da ilçenin detay panelini açıp '
@@ -3313,27 +3216,7 @@ function ilceMudahaleCarpani(svgId, cevre, partiAdi) {
         ort = toplamPay > 0 ? agirlikli / toplamPay : 1;
         _ilceMudahaleOnbellek[anahtar] = ort || 1;
     }
-    // 'ulke' kipinde çevre içi normalizasyon YAPILMAZ: artış çevre toplamına
-    // taşınır (aşağıda epScore çarpılır) ve telafi ülke geneline yayılır.
-    if (mudahaleTelafi === 'ulke') return ham;
     return ort > 0 ? ham / ort : ham;
-}
-
-/* Bir çevrenin ilçe müdahalelerinin çevre düzeyindeki toplam etkisi:
-   ilçe çarpanlarının pay-ağırlıklı ortalaması. Yalnız 'ulke' kipinde
-   kullanılır; 'il' kipinde bu ortalama zaten bölen olarak işliyor. */
-function cevreIlceCarpani(cevre, partiAdi) {
-    if (!mudahaleAcik || mudahaleTelafi !== 'ulke') return 1;
-    const kod = partiKodu(partiAdi);
-    let toplamPay = 0, agirlikli = 0;
-    Object.keys(ilceSonuc).forEach(id => {
-        const b = ilceSonuc[id];
-        if (!b || b.cevre !== cevre) return;
-        const pay = (kod && b.kodlar && b.kodlar.has(kod)) ? (b.pay[kod] || 0) : b.gecerliPay;
-        toplamPay += pay;
-        agirlikli += pay * mudahaleCarpani('ilce', id, partiAdi);
-    });
-    return toplamPay > 0 ? (agirlikli / toplamPay) : 1;
 }
 
 function ilceHamOylari(svgId) {
@@ -4888,9 +4771,7 @@ window.deleteParty = function(idx) {
     coalitions = coalitions.filter(c => !(c.host === name));
     electoralAlliances.forEach(a => { a.members = a.members.filter(m => m !== name); });
     digerGroups.forEach(d => { d.members = d.members.filter(m => m !== name); });
-    electoralAlliances.forEach(fl => { fl.members = fl.members.filter(m => m !== name);
-        if (fl.districtMap) delete fl.districtMap[name];
-        if (fl.destek) delete fl.destek[name]; });
+    fermuarListes.forEach(fl => { fl.members = fl.members.filter(m => m !== name); delete fl.districtMap[name]; });
     $('thresholdInp').value = 7;
     refreshPartyDependentViews();
 };
@@ -5386,16 +5267,41 @@ function addAlliance(){
     const name = $('allianceName').value.trim();
     if(!name) return;
     takeSnapshot();
-    electoralAlliances.push({ name, members: [], isOpen: true, isEnabled: true,
-                             color: '#000000', districtMap: null, destek: {}, openParties: {} });
+    electoralAlliances.push({ name, members:[], isOpen: true, isEnabled: true, color: '#000000' });
     $('allianceName').value = ''; renderAlliances();
 }
 
-/* İttifak paneli tek elden çizilir: renderFermuar zengin sürüm (üyeler +
-   çevre atamaları + destek hedefi); ittifakın rengi ve adı da onun içinde.
-   Eski ince ittifak satırı kaldırıldı. */
-function renderAlliances(){ renderFermuar(); }
+function renderAlliances(){
+    const all = [...new Set([...extraParties.map(e=>e.name), ...coalitions.map(c=>c.name)])].sort((a,b) => a.localeCompare(b, 'tr'));
+    $('allianceArea').innerHTML = electoralAlliances.map((a, idx) => `
+        <div class="data-row" style="border-left-color: var(--teal);" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'alliance', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'alliance', ${idx})">
+            <div class="flex-row" style="margin-bottom:0;">
+                <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
+                
+                <button class="toggle-btn" onclick="electoralAlliances[${idx}].isOpen=!electoralAlliances[${idx}].isOpen;renderAlliances()">${a.isOpen ? '▲' : '▼'}</button>
+                
+                <button class="status-btn ${a.isEnabled !== false ? 'active' : 'pasif'}"  onclick="electoralAlliances[${idx}].isEnabled=!(electoralAlliances[${idx}].isEnabled!==false);renderAlliances(); if(Object.keys(globalResults).length>0)runProjection();" title="${a.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${a.isEnabled !== false ? 'A' : 'P'}</button>
+                
+                <div title="Rengi Değiştir" style="width:22px; height:22px; border-radius:50%; background:${a.color || '#000000'}; cursor:pointer; box-shadow:0 1px 3px rgba(43,38,30,0.22); flex-shrink:0; transition:0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('alliance', ${idx})"></div>
+                
+                <input type="text" class="editable-name" value="${escapeStr(a.name)}" onchange="renameAlliance(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
+                
+                <button class="danger" onclick="takeSnapshot();electoralAlliances.splice(${idx},1);renderAlliances(); if(Object.keys(globalResults).length>0)runProjection();">✖</button>
+            </div>
+            <div style="margin-top:9px; display: ${a.isOpen ? 'grid' : 'none'}; grid-template-columns:repeat(auto-fill, minmax(81px, 1fr)); gap:5.5px; border-top: 1px dashed var(--border); padding-top:9px;">
+                ${all.map(p => `
+                    <label class="coal-sim-box ${a.members.includes(p)?'active':''}" style="${a.members.includes(p)?'background:var(--teal);border-color:var(--teal);':''}" title="${escapeStr(p)}">
+                        <input type="checkbox" style="display:none;" ${a.members.includes(p)?'checked':''} onchange="const m=electoralAlliances[${idx}].members; this.checked ? m.push('${escapeStr(p)}') : electoralAlliances[${idx}].members=m.filter(x=>x!=='${escapeStr(p)}'); renderAlliances(); if(Object.keys(globalResults).length>0)runProjection();">
+                        <span>${p}</span>
+                    </label>
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
 
+// "Diğer" artık sabit tek bir gruptur: eklenemez, silinemez, adı değişmez.
+// Kullanıcı yalnızca aktif/pasif durumunu, rengini, hedef oy yüzdesini ve üyelerini düzenler.
 function ensureDigerGroup() {
     if (digerGroups.length === 0) {
         digerGroups.push({ name: 'Diğer', members: [], isOpen: true, isEnabled: true, color: '#888888', targetPct: '' });
@@ -5490,28 +5396,9 @@ let fermuarMapEditIdx = null;
 let fermuarMenuDistrict = null;
 
 // Bir üye partinin belirli bir çevrede yarışıp yarışmadığı.
-/* Bir üye o çevrede kendi listesiyle yarışıyor mu?
-   districtMap hiç yoksa ya da üyenin kaydı yoksa YARIŞIYOR sayılır — klasik
-   ittifak davranışı budur. Ancak üye için açık bir liste varsa ona bakılır. */
-function ittifakYarisiyor(fl, m, dName) {
-    if (!fl || !fl.districtMap) return true;
-    const liste = fl.districtMap ? fl.districtMap[m] : null;
-    if (!Array.isArray(liste)) return true;
-    return liste.includes(dName);
-}
-
-/* Yarışmayan üyenin o çevrede desteklediği hedef.
-   '' → ittifak geneli (yarışan üyelere oyları oranında pay edilir)
-   ad → yalnız o üyeye gider; o üye orada yarışmıyorsa ittifak geneline düşer */
-function ittifakDestegi(fl, m, dName) {
-    const d = fl && fl.destek && fl.destek[m];
-    if (!d) return '';
-    return (typeof d === 'string') ? d : (d[dName] || '');
-}
-
 function fermuarCompetingIn(fl, dName) {
-    if (!fl) return [];
-    return fl.members.filter(m => ittifakYarisiyor(fl, m, dName));
+    if (!fl || !fl.districtMap) return [];
+    return fl.members.filter(m => (fl.districtMap[m] || []).includes(dName));
 }
 
 // Bir fermuar listesinin her çevrede kazandığı toplam vekil sayısı.
@@ -5669,54 +5556,26 @@ function renderFermuarMenu(dName) {
 
     menu.innerHTML = `<div class="fm-head"><span>${escapeStr(dName)}</span>
             <button class="fm-close" onclick="closeFermuarMenu()" title="Kapat">✕</button></div>` +
-        fl.members.map(m => {
-            const yarisiyor = comp.includes(m);
-            // Yarışmayan üyeye destek hedefi seçilir: ittifak geneli ya da
-            // yarışan üyelerden biri. Yarışan üyede seçici anlamsız, gösterilmez.
-            const hedef = ittifakDestegi(fl, m, dName);
-            const secici = yarisiyor ? '' : `<select class="fm-destek"
-                    onchange="fermuarDestekSec('${escapeStr(m)}','${escapeStr(dName)}',this.value)"
-                    onclick="event.preventDefault();event.stopPropagation();"
-                    title="Bu çevrede kimi destekliyor">
-                <option value=""${hedef ? '' : ' selected'}>İttifak geneli</option>
-                ${fl.members.filter(x => x !== m && comp.includes(x)).map(x =>
-                    `<option value="${escapeStr(x)}"${hedef === x ? ' selected' : ''}>${escapeStr(x)}</option>`).join('')}
-            </select>`;
-            return `<label class="fm-opt">
-            <input type="checkbox" ${yarisiyor ? 'checked' : ''}
+        fl.members.map(m => `<label class="fm-opt">
+            <input type="checkbox" ${comp.includes(m) ? 'checked' : ''}
                    onchange="fermuarMenuToggle('${escapeStr(m)}','${escapeStr(dName)}')">
             <span class="fm-swatch" style="background:${getPartyColor(m)};"></span>
-            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeStr(m)}</span>
-            ${secici}
-        </label>`; }).join('') +
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeStr(m)}</span>
+        </label>`).join('') +
         (comp.length === 0
-            ? '<div class="fm-note">⚠️ Hiçbir parti işaretli değil — bu çevrede ittifakın hiçbir üyesi liste vermiyor.</div>'
+            ? '<div class="fm-note">⚠️ Hiçbir parti işaretli değil — bu çevrede fermuar listesi hiç uygulanmaz, üyeler ayrı ayrı yarışır.</div>'
             : comp.length === fl.members.length && fl.members.length > 1
-                ? '<div class="fm-note">Tüm üyeler yarışıyor — oy aktarımı olmaz, klasik ittifak davranışı.</div>'
+                ? '<div class="fm-note">Tüm üyeler işaretli — oy aktarımı olmaz, partiler bu çevrede ayrı ayrı yarışır.</div>'
                 : comp.length > 1
                     ? '<div class="fm-note">Birden fazla parti yarışıyor: oylar aralarında paylaşılır.</div>'
                     : '');
 }
-
-/* Yarışmayan üyenin bu çevredeki destek hedefi. Boş değer = ittifak geneli. */
-window.fermuarDestekSec = function(partyName, dName, hedef) {
-    const fl = electoralAlliances[fermuarMapEditIdx];
-    if (!fl) return;
-    takeSnapshot();
-    fl.destek = fl.destek || {};
-    const d = fl.destek[partyName] = (typeof fl.destek[partyName] === 'object' && fl.destek[partyName]) || {};
-    if (hedef) d[dName] = hedef; else delete d[dName];
-    if (!Object.keys(d).length) delete fl.destek[partyName];
-    renderFermuarMenu(dName); renderFermuar();
-    if (Object.keys(globalResults).length > 0) runProjection();
-};
 
 window.fermuarMenuToggle = function(partyName, dName) {
     const fl = fermuarListes[fermuarMapEditIdx];
     if (!fl) return;
     takeSnapshot();
     if (!fl.districtMap) fl.districtMap = {};
-    fl.districtMap = fl.districtMap || {};
     if (!fl.districtMap[partyName]) fl.districtMap[partyName] = [];
     const arr = fl.districtMap[partyName];
     const pos = arr.indexOf(dName);
@@ -5766,21 +5625,19 @@ document.addEventListener('keydown', (e) => {
 });
 
 function renderFermuar() {
-    if (!$('allianceArea')) return;
+    if (!$('fermuarArea')) return;
     const allParties = extraParties.map(e => e.name).sort((a, b) => a.localeCompare(b, 'tr'));
     const districts = getMasterDistricts();
 
     // Scroll pozisyonlarını render öncesi kaydet
     const scrollSave = {};
-    $('allianceArea').querySelectorAll('[data-fg-grid]').forEach(el => {
+    $('fermuarArea').querySelectorAll('[data-fg-grid]').forEach(el => {
         scrollSave[el.dataset.fgGrid] = el.scrollTop;
     });
 
-    $('allianceArea').innerHTML = electoralAlliances.map((fl, idx) => {
+    $('fermuarArea').innerHTML = fermuarListes.map((fl, idx) => {
         const memberRows = fl.isOpen ? fl.members.map((m, mIdx) => {
-            // Kaydı olmayan üye her çevrede yarışıyor demek; ızgara da öyle göstersin.
-            const assigned = (fl.districtMap && Array.isArray(fl.districtMap[m]))
-                ? fl.districtMap[m] : districts;
+            const assigned = fl.districtMap[m] || [];
             const isDistOpen = (fl.openParties || {})[m];
             const gridKey = `${idx}-${mIdx}`;
             const distGrid = isDistOpen && districts.length > 0 ? `
@@ -5797,20 +5654,19 @@ function renderFermuar() {
                     <div style="width:9px;height:9px;border-radius:50%;background:${getPartyColor(m)};flex-shrink:0;"></div>
                     <span style="font-weight:bold;font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m}</span>
                     <span style="font-size:10px;color:var(--text-secondary);white-space:nowrap;">${assigned.length} çevre</span>
-                    <button onclick="electoralAlliances[${idx}].districtMap['${escapeStr(m)}']=[];renderFermuar();if(Object.keys(globalResults).length>0)runProjection();" style="font-size:9px;padding:2px 4.5px;background:var(--surface-alt);color:var(--text-secondary);border:1px solid var(--border);border-radius:4px;cursor:pointer;white-space:nowrap;">Temizle</button>
+                    <button onclick="fermuarListes[${idx}].districtMap['${escapeStr(m)}']=[];renderFermuar();if(Object.keys(globalResults).length>0)runProjection();" style="font-size:9px;padding:2px 4.5px;background:var(--surface-alt);color:var(--text-secondary);border:1px solid var(--border);border-radius:4px;cursor:pointer;white-space:nowrap;">Temizle</button>
                     <button onclick="toggleFermuarPartyOpen(${idx},'${escapeStr(m)}')" style="font-size:11px;width:20px;height:20px;padding:0;background:var(--highlight-bg);color:var(--primary);border:1px solid var(--primary);border-radius:4px;cursor:pointer;flex-shrink:0;">${isDistOpen ? '▲' : '▼'}</button>
                 </div>
                 ${distGrid}
             </div>`;
         }).join('') : '';
 
-        return `<div class="data-row" style="border-left-color:var(--primary);" onmousedown="if(event.target.tagName==='INPUT')this.removeAttribute('draggable');else this.setAttribute('draggable','true');" ondragstart="handleDragStart(event,'alliance',${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event,'alliance',${idx})">
+        return `<div class="data-row" style="border-left-color:var(--primary);" onmousedown="if(event.target.tagName==='INPUT')this.removeAttribute('draggable');else this.setAttribute('draggable','true');" ondragstart="handleDragStart(event,'fermuar',${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event,'fermuar',${idx})">
             <div class="flex-row" style="margin-bottom:0;">
                 <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
-                <button class="toggle-btn" onclick="electoralAlliances[${idx}].isOpen=!electoralAlliances[${idx}].isOpen;renderFermuar()">${fl.isOpen ? '▲' : '▼'}</button>
-                <div title="Rengi Değiştir" style="width:22px; height:22px; border-radius:50%; background:${fl.color || '#888888'}; cursor:pointer; flex-shrink:0;" onclick="updateColorModal('alliance', ${idx})"></div>
-                <button class="status-btn ${fl.isEnabled !== false ? 'active' : 'pasif'}"  onclick="electoralAlliances[${idx}].isEnabled=!(electoralAlliances[${idx}].isEnabled!==false);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();" title="${fl.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${fl.isEnabled !== false ? 'A' : 'P'}</button>
-                <input type="text" class="editable-name" value="${escapeStr(fl.name)}" onchange="renameAlliance(${idx},this.value)" onkeyup="if(event.key==='Enter')this.blur()">
+                <button class="toggle-btn" onclick="fermuarListes[${idx}].isOpen=!fermuarListes[${idx}].isOpen;renderFermuar()">${fl.isOpen ? '▲' : '▼'}</button>
+                <button class="status-btn ${fl.isEnabled !== false ? 'active' : 'pasif'}"  onclick="fermuarListes[${idx}].isEnabled=!(fermuarListes[${idx}].isEnabled!==false);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();" title="${fl.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${fl.isEnabled !== false ? 'A' : 'P'}</button>
+                <input type="text" class="editable-name" value="${escapeStr(fl.name)}" onchange="renameFermuar(${idx},this.value)" onkeyup="if(event.key==='Enter')this.blur()">
                 <button onclick="fermuarOtomatik(${idx})" style="flex-shrink:0;padding:2.5px 6px;background:var(--surface-alt);color:var(--text-secondary);border:1px solid var(--border);border-radius:5px;font-size:10px;font-weight:bold;cursor:pointer;white-space:nowrap;" title="Çevreleri üyeler arasında otomatik paylaştır">&#9889; Otomatik</button>
                 <button onclick="toggleFermuarMapEdit(${idx})" style="flex-shrink:0;padding:3.5px 7px;background:${fermuarMapEditIdx === idx ? 'var(--primary)' : 'var(--highlight-bg)'};color:${fermuarMapEditIdx === idx ? '#fff' : 'var(--primary)'};border:1px solid var(--primary);border-radius:6px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;" title="Haritadan tıklayarak ata">🗺️ ${fermuarMapEditIdx === idx ? 'Haritada: AÇIK' : 'Haritadan Ayarla'}</button>
                 <button class="danger" onclick="takeSnapshot();fermuarListes.splice(${idx},1);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();">✖</button>
@@ -5833,7 +5689,7 @@ function renderFermuar() {
     }).join('');
 
     // Scroll pozisyonlarını geri yükle
-    $('allianceArea').querySelectorAll('[data-fg-grid]').forEach(el => {
+    $('fermuarArea').querySelectorAll('[data-fg-grid]').forEach(el => {
         if (scrollSave[el.dataset.fgGrid] !== undefined) el.scrollTop = scrollSave[el.dataset.fgGrid];
     });
 }
@@ -5938,7 +5794,6 @@ window.fermuarOtomatik = function(idx) {
 
     takeSnapshot();
     fl.districtMap = {};
-    fl.districtMap = {};
     uyeler.forEach(m => { fl.districtMap[m] = []; });
     cevreler.forEach(d => { fl.districtMap[atanan[d]].push(d); });
     // Listede olup ülke oranı çözülemeyen üyeler boş kalır (saf destekçi)
@@ -5964,7 +5819,6 @@ window.toggleFermuarMember = function(flIdx, partyName, checked) {
         // hicbir yerde liste vermemis sayiliyor ve oyu aninda ortaklarina
         // devrediliyordu; kullanicinin once 87 cevreyi tek tek isaretlemesi
         // gerekiyordu. Yarismadigi yerleri cikarmak, hepsini eklemekten kolay.
-        fl.districtMap = fl.districtMap || {};
         if (!fl.districtMap[partyName]) {
             let tumu = [];
             try { tumu = getMasterDistricts(); } catch (e) { tumu = []; }
@@ -5991,7 +5845,6 @@ window.toggleFermuarPartyOpen = function(flIdx, partyName) {
 window.toggleFermuarDistrict = function(flIdx, partyName, distName) {
     const fl = fermuarListes[flIdx];
     if (!fl.districtMap) fl.districtMap = {};
-    fl.districtMap = fl.districtMap || {};
     if (!fl.districtMap[partyName]) fl.districtMap[partyName] = [];
     const arr = fl.districtMap[partyName];
     const pos = arr.indexOf(distName);
@@ -6162,31 +6015,14 @@ function applyProjectData(data) {
         color: a.color || '#000000'
     }));
 
-    // ── Eski iki listeli biçimden tek ittifak biçimine göç ──
-    // Aynı adlı ya da üyeleri örtüşen fermuar listesi, ittifaka çevre haritası
-    // olarak bağlanır. Karşılığı olmayan fermuar listesi kendi başına ittifak
-    // olur. Arşivdeki eski dosyalar böylece aynen açılır.
-    (data.fermuarListes || []).forEach(fl => {
-        const uyeler = fl.members || [];
-        let it = electoralAlliances.find(a => a.name === fl.name);
-        if (!it) {
-            it = electoralAlliances.find(a =>
-                uyeler.length && uyeler.every(m => a.members.includes(m)));
-        }
-        if (!it) {
-            it = { name: fl.name, members: uyeler.slice(), color: fl.color || '#888888',
-                   isOpen: false, isEnabled: fl.isEnabled !== false };
-            electoralAlliances.push(it);
-        }
-        uyeler.forEach(m => { if (!it.members.includes(m)) it.members.push(m); });
-        it.districtMap = fl.districtMap || {};
-        if (fl.destek) it.destek = fl.destek;
-    });
-    electoralAlliances.forEach(a => {
-        a.districtMap = a.districtMap || null;   // null = herkes her yerde yarışıyor
-        a.destek = a.destek || {};
-        a.openParties = {};
-    });
+    fermuarListes = (data.fermuarListes || []).map(fl => ({
+        ...fl,
+        isOpen: fl.isOpen !== false,
+        isEnabled: fl.isEnabled !== false,
+        members: fl.members || [],
+        districtMap: fl.districtMap || {},
+        openParties: {}
+    }));
 
     digerGroups = (data.digerGroups || []).map(d => ({
         ...d,
@@ -6289,7 +6125,6 @@ function applyProjectData(data) {
     if (data.mudahale) {
         // Alan varsa kullanıcının kaydı geçerli; yoksa (eski/arşiv projeleri) açık.
         mudahaleAcik = data.mudahale.enabled !== false;
-        mudahaleTelafi = (data.mudahale.telafi === 'ulke') ? 'ulke' : 'il';
         mudahaleKatmanlari = Array.isArray(data.mudahale.katmanlar)
             ? data.mudahale.katmanlar.filter(k => k && k.tip && k.hedef && k.parti && k.seviye)
             : [];
@@ -6718,11 +6553,7 @@ function runProjection(elle) {
             // Keskinlikten SONRA uygulanır; keskinlik veri tabanının kendi
             // farklarını ölçekler, müdahale ise kullanıcının elle koyduğu
             // bir tercihtir ve o ölçeklemeye tabi olmamalı.
-            if (mudahaleAcik) {
-                epScore *= mudahaleCarpani('il', dName, ep.name);
-                // 'ulke' kipinde ilçe müdahaleleri çevre toplamını da değiştirir.
-                epScore *= cevreIlceCarpani(dName, ep.name);
-            }
+            if (mudahaleAcik) epScore *= mudahaleCarpani('il', dName, ep.name);
             scoreMap[ep.name] = epScore * ((baseTargetNat[ep.name] || 0) / 100);
         });
 
@@ -6745,41 +6576,28 @@ function runProjection(elle) {
             const competing = fl.members.filter(m =>
                 originalScoreSnapshot[m] !== undefined &&
                 !fermuarZeroed.has(m) &&
-                ittifakYarisiyor(fl, m, dName)
+                (fl.districtMap[m] || []).includes(dName)
             );
             const notCompeting = fl.members.filter(m =>
                 originalScoreSnapshot[m] !== undefined &&
-                !ittifakYarisiyor(fl, m, dName)
+                !(fl.districtMap[m] || []).includes(dName)
             );
             if (competing.length === 0 || notCompeting.length === 0) return;
+            const redistributeSum = notCompeting.reduce((s, m) => s + originalScoreSnapshot[m], 0);
             const competingTotal = competing.reduce((s, m) => s + originalScoreSnapshot[m], 0);
             notCompeting.forEach(m => { scoreMap[m] = 0; fermuarZeroed.add(m); });
-
-            // Her yarışmayan üyenin oyu KENDİ destek hedefine gider.
-            // Hedef boşsa ya da hedef orada yarışmıyorsa ittifak geneline düşer:
-            // yarışan üyelere kendi oyları oranında (oy yoksa eşit) dağılır.
-            notCompeting.forEach(d => {
-                const pay = originalScoreSnapshot[d];
-                if (!(pay > 0)) return;
-                const hedef = ittifakDestegi(fl, d, dName);
-                if (hedef && competing.includes(hedef)) {
-                    scoreMap[hedef] += pay;
-                    bilesenEkle(hedef, d, pay);
-                    return;
-                }
-                if (competingTotal > 0) {
-                    competing.forEach(m => {
-                        const oran = originalScoreSnapshot[m] / competingTotal;
-                        scoreMap[m] += oran * pay;
-                        bilesenEkle(m, d, oran * pay);
-                    });
-                } else {
-                    competing.forEach(m => {
-                        scoreMap[m] += pay / competing.length;
-                        bilesenEkle(m, d, pay / competing.length);
-                    });
-                }
-            });
+            if (competingTotal > 0) {
+                competing.forEach(m => {
+                    const oran = originalScoreSnapshot[m] / competingTotal;
+                    scoreMap[m] += oran * redistributeSum;
+                    notCompeting.forEach(d => bilesenEkle(m, d, oran * originalScoreSnapshot[d]));
+                });
+            } else {
+                competing.forEach(m => {
+                    scoreMap[m] += redistributeSum / competing.length;
+                    notCompeting.forEach(d => bilesenEkle(m, d, originalScoreSnapshot[d] / competing.length));
+                });
+            }
         });
 
         // Kayan nokta artığı temizleme: sıfırlanmış partilerde epsilon kalmasın
@@ -7749,11 +7567,11 @@ document.addEventListener('keydown', function(e) {
 // Bir varlık, verilen çevrede fermuar listesi yüzünden yarışmıyor mu?
 // (Üyeye hiç çevre atanmamış olması da buraya girer: oyunun tamamını devreder.)
 function isFermuarSupporter(entity, dName) {
-    return electoralAlliances.some(fl =>
+    return fermuarListes.some(fl =>
         fl.isEnabled !== false &&
         fl.members.includes(entity) &&
-        fl.members.some(m => ittifakYarisiyor(fl, m, dName)) &&
-        !ittifakYarisiyor(fl, entity, dName)
+        fl.members.some(m => (fl.districtMap[m] || []).includes(dName)) &&
+        !(fl.districtMap[entity] || []).includes(dName)
     );
 }
 
@@ -7790,7 +7608,7 @@ function _snapshotEngineState() {
 }
 function _restoreEngineState(b) {
     extraParties = b.extraParties; coalitions = b.coalitions;
-    electoralAlliances = b.electoralAlliances;   // fermuarListes onun takma adı
+    electoralAlliances = b.electoralAlliances; fermuarListes = b.fermuarListes;
     digerGroups = b.digerGroups; digerDisplayEnabled = b.digerDisplayEnabled;
     customSeatOverrides = b.customSeatOverrides; parliamentOrderOverride = b.parliamentOrderOverride;
     localDisabledParties = b.localDisabledParties;
@@ -8053,15 +7871,13 @@ function renderComparePanel() {
 //   • Değilse → localDisabledParties (çevrede pasif) kullanılır; parti o çevrede
 //     yarışmaz ve oyu dağıtılmaz.
 function fermuarListOf(party) {
-    return electoralAlliances.find(fl => fl.isEnabled !== false && fl.members.includes(party)) || null;
+    return fermuarListes.find(fl => fl.isEnabled !== false && fl.members.includes(party)) || null;
 }
 
 function getCompetingDistricts(party) {
     const all = getMasterDistricts();
     const fl = fermuarListOf(party);
-    if (fl && fl.districtMap && Array.isArray(fl.districtMap[party])) {
-        return new Set(fl.districtMap[party]);
-    }
+    if (fl) return new Set(fl.districtMap[party] || []);
     return new Set(all.filter(d => !(localDisabledParties[d] && localDisabledParties[d].has(party))));
 }
 
@@ -8070,7 +7886,6 @@ function setCompetingDistricts(party, set) {
     const fl = fermuarListOf(party);
     if (fl) {
         if (!fl.districtMap) fl.districtMap = {};
-        fl.districtMap = fl.districtMap || {};
         fl.districtMap[party] = all.filter(d => set.has(d));
         renderFermuar();
     } else {
@@ -8355,30 +8170,15 @@ window.apply2023Mode = async function(sessiz) {
         // Fermuar listeleri: ittifak ortakları bazı çevrelerde liste vermemiş
         // (örn. Bayburt'ta CHP yok, İYİ Parti var). Çevre atamaları doğrudan
         // resmi sonuçtan okunduğu için birbirlerine destek doğru modellenir.
-        // Şablondaki fermuar listeleri aynı adlı ittifaka çevre haritası olarak
-        // bağlanır; karşılığı yoksa kendi başına ittifak olur.
-        Object.entries(sab.fermuarListeleri || {}).forEach(([ad, f]) => {
+        fermuarListes = Object.entries(sab.fermuarListeleri || {}).map(([ad, f]) => {
             const dm = {};
             Object.entries(f.cevreler || {}).forEach(([uye, cevreler]) => {
                 const k = _coz(uye);
                 if (k) dm[k] = cevreler.slice();
             });
-            const uyeler = _cozListe(f.uyeler);
-            if (uyeler.length < 2) return;
-            let it = electoralAlliances.find(a => a.name === ad)
-                  || electoralAlliances.find(a => uyeler.every(m => a.members.includes(m)));
-            if (!it) {
-                it = { name: ad, members: uyeler.slice(), color: (typeof _ittRenk2023 !== 'undefined' ? _ittRenk2023[ad] : (typeof _ittRenk2018 !== 'undefined' ? _ittRenk2018[ad] : null)) || '#888888',
-                       isOpen: false, isEnabled: true };
-                electoralAlliances.push(it);
-            }
-            uyeler.forEach(m => { if (!it.members.includes(m)) it.members.push(m); });
-            it.districtMap = dm;
-        });
-        electoralAlliances.forEach(a => {
-            if (a.districtMap === undefined) a.districtMap = null;
-            a.destek = a.destek || {}; a.openParties = {};
-        });
+            return { name: ad, members: _cozListe(f.uyeler), districtMap: dm,
+                     openParties: {}, isOpen: false, isEnabled: true };
+        }).filter(f => f.members.length > 1);
 
         if (_eksik.length) console.warn('2023 şablonu — karşılığı bulunamayan üye adı:',
                                         [...new Set(_eksik)]);
@@ -8470,7 +8270,7 @@ window.apply2002Mode = async function(sessiz) {
         }));
 
         // 6) 2002'de ittifak ya da fermuar listesi yok
-        electoralAlliances = [];
+        electoralAlliances = []; fermuarListes = [];
         coalitions = []; digerGroups = [];
         localDisabledParties = {};
         const _koddan = {};
@@ -8571,10 +8371,7 @@ window.apply2018Mode = async function(sessiz) {
                                         [...new Set(_eksik)]);
 
         // 2018'de ortaklar her çevrede kendi listesiyle girdi; fermuar gerekmez.
-        // 2018'de ortaklar her çevrede kendi listesiyle girdi: çevre haritası
-        // yok, yani tüm üyeler her yerde yarışıyor. İttifakların kendisi durur.
-        electoralAlliances.forEach(a => { a.districtMap = null; a.destek = {}; });
-        coalitions = []; digerGroups = [];
+        fermuarListes = []; coalitions = []; digerGroups = [];
         localDisabledParties = {};
         // Parlamento dizilimi sablondan; kodla yazildigi icin parti adi
         // degisse de kopmaz. Listede olmayan partiler koltuk sayisina gore
@@ -9346,12 +9143,10 @@ function renderDistrictOverlay() {
 
     // Fermuar listesindeki bir üye bu seçim çevresinde yarışmıyorsa (oyu diğer üyelere devredildi),
     // burada %0,00 olarak listelenmemeli — o çevrede zaten aday değil, "show all" ile bile görünmemeli.
-    // districtMap artık null olabiliyor (klasik ittifak = herkes her yerde
-    // yarışıyor); doğrudan indekslemek paneli çökertiyordu.
-    const isFermuarNonCompeting = (p) => electoralAlliances.some(fl =>
+    const isFermuarNonCompeting = (p) => fermuarListes.some(fl =>
         fl.isEnabled !== false &&
         fl.members.includes(p) &&
-        !ittifakYarisiyor(fl, p, dName)
+        !(fl.districtMap[p] || []).includes(dName)
     );
 
     // Gösterilecek oy oranı: haritadaki hover kutusuyla birebir aynı hesap — güncel geçerli
@@ -9671,7 +9466,6 @@ function _captureState() {
             pluralityWhite: $('pluralityWhiteInp') ? $('pluralityWhiteInp').value : undefined,
             showMVDots: $('showMVDotsInp') ? $('showMVDotsInp').checked : undefined,
             mudahaleAcik: mudahaleAcik,
-            mudahaleTelafi: mudahaleTelafi,
             darBolge: darBolgeAcik,
             mudahaleKatmanlari: JSON.parse(JSON.stringify(mudahaleKatmanlari)),
             hideBuyuk: $('hideBuyukInp') ? $('hideBuyukInp').checked : undefined,
@@ -9690,6 +9484,7 @@ function restoreSnapshot(snap) {
     extraParties = JSON.parse(JSON.stringify(snap.extraParties));
     coalitions = JSON.parse(JSON.stringify(snap.coalitions));
     electoralAlliances = JSON.parse(JSON.stringify(snap.electoralAlliances));
+    fermuarListes = JSON.parse(JSON.stringify(snap.fermuarListes));
     digerGroups = JSON.parse(JSON.stringify(snap.digerGroups));
     customSeatOverrides = JSON.parse(JSON.stringify(snap.customSeatOverrides));
     if (snap.parliamentOrderOverride) parliamentOrderOverride = JSON.parse(JSON.stringify(snap.parliamentOrderOverride));
@@ -9718,7 +9513,6 @@ function restoreSnapshot(snap) {
     }
     if (s.mudahaleKatmanlari) {
         mudahaleAcik = !!s.mudahaleAcik;
-        if (s.mudahaleTelafi) mudahaleTelafi = s.mudahaleTelafi;
         mudahaleKatmanlari = JSON.parse(JSON.stringify(s.mudahaleKatmanlari));
         _mudahaleDizin = null; renderMudahale();
     }
@@ -10340,9 +10134,7 @@ async function captureDistrictPanelFallback() {
 function projeVerisiUret() {
     return {
         meta: { version: "10.1-lean", date: new Date().toISOString() },
-        extraParties, coalitions, electoralAlliances, digerGroups, digerDisplayEnabled, customSeatOverrides, customDotPositions, parliamentOrderOverride,
-        // Eski sürümlerle açılabilsin diye boş bırakılır; tüm bilgi ittifaklarda.
-        fermuarListes: [],
+        extraParties, coalitions, electoralAlliances, fermuarListes, digerGroups, digerDisplayEnabled, customSeatOverrides, customDotPositions, parliamentOrderOverride,
         // Bağımsız blok verisi ve durumu
         independents: { enabled: independentsEnabled, cevreler: independentShares },
         // Kıyas projeksiyonu da projeyle birlikte taşınır.
@@ -10354,7 +10146,7 @@ function projeVerisiUret() {
         compare: kiyasKaydi(),
         // Müdahale katmanları ayrı bir katman olarak taşınır; motorun girdisi
         // değil, kullanıcının üzerine koyduğu yerel tercihlerdir.
-        mudahale: { enabled: mudahaleAcik, telafi: mudahaleTelafi, katmanlar: mudahaleKatmanlari },
+        mudahale: { enabled: mudahaleAcik, katmanlar: mudahaleKatmanlari },
         darBolge: darBolgeAcik,
         // Nüfus verisi ve modu da projeyle taşınır
         population: { mode: populationMode, total: populationTotal, cevreler: populationData },
@@ -10459,6 +10251,7 @@ function executeClear() {
     extraParties = [];
     coalitions = [];
     electoralAlliances = [];
+    fermuarListes = [];
     digerGroups = [];
     ensureDigerGroup();
     parliamentOrderOverride = [];
