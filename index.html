@@ -3961,6 +3961,19 @@ function fmtPctInput(num) {
     return (Math.round(num * 100) / 100).toFixed(2).replace('.', ',');
 }
 
+// Benzerlik oranları için: en az BİR ondalık basamak, fazlası girilirse korunur.
+// fmtPctInput iki haneye yuvarladığı için "84,5" yazan kullanıcı "84,50" görüyor,
+// daha hassas bir ağırlık (örn. "2,125") yazan ise sessizce "2,13"e kırpılıyordu.
+// Burada yalnızca alt sınır sabit: "1" → "1,0", ama "84,55" ve "2,125" olduğu gibi kalır.
+function fmtSimInput(num) {
+    if (num === null || num === undefined || isNaN(num)) return '';
+    // 1e-6'ya yuvarlama, /100 ile *100 gidiş dönüşünün bıraktığı kayan nokta
+    // artığını temizler (0,845 → 84.50000000000001 → "84,5").
+    let s = (Math.round(num * 1e6) / 1e6).toFixed(6).replace(/0+$/, '');
+    if (s.endsWith('.')) s += '0';
+    return s.replace('.', ',');
+}
+
 // Partilerin etkin ülke geneli toplamı: "Diğer" kategorisinin hedef toplamı
 // doldurulmuşsa üyeler o toplama orantılı ölçeklenmiş sayılır. Motor da aynı
 // hesabı yaptığı için sayaç ile sonuç birbirini tutar.
@@ -5226,7 +5239,7 @@ function partyRowHtml(ep, idx, inDiger, sortedGlobal) {
                 ${sortedGlobal.map(p => `
                     <div class="sim-input-box">
                         <span title="${escapeStr(p)}">${p}</span>
-                        <input type="text" inputmode="decimal" placeholder="%" value="${fmtPctInput((ep.similarity[p]||0)*100)}" onchange="extraParties[${idx}].similarity['${escapeStr(p)}']=parsePctInputOrZero(this.value)/100">
+                        <input type="text" inputmode="decimal" placeholder="%" value="${fmtSimInput((ep.similarity[p]||0)*100)}" onchange="extraParties[${idx}].similarity['${escapeStr(p)}']=parsePctInputOrZero(this.value)/100; this.value=fmtSimInput(parsePctInputOrZero(this.value))">
                     </div>
                 `).join('')}
             </div>
@@ -6780,82 +6793,14 @@ function runProjection(elle) {
             scoreMap[ep.name] = epScore * ((baseTargetNat[ep.name] || 0) / 100);
         });
 
-        // Fermuar liste oy aktarımı: yarışmayan üyelerin oyları yarışanlara orantılı dağılır
-        // Birden fazla liste aynı partiyi etkileyebileceğinden orijinal skorlar baz alınır;
-        // böylece bir listenin sıfırladığı partiyi başka bir liste yanlışlıkla doldurmuyor.
-        const originalScoreSnapshot = {...scoreMap};
-        const fermuarZeroed = new Set();
-        // Devredilen oyun kimden geldiği: ilçe kırılımında her bileşen kendi
-        // ilçe dağılımıyla yayılsın diye tutulur.
-        const bilesenler = {};
-        const bilesenEkle = (alici, kaynak, miktar) => {
-            const b = bilesenler[alici] || (bilesenler[alici] = {});
-            b[kaynak] = (b[kaynak] || 0) + miktar;
-        };
-
-        fermuarListes.forEach(fl => {
-            if (fl.isEnabled === false) return;
-            // Önceki liste tarafından sıfırlanmış partiler bu listenin competing'ine giremez
-            const competing = fl.members.filter(m =>
-                originalScoreSnapshot[m] !== undefined &&
-                !fermuarZeroed.has(m) &&
-                ittifakYarisiyor(fl, m, dName)
-            );
-            const notCompeting = fl.members.filter(m =>
-                originalScoreSnapshot[m] !== undefined &&
-                !ittifakYarisiyor(fl, m, dName)
-            );
-            if (competing.length === 0 || notCompeting.length === 0) return;
-            const competingTotal = competing.reduce((s, m) => s + originalScoreSnapshot[m], 0);
-            notCompeting.forEach(m => { scoreMap[m] = 0; fermuarZeroed.add(m); });
-
-            // Her yarışmayan üyenin oyu KENDİ destek hedefine gider.
-            // Hedef boşsa ya da hedef orada yarışmıyorsa ittifak geneline düşer:
-            // yarışan üyelere kendi oyları oranında (oy yoksa eşit) dağılır.
-            notCompeting.forEach(d => {
-                const pay = originalScoreSnapshot[d];
-                if (!(pay > 0)) return;
-                const hedef = ittifakDestegi(fl, d, dName);
-                if (hedef && competing.includes(hedef)) {
-                    scoreMap[hedef] += pay;
-                    bilesenEkle(hedef, d, pay);
-                    return;
-                }
-                if (competingTotal > 0) {
-                    competing.forEach(m => {
-                        const oran = originalScoreSnapshot[m] / competingTotal;
-                        scoreMap[m] += oran * pay;
-                        bilesenEkle(m, d, oran * pay);
-                    });
-                } else {
-                    competing.forEach(m => {
-                        scoreMap[m] += pay / competing.length;
-                        bilesenEkle(m, d, pay / competing.length);
-                    });
-                }
-            });
-        });
-
-        // Kayan nokta artığı temizleme: sıfırlanmış partilerde epsilon kalmasın
-        fermuarZeroed.forEach(m => { scoreMap[m] = 0; });
-
-        // Kırılımı oransal hâle getir. Çift-oranlı uyarlama alıcının satırını
-        // ve çevrenin sütununu tek katsayıyla ölçeklediği için bu oranlar
-        // nihai oyda da aynen geçerlidir.
-        const kaynak = {};
-        Object.keys(bilesenler).forEach(p => {
-            if (fermuarZeroed.has(p) || !(scoreMap[p] > 0)) return;
-            const b = { ...bilesenler[p] };
-            b[p] = (b[p] || 0) + (originalScoreSnapshot[p] || 0);
-            let t = 0;
-            Object.keys(b).forEach(k => { t += b[k]; });
-            if (t <= 0) return;
-            const o = {};
-            Object.keys(b).forEach(k => { if (b[k] > 0) o[k] = b[k] / t; });
-            if (Object.keys(o).length > 1) kaynak[p] = o;
-        });
-        kaynakByDistrict[dName] = kaynak;
-
+        // Fermuar liste oy aktarımı ARTIK BURADA DEĞİL — çift-oranlı uyarlamadan
+        // SONRA, nihai oylar üzerinde yapılıyor (aşağıya bak). Aktarım burada
+        // yapıldığında üyeler tek satır grubuna dönüşüyor, ülke hedefleri tek
+        // toplam hedefe kilitleniyor ve grup içi dağılım serbest kalıyordu:
+        // TİP'i bir ilde geri çekip DEM'i desteklemesini söylemek, ülke
+        // genelinde DEM'i DÜŞÜRÜP TİP'i YÜKSELTİYORDU. Skorlar burada
+        // dokunulmadan bırakılınca her parti kendi ülke hedefine bağlı kalır,
+        // aktarım da tam olarak devredilen oy kadar etki eder.
         // Bağımsız blok ve dağıtılmamış pay ayrılır; partiler kalan bütçe için yarışır.
         const bagFrac = independentFrac(dName) * bagimsizKatsayi;
         attractByDistrict[dName] = scoreMap;
@@ -6864,33 +6809,80 @@ function runProjection(elle) {
     });
 
     // ── Aşama 2: çift-oranlı uyarlama ──
-    // Fermuar listesi üyeleri tek satır grubu: oyunu devreden üyenin payı grubun
-    // içinde kalır, dışarı sızmaz. Grubun toplamı girilen değerlerin toplamına eşittir.
-    const _grupOf = {};
-    // YALNIZ gerçekten oy aktarımı olan ittifaklar tek satır grubu olur.
-    // Klasik ittifakta (çevre haritası yok ya da tüm üyeler her çevrede
-    // yarışıyor) üyeler arasında oy geçişi yoktur; gruplamak, üyelerin kendi
-    // ülke hedeflerini tek bir toplam hedefe kilitleyip aralarındaki dağılımı
-    // bölgesel çekime bırakıyordu. Sonuç: ittifak açılıp kapandıkça üyelerin
-    // oy oranları girdiden sapıyordu (büyük ortak düşüp küçükler yükseliyordu).
-    // İttifakın baraj ve 2018 sandalye modeline etkisi bundan bağımsız, devam ediyor.
-    const _tumCevreSayisi = masterDistrictNames.length;
-    electoralAlliances.forEach((fl, fi) => {
-        if (fl.isEnabled === false || !fl.districtMap) return;
-        const aktarimVar = (fl.members || []).some(m => {
-            const liste = fl.districtMap[m];
-            return Array.isArray(liste) && liste.length < _tumCevreSayisi;
-        });
-        if (!aktarimVar) return;
-        fl.members.forEach(m => { if (_grupOf[m] === undefined) _grupOf[m] = '__f' + fi; });
-    });
+    // Satır hedefleri PARTİ BAŞINA: her partinin ülke geneli oyu kendi girdisine
+    // bağlı kalır. (Fermuar üyelerini tek satır grubunda toplayan eski kurulum
+    // kaldırıldı; grup toplamı sabitlenip içindeki dağılım serbest kaldığı için
+    // oy devreden üye yükselip alan üye düşebiliyordu.)
     const _hedefOy = {};
     extraParties.forEach(ep => {
         if (ep.isEnabled === false) return;
-        const g = _grupOf[ep.name] || ep.name;
-        _hedefOy[g] = (_hedefOy[g] || 0) + (baseTargetNat[ep.name] || 0) * asimKatsayi / 100 * _tumOy;
+        _hedefOy[ep.name] = (_hedefOy[ep.name] || 0)
+            + (baseTargetNat[ep.name] || 0) * asimKatsayi / 100 * _tumOy;
     });
-    const fittedVotes = biproportionalFit(attractByDistrict, budgetByDistrict, _hedefOy, _grupOf);
+    const fittedVotes = biproportionalFit(attractByDistrict, budgetByDistrict, _hedefOy, {});
+
+    // ── Aşama 2b: fermuar liste oy aktarımı ──
+    // Yarışmayan üyenin O ÇEVREDEKİ nihai oyu, desteklediği ortağa geçer;
+    // hedefi yoksa yarışan üyelere kendi oyları oranında dağılır. Aktarım çevre
+    // içinde kaldığı için çevre toplamı değişmez; ülke toplamları ise tam olarak
+    // devredilen oy kadar kayar — alan yükselir, veren düşer.
+    masterDistrictNames.forEach(dName => {
+        const oylar = fittedVotes[dName];
+        if (!oylar) return;
+        const devredilen = new Set();
+        const bilesenler = {};                       // { alıcı: { kaynak: oy } }
+        const bilesenEkle = (alici, kaynak, miktar) => {
+            const b = bilesenler[alici] || (bilesenler[alici] = {});
+            b[kaynak] = (b[kaynak] || 0) + miktar;
+        };
+        fermuarListes.forEach(fl => {
+            if (fl.isEnabled === false) return;
+            // Önceki liste tarafından boşaltılmış parti bu listede alıcı olamaz.
+            const competing = fl.members.filter(m =>
+                oylar[m] !== undefined && !devredilen.has(m) && ittifakYarisiyor(fl, m, dName));
+            const notCompeting = fl.members.filter(m =>
+                oylar[m] !== undefined && !ittifakYarisiyor(fl, m, dName));
+            if (competing.length === 0 || notCompeting.length === 0) return;
+            // Oranlar dağıtım BAŞLAMADAN önceki oylara göre sabitlenir; yoksa
+            // ikinci çekilen üye, birincinin şişirdiği paydayı okuyup kayıyor.
+            const taban = {};
+            competing.forEach(m => { taban[m] = oylar[m] || 0; });
+            const competingTotal = competing.reduce((s, m) => s + taban[m], 0);
+            const paylar = {};
+            notCompeting.forEach(m => { paylar[m] = oylar[m] || 0; oylar[m] = 0; devredilen.add(m); });
+            notCompeting.forEach(d => {
+                const pay = paylar[d];
+                if (!(pay > 0)) return;
+                const hedef = ittifakDestegi(fl, d, dName);
+                if (hedef && competing.includes(hedef)) {
+                    oylar[hedef] += pay; bilesenEkle(hedef, d, pay); return;
+                }
+                if (competingTotal > 0) {
+                    competing.forEach(m => {
+                        const p = taban[m] / competingTotal * pay;
+                        oylar[m] += p; bilesenEkle(m, d, p);
+                    });
+                } else {
+                    competing.forEach(m => {
+                        oylar[m] += pay / competing.length;
+                        bilesenEkle(m, d, pay / competing.length);
+                    });
+                }
+            });
+        });
+        devredilen.forEach(m => { oylar[m] = 0; });   // kayan nokta artığı kalmasın
+        // İlçe kırılımı için kaynak payları: artık nihai oy üzerinden, kesin.
+        const kaynak = {};
+        Object.keys(bilesenler).forEach(p => {
+            if (devredilen.has(p) || !(oylar[p] > 0)) return;
+            const o = {};
+            Object.entries(bilesenler[p]).forEach(([k, v]) => { if (v > 0) o[k] = v / oylar[p]; });
+            const devir = Object.values(o).reduce((a, b) => a + b, 0);
+            if (devir < 1) o[p] = 1 - devir;         // partinin kendi payı
+            if (Object.keys(o).length > 1) kaynak[p] = o;
+        });
+        kaynakByDistrict[dName] = kaynak;
+    });
 
     // ── Aşama 3: çevre bazlı işlemler (müdahale, liste birleştirme, sandalye) ──
     masterDistrictNames.forEach(dName => {
@@ -7845,13 +7837,27 @@ function _snapshotEngineState() {
     });
     // Görünürlüğü ayara bağlı kaplar
     const wraps = {};
+    // applyProjectData bu setleri YERİNDE değiştirir (ds.weight/cells/perf ataması),
+    // yani datasets dizisini geri koymak yetmez: her setin değişen alanları da
+    // ayrıca tutulmalı. Alanlar yeniden atandığı için referans kopyası yeterli.
+    const dsFields = datasets.map(d => ({ ds: d, weight: d.weight, isEnabled: d.isEnabled,
+                                          cells: d.cells, perf: d.perf }));
     return {
-        wraps,
+        wraps, dsFields,
         extraParties, coalitions, electoralAlliances, fermuarListes, digerGroups,
         digerDisplayEnabled, customSeatOverrides, parliamentOrderOverride,
         localDisabledParties, datasets,
         populationData, populationOriginal, populationTotal, populationMode,
         districtPerf, districtElectorate, globalParties, globalResults,
+        // Aşağıdakiler eksikti: applyProjectData hepsini yazıyor ama geri
+        // konmuyordu, bu yüzden arşivden kıyas getirmek asıl projeksiyonu
+        // bozuyordu. En görünür etkisi müdahale katmanlarıydı: kıyas dosyasında
+        // "mudahale" alanı yoksa applyProjectData katmanları [] yapıyor ve
+        // sandalye dağılımı sessizce değişiyordu.
+        mudahaleAcik, mudahaleTelafi, mudahaleKatmanlari, _mudahaleDizin,
+        darBolgeAcik, mapColorMode, customDotPositions, activePartyFilter,
+        independentShares, independentOriginal, independentsEnabled,
+        compareEnabled, compareLabel, compareRaw, compareResults, compareParties,
         inputs, checks
     };
 }
@@ -7866,6 +7872,19 @@ function _restoreEngineState(b) {
     populationTotal = b.populationTotal; populationMode = b.populationMode;
     districtPerf = b.districtPerf; districtElectorate = b.districtElectorate;
     globalParties = b.globalParties; globalResults = b.globalResults;
+    (b.dsFields || []).forEach(f => {
+        f.ds.weight = f.weight; f.ds.isEnabled = f.isEnabled;
+        f.ds.cells = f.cells; f.ds.perf = f.perf;
+    });
+    mudahaleAcik = b.mudahaleAcik; mudahaleTelafi = b.mudahaleTelafi;
+    mudahaleKatmanlari = b.mudahaleKatmanlari; _mudahaleDizin = b._mudahaleDizin;
+    darBolgeAcik = b.darBolgeAcik; mapColorMode = b.mapColorMode;
+    customDotPositions = b.customDotPositions; activePartyFilter = b.activePartyFilter;
+    independentShares = b.independentShares; independentOriginal = b.independentOriginal;
+    independentsEnabled = b.independentsEnabled;
+    compareEnabled = b.compareEnabled; compareLabel = b.compareLabel;
+    compareRaw = b.compareRaw; compareResults = b.compareResults;
+    compareParties = b.compareParties;
     Object.entries(b.inputs).forEach(([id, v]) => { if ($(id)) $(id).value = v; });
     Object.entries(b.checks).forEach(([id, v]) => { if ($(id)) $(id).checked = v; });
     Object.entries(b.wraps || {}).forEach(([id, v]) => { if ($(id)) $(id).style.display = v; });
@@ -7876,12 +7895,20 @@ function _restoreEngineState(b) {
         dbtn.style.color       = digerDisplayEnabled ? 'white' : 'var(--text-secondary)';
         dbtn.style.borderColor = digerDisplayEnabled ? 'var(--danger)' : 'var(--border)';
     }
+    // Kıyas hesabı sırasında bu paneller kıyas dosyasının verisiyle çizilmişti;
+    // değişkenler geri geldiğine göre ekran da onlara eşitlenir.
+    renderMudahale(); renderIndependentPanel(); renderPopulationPanel(); renderDatasets();
 }
 
 // Referans projeksiyonu kendi ayarlarıyla hesaplar; global durum aynen geri konur.
 function computeCompareResults(data) {
     const backup = _snapshotEngineState();
     let out = null;
+    // Kıyas dosyasının KENDİ kıyası kurulmamalı: applyProjectData oradaki
+    // compare alanını görünce applyCompareProjection'ı yeniden çağırıyor ve
+    // panelde yanlış kıyas kalıyordu. Bayrak zaten bu iş için var.
+    const _oncekiBayrak = _applyingCompare;
+    _applyingCompare = true;
     try {
         applyProjectData(data);
         if (!Object.keys(districtPerf).length) throw new Error('veri tabanı boş kaldı');
@@ -7897,6 +7924,7 @@ function computeCompareResults(data) {
         console.error('Kıyas projeksiyonu hesaplanamadı:', err);
         out = null;
     } finally {
+        _applyingCompare = _oncekiBayrak;
         _restoreEngineState(backup);
     }
     return out;
@@ -8268,7 +8296,11 @@ function captureModeState() {
     // yalnızca moda özgü olanları ekliyoruz.
     return {
         core: _captureState(),
-        datasets: datasets.map(d => ({ id: d.id, weight: d.weight, isEnabled: d.isEnabled })),
+        // Hücreler de moda ait: yıl modları veri setini dokunulmamış hâline
+        // döndürdüğü için genel modun düzenlemeleri ancak burada saklanırsa
+        // geri dönüşte hayatta kalır. Alanlar yeniden atandığından referans yeter.
+        datasets: datasets.map(d => ({ id: d.id, weight: d.weight, isEnabled: d.isEnabled,
+                                       cells: d.cells, perf: d.perf })),
         populationTotal,
         populationOriginal: JSON.parse(JSON.stringify(populationOriginal)),
         independentShares: JSON.parse(JSON.stringify(independentShares)),
@@ -8279,7 +8311,10 @@ function captureModeState() {
 function restoreModeState(st) {
     datasets.forEach(d => {
         const m = st.datasets.find(x => x.id === d.id);
-        if (m) { d.weight = m.weight; d.isEnabled = m.isEnabled; }
+        if (m) {
+            d.weight = m.weight; d.isEnabled = m.isEnabled;
+            if (m.cells) { d.cells = m.cells; d.perf = m.perf; }
+        }
         else { d.weight = 0; d.isEnabled = false; }   // o modda hiç olmayan set kapalı
     });
     rebuildDistrictPerf(); renderDatasets();
@@ -8311,6 +8346,37 @@ function ilceArayuzunuTazele() {
         if (typeof mapLayer !== 'undefined' && mapLayer === 'ilce') toggleMapLayer();
     }
 }
+/* Yıl modları o seçimin RESMİ tablosunu yeniden üretir; kullanıcının genel
+   moddaki elle müdahaleleri ve dar bölge tercihi oraya taşınmamalı. Eskiden
+   taşınıyordu: Adana'ya tek bir müdahale katmanı koymak "2023 Seçimi" kıyasını
+   268/169 yerine 271/167 yapıyordu. Genel modun katmanları kaybolmaz —
+   switchProjectionMode ve loadCompareFromElection bu çağrıdan ÖNCE
+   captureModeState() ile o durumu zaten yedekliyor. */
+/* Yıl modu o seçimin resmî tablosunu yeniden üretir; bunun iki ön koşulu var:
+   çevre bütçesi gerçek geçerli oy olmalı ve veri seti kullanıcının genel
+   moddaki hücre düzenlemelerini taşımamalı. İkisi de sızıyordu —
+   "Milletvekiline Oranla" açıkken 2023 modu 268/169 yerine 268/174 veriyor,
+   genel modda düzenlenmiş tek bir hücre ise o çevreyi olduğu gibi bozuyordu
+   (Osmaniye'de MHP'yi öne geçirecek kadar). Genel modun düzenlemeleri
+   kaybolmaz: captureModeState artık hücreleri de yedekliyor. */
+function yilModuVeriSifirla(setId) {
+    populationMode = 'nufus';
+    activePartyFilter = null;
+    const ds = datasets.find(d => d.id === setId);
+    if (ds && ds.original) {
+        ds.cells = JSON.parse(JSON.stringify(ds.original));
+        refreshDatasetPerf(ds);
+    }
+}
+
+function yilModuMudahaleSifirla() {
+    mudahaleAcik = true; mudahaleTelafi = 'il';
+    mudahaleKatmanlari = []; _mudahaleDizin = null;
+    darBolgeAcik = false;
+    if ($('darBolgeInp')) $('darBolgeInp').checked = false;
+    renderMudahale();
+}
+
 function markModeButton(mode) {
     Object.entries(MOD_BTN).forEach(([m, id]) => {
         const b = $(id); if (b) b.classList.toggle('active', m === mode);
@@ -8374,6 +8440,7 @@ window.apply2023Mode = async function(sessiz) {
         //    gösteriyor; ayrıca '2023tam' diye ikinci bir kopya kaydetmek
         //    listede pasif bir eş yaratıyordu.
         datasets.forEach(d => { d.weight = (d.id === '2023') ? 1 : 0; d.isEnabled = (d.id === '2023'); });
+        yilModuVeriSifirla('2023');
         rebuildDistrictPerf(); renderDatasets();
 
         // 2) Çevre ağırlığı: gerçek geçerli oy
@@ -8459,6 +8526,7 @@ window.apply2023Mode = async function(sessiz) {
         ensureDigerGroup();
 
         // 6) Seçim ayarları
+        yilModuMudahaleSifirla();
         $('thresholdInp').value = fmtPctInput(sab.esikVarsayilan || 7);
         $('mathMethodInp').value = 'dhondt';
         $('calcMethodInp').value = 'classic';
@@ -8512,6 +8580,7 @@ window.apply2002Mode = async function(sessiz) {
 
         // 1) Yalnız 2002 veri seti
         datasets.forEach(d => { d.weight = (d.id === '2002') ? 1 : 0; d.isEnabled = (d.id === '2002'); });
+        yilModuVeriSifirla('2002');
         rebuildDistrictPerf(); renderDatasets();
 
         // 2) Çevre ağırlığı: 2002 geçerli oyu
@@ -8546,6 +8615,7 @@ window.apply2002Mode = async function(sessiz) {
         ensureDigerGroup();
 
         // 7) Seçim ayarları: %10 baraj, klasik D'Hondt
+        yilModuMudahaleSifirla();
         $('thresholdInp').value = fmtPctInput(sab.esikVarsayilan || 10);
         $('mathMethodInp').value = 'dhondt';
         $('calcMethodInp').value = 'classic';
@@ -8587,6 +8657,7 @@ window.apply2018Mode = async function(sessiz) {
         // 1) Veri seti: yalnız 2018 seti etkin kalır (config'teki '2018'
         //    girdisi zaten veri_2018_tam.json).
         datasets.forEach(d => { d.weight = (d.id === '2018') ? 1 : 0; d.isEnabled = (d.id === '2018'); });
+        yilModuVeriSifirla('2018');
         rebuildDistrictPerf(); renderDatasets();
 
         // 2) Çevre ağırlığı: gerçek geçerli oy
@@ -8650,6 +8721,7 @@ window.apply2018Mode = async function(sessiz) {
         ensureDigerGroup();
 
         // 7) Seçim ayarları — 2018 modeli
+        yilModuMudahaleSifirla();
         $('thresholdInp').value = fmtPctInput(sab.esikVarsayilan || 10);
         $('mathMethodInp').value = 'dhondt';
         $('calcMethodInp').value = 'alliance';

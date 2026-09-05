@@ -3,8 +3,13 @@
   "configurations": [
     {
       "name": "projeksiyon",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8731"],
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": [
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", ".claude/serve.ps1",
+        "-Port", "8731"
+      ],
       "port": 8731
     }
   ]
