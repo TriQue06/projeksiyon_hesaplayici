@@ -7400,10 +7400,6 @@ function renderResults(res){
         });
         if (bv > 0) entityNat[BAGIMSIZ_AD] = tv > 0 ? bv / tv * 100 : 0;
     }
-    const columns = Object.entries(entityNat)
-        .sort((a, b) => b[1] - a[1])
-        .map(([entity, nat]) => ({ entity, nat, color: getPartyColor(entity) }));
-
     // ── İttifak başlık gruplaması ──
     // Diğer grubuna maplenen partiler ittifak başlığına dahil edilmez
     const entityToAlliance = {};
@@ -7413,6 +7409,33 @@ function renderResults(res){
             if (!entityToAlliance[m]) entityToAlliance[m] = { name: a.name, color: a.color || '#888' };
         });
     });
+
+    // ── Sütun sırası: haritadaki vekil noktalarıyla AYNI kural ──
+    // (updateMapColors → mpList.sort ile birebir: önce ittifakın TOPLAM oyu,
+    // eşitlikte ittifak adı, en sonda partinin kendi oyu.) Tablo eskiden
+    // yalnızca partinin kendi oyuna bakıyordu; %28,7 + %7,3 + ...'lik Cumhur
+    // İttifakı toplamda %37,7 olmasına rağmen tek başına %29,6 alan partinin
+    // arkasına düşüyor, harita ile tablo birbirini tutmuyordu.
+    const _ittifakToplamOy = {};
+    Object.keys(entityNat).forEach(e => {
+        const al = entityToAlliance[e];
+        if (al) _ittifakToplamOy[al.name] = (_ittifakToplamOy[al.name] || 0) + entityNat[e];
+    });
+    const _grupSkoru = e => {
+        const al = entityToAlliance[e];
+        return al ? (_ittifakToplamOy[al.name] || 0) : (entityNat[e] || 0);
+    };
+    const _grupAdi = e => { const al = entityToAlliance[e]; return al ? al.name : e; };
+    const columns = Object.keys(entityNat)
+        .sort((a, b) => {
+            const ga = _grupSkoru(a), gb = _grupSkoru(b);
+            if (ga !== gb) return gb - ga;
+            const na = _grupAdi(a), nb = _grupAdi(b);
+            if (na !== nb) return na.localeCompare(nb);
+            return (entityNat[b] || 0) - (entityNat[a] || 0);
+        })
+        .map(entity => ({ entity, nat: entityNat[entity], color: getPartyColor(entity) }));
+
     const allianceOrder = [];
     const allianceGroupMap = {};
     columns.forEach(col => {
