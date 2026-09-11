@@ -1200,6 +1200,12 @@
         .cb-aday-ad:focus { border-color: var(--border); background: var(--input-bg); outline: none; }
         .cb-aday-pay { font-size: 12.5px; font-weight: 900; white-space: nowrap;
                        font-variant-numeric: tabular-nums; }
+        .cb-aday-satir .drag-handle { padding: 3.5px 0; }
+        #styleFotoCol .icon-modal-grid { flex: 0 0 auto; }   /* boş not ızgaranın hemen altında dursun */
+        .icon-pick-box.foto-kutu { padding: 0; overflow: hidden; }
+        .icon-pick-box.foto-kutu img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .cb-aday-satir.drag-over { background: var(--table-head-bg); outline: 1.5px dashed var(--border); }
+        .cb-aday-satir.surukleniyor { opacity: .45; }
 
         #birakAlani { border: 2px dashed var(--border); padding: 20px 12px; text-align: center;
                       font-size: 11.5px; color: var(--text-secondary); font-weight: 700; cursor: pointer; }
@@ -1373,6 +1379,44 @@
                 Değiştirmek için milletvekili projeksiyonuna dönün.</div>
         </div>
     </div>
+
+    <!-- Ayarlar Paneli — ana projeksiyondaki "Harita Renklendirme" bölümünün karşılığı -->
+    <div class="card collapsed" id="cardAyarlar">
+        <div class="card-header-row" onclick="toggleCardCollapse(this)">
+            <label>Projeksiyon Ayarları</label>
+        </div>
+        <div class="card-body">
+            <div class="settings-section" style="margin-top:0;">
+                <div class="settings-section-title">Harita Renklendirme</div>
+
+                <div class="settings-row">
+                    <div class="settings-row-info">
+                        <div>
+                            <div class="settings-row-title">Salt Çoğunluk Şeffaflığı (%50+)</div>
+                            <div class="settings-row-desc">Bir aday çevrede oyların yarısından fazlasını aldığında rengin şeffaflaşma oranı (koyu/açık temayla uyumlu). 0 = tam opak.</div>
+                        </div>
+                    </div>
+                    <div class="settings-field" style="width:81px; display:flex; align-items:center; gap:3.5px;">
+                        <input type="number" id="cogunlukSeffafInp" value="0" min="0" max="100" onchange="renkAyariDegis()">
+                        <span style="font-weight:bold; color:var(--text-secondary);">%</span>
+                    </div>
+                </div>
+
+                <div class="settings-row">
+                    <div class="settings-row-info">
+                        <div>
+                            <div class="settings-row-title">Sadece Önde Olma Şeffaflığı</div>
+                            <div class="settings-row-desc">Salt çoğunluk yokken, yalnızca önde olan adayın renginin şeffaflaşma oranı (koyu/açık temayla uyumlu). 0 = tam opak.</div>
+                        </div>
+                    </div>
+                    <div class="settings-field" style="width:81px; display:flex; align-items:center; gap:3.5px;">
+                        <input type="number" id="ondeSeffafInp" value="0" min="0" max="100" onchange="renkAyariDegis()">
+                        <span style="font-weight:bold; color:var(--text-secondary);">%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- ═══ ORTA: sonuç · harita · ızgara ═══════════════════════════════════ -->
@@ -1488,12 +1532,13 @@
     </div>
 </div>
 
-<!-- Renk seçici — ana projeksiyondakinin aynısı, logo sütunu olmadan -->
+<!-- Görünüm — ana projeksiyondaki renk + logo kutusunun karşılığı: renk + fotoğraf -->
 <div id="colorModalOverlay" onkeydown="if(event.key==='Escape')closeColorModal()">
-    <div class="modal-box style-modal-box" style="width:300px !important;">
-        <h3 id="styleModalTitle">Renk Seçimi</h3>
+    <div class="modal-box style-modal-box">
+        <h3 id="styleModalTitle">Görünüm</h3>
         <div class="style-cols">
             <div class="style-col">
+                <div class="style-col-title">Renk</div>
                 <div class="cp-preview" id="cpPreview"></div>
                 <div class="cp-area" id="cpArea"><div class="cp-thumb" id="cpThumb"></div></div>
                 <div class="cp-hue" id="cpHue"><div class="cp-hue-thumb" id="cpHueThumb"></div></div>
@@ -1506,6 +1551,15 @@
                     <input type="number" id="cpH" class="cp-input" min="0" max="360" style="flex:1;" title="Ton (0-360)">
                     <input type="number" id="cpS" class="cp-input" min="0" max="100" style="flex:1;" title="Doygunluk (0-100)">
                     <input type="number" id="cpL" class="cp-input" min="0" max="100" style="flex:1;" title="Parlaklık (0-100)">
+                </div>
+            </div>
+            <div class="style-col" id="styleFotoCol">
+                <div class="style-col-title">Fotoğraf</div>
+                <div class="icon-modal-grid" id="fotoModalGrid"></div>
+                <div id="fotoBosNot" style="display:none; font-size:10px; line-height:1.5; font-weight:700;
+                     color:var(--text-secondary); margin-top:9px;">
+                    Henüz fotoğraf yok. Biyometrik PNG'leri <b>aday_fotograflari/</b> klasörüne
+                    koyup dosya adlarını oradaki <b>manifest.json</b>'a ekleyin.
                 </div>
             </div>
         </div>
@@ -1548,8 +1602,37 @@ let currentIlce = null, currentOverlayData = null;
 const BAGLI_RENK = '#c9ced6';
 const DETAY_OL = 1.75;
 
-const ADAY_RENKLERI = ['#E81E32', '#F0A824', '#9F3AC9', '#2AAFE8', '#1BAB52',
-                       '#A63260', '#F27E1F', '#0C63AB', '#2EB88E', '#C7352E'];
+/* Projeksiyon ayarları → Harita renklendirme. Ana projeksiyondaki bölümün
+   karşılığı; CB'de sandalye olmadığı için ayrım çevredeki oyların yarısıdır:
+   %50'yi geçen aday "salt çoğunluk", geçemeyen ama önde olan aday "önde".
+   Değerler şeffaflaşma oranıdır (0 = tam opak). Harita, ilçe haritası, detay
+   paneli haritası ve sonuç ızgarası aynı kuraldan boyanır. */
+let renkAyar = { cogunluk: 0, onde: 0 };
+function kazananSeffafligi(pay) {
+    return ((pay > 0.5 ? renkAyar.cogunluk : renkAyar.onde) || 0) / 100;
+}
+function kazananRengi(renk, pay) { return blendWithWhite(renk, kazananSeffafligi(pay)); }
+
+/* Zemin üstündeki yazı için okunaklı renk: WCAG göreli parlaklığına göre
+   beyaz ya da koyu. Opak aday renginin üstünde temanın yazı rengi (açık
+   temada koyu) mor/lacivert hücrelerde okunmuyordu. */
+function kontrastYazi(hex) {
+    let h = String(hex || '').replace('#', '');
+    if (h.length === 3) h = h.split('').map(x => x + x).join('');
+    if (!/^[0-9a-f]{6}$/i.test(h)) return '#16181d';
+    const kanal = i => {
+        const c = parseInt(h.substr(i, 2), 16) / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    };
+    const L = 0.2126 * kanal(0) + 0.7152 * kanal(2) + 0.0722 * kanal(4);
+    const beyazaKarsi = 1.05 / (L + 0.05);
+    const koyuyaKarsi = (L + 0.05) / (0.0091 + 0.05);     // #16181d
+    return beyazaKarsi >= koyuyaKarsi ? '#ffffff' : '#16181d';
+}
+// Kazanan hücresinin yazı rengi: ton yeterince açıksa temanınki kalır (null).
+function kazananYaziRengi(renk, pay) {
+    return (1 - kazananSeffafligi(pay)) < 0.5 ? null : kontrastYazi(renk);
+}
 
 const $ = id => document.getElementById(id);
 const escapeStr = s => String(s == null ? '' : s)
@@ -1862,7 +1945,7 @@ function ilceKazanan(svgId) {
 function ilceRengi(svgId) {
     if (ilceBagli[svgId]) return BAGLI_RENK;
     const k = ilceKazanan(svgId);
-    return k ? k.aday.renk : 'var(--map-default)';
+    return k ? kazananRengi(k.aday.renk, k.pay) : 'var(--map-default)';
 }
 
 async function loadIlceMap() {
@@ -2062,7 +2145,7 @@ function updateMapColors() {
     // parça listesinin tamamı gezilir.
     Object.keys(mapElemanlari).forEach(cevre => {
         const k = cevreKazanani(cevre);
-        const renk = k ? k.aday.renk : 'var(--map-default)';
+        const renk = k ? kazananRengi(k.aday.renk, k.pay) : 'var(--map-default)';
         mapElemanlari[cevre].forEach(hedef => {
             if (!hedef) return;
             hedef.style.setProperty('fill', renk, 'important');
@@ -2121,6 +2204,13 @@ function handleMapLeave() { $('mapTooltip').style.display = 'none'; }
 /* ── 6. Satır bileşeni — ana projeksiyonun entityStatRow'u ───────────── */
 function adayRozeti(a, boyPx) {
     const boy = boyPx || 20;
+    // Fotoğrafı seçilmiş adayda baş harfler yerine fotoğraf, çerçevesi aday rengi.
+    const foto = adayFotoUrl(a);
+    if (foto) {
+        return '<span style="display:inline-block;width:' + boy + 'px;height:' + boy
+             + 'px;border-radius:50%;flex-shrink:0;box-sizing:border-box;border:2px solid ' + a.renk
+             + ';background:' + a.renk + " url('" + foto + "') center/cover no-repeat;\"></span>";
+    }
     const harf = escapeStr(a.ad).replace(/[^A-Za-zÇĞİÖŞÜçğıöşü]/g, '').slice(0, 2).toUpperCase();
     return '<span style="display:inline-flex;align-items:center;justify-content:center;width:' + boy
          + 'px;height:' + boy + 'px;border-radius:50%;background:' + a.renk
@@ -2334,11 +2424,22 @@ function adayListeCiz() {
         $('adayListe').innerHTML = '<div style="font-size:11.5px;color:var(--text-secondary);font-weight:700;">Henüz aday yok.</div>';
         return;
     }
+    // Sıralama ana projeksiyondaki parti listesiyle aynı: ☰ tutamağından
+    // sürükle-bırak. Metin kutusuna basınca sürükleme kapanır ki ad seçilebilsin.
     $('adayListe').innerHTML = adaylar.map((a, i) => {
         const oy = sonuc ? (sonuc.ulke[a.id] || 0) : 0;
         const pct = (sonuc && sonuc.toplamOy > 0) ? oy / sonuc.toplamOy * 100 : 0;
-        return `<div class="cb-aday-satir">
-            <button class="cb-aday-renk" style="background:${a.renk};" onclick="renkSeciciAc(${i})" title="Rengi değiştir"></button>
+        const foto = adayFotoUrl(a);
+        const renkStil = foto
+            ? `background:${a.renk} url('${foto}') center/cover no-repeat;`
+            : `background:${a.renk};`;
+        return `<div class="cb-aday-satir" draggable="true"
+                onmousedown="if(event.target.tagName==='INPUT')this.removeAttribute('draggable');else this.setAttribute('draggable','true');"
+                ondragstart="adaySurukBasla(event,${i})" ondragover="adaySurukUstunde(event)"
+                ondragleave="this.classList.remove('drag-over')" ondrop="adayBirak(event,${i})"
+                ondragend="adaySurukBitti()">
+            <div class="drag-handle" title="Sürükle bırak ile sırala">&#9776;</div>
+            <button class="cb-aday-renk" style="${renkStil}" onclick="renkSeciciAc(${i})" title="Renk ve fotoğraf"></button>
             <input type="text" class="cb-aday-ad" value="${escapeStr(a.ad)}" onchange="adayAdDegistir(${i}, this.value)">
             <span class="cb-aday-pay" style="color:${a.renk};">%${oran(pct)}</span>
             <button class="danger" style="width:24px;height:24px;padding:0;font-size:12px;" onclick="adaySil(${i})">&times;</button>
@@ -2381,7 +2482,7 @@ function sonucCiz() {
             <span style="width:16px;height:46px;background:${lider.a.renk};flex-shrink:0;"></span>
             <div style="flex:1;min-width:0;">
                 <div style="font-size:10.5px;font-weight:900;letter-spacing:.4px;color:var(--text-secondary);">
-                    ${salt ? 'İLK TURDA SEÇİLİR' : 'ÖNDE — SALT ÇOĞUNLUK YOK'}</div>
+                    ${salt ? 'İLK TURDA SEÇİLİR' : 'İLK TURDA BİTMİYOR'}</div>
                 <b>${escapeStr(lider.a.ad)}</b>
                 <div style="font-size:12px;font-weight:800;color:var(--text-secondary);">
                     %${oran(pct(lider.oy))} · ${sayi(lider.oy)} oy${ikinci
@@ -2560,10 +2661,16 @@ function izgaraCiz() {
             const v = dd.oylar[a.id] || 0;
             const p = v / dd.toplam * 100;
             const kaz = a.id === kazanan && v > 0;
-            const ic = `<div class="gz-o">%${oran(p, 1)}</div><div class="gz-s">${sayi(v)}</div>`;
-            html += kaz
-                ? `<td class="gz-k" style="background:${blendWithWhite(a.renk, p > 50 ? 0.2 : 0.4)};">${ic}</td>`
-                : `<td>${ic}</td>`;
+            if (!kaz) {
+                html += `<td><div class="gz-o">%${oran(p, 1)}</div><div class="gz-s">${sayi(v)}</div></td>`;
+                return;
+            }
+            // Harita ile aynı kural: projeksiyon ayarlarındaki salt çoğunluk /
+            // önde şeffaflığı. Ton koyulaştıkça yazı rengi zemine göre seçilir.
+            const yr = kazananYaziRengi(a.renk, p / 100);
+            const ys = yr ? ` style="color:${yr};"` : '';
+            html += `<td class="gz-k" style="background:${kazananRengi(a.renk, p / 100)};">`
+                  + `<div class="gz-o"${ys}>%${oran(p, 1)}</div><div class="gz-s"${ys}>${sayi(v)}</div></td>`;
         });
         return html + '</tr>';
     }
@@ -2772,17 +2879,75 @@ function hafifTazele() {
    aday oylari bir onceki (cogu zaman bos) sonuctan okunup %0,00 gorunuyordu. */
 function tazele() { sonucCiz(); adayListeCiz(); tahtaCiz(); }
 
+/* Projeksiyon ayarları: kutulardan oku, 0–100'e sıkıştır, yeniden boya.
+   Hesap değişmez; sonucCiz haritayı, ızgarayı ve açık detay panelini birlikte
+   tazelediği için tek çağrı yeter. */
+function renkAyarUygula(a) {
+    const sik = v => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? Math.max(0, Math.min(100, n)) : 0; };
+    renkAyar = { cogunluk: sik(a && a.cogunluk), onde: sik(a && a.onde) };
+    if ($('cogunlukSeffafInp')) $('cogunlukSeffafInp').value = renkAyar.cogunluk;
+    if ($('ondeSeffafInp')) $('ondeSeffafInp').value = renkAyar.onde;
+}
+window.renkAyariDegis = function () {
+    renkAyarUygula({ cogunluk: $('cogunlukSeffafInp').value, onde: $('ondeSeffafInp').value });
+    if (partiler.length) sonucCiz();
+};
+
 /* ── 10. Aday ve dağıtım işlemleri ───────────────────────────────────── */
+/* Yeni adayın rengi: yüklü milletvekili projeksiyonundaki parti renkleri,
+   parti sırasıyla. Başka bir adayın zaten taşıdığı renk atlanır; hepsi
+   kullanılmışsa sıra baştan döner. Uydurma sabit palet YOK — proje henüz
+   yüklenmemişse nötr gri verilir, renk seçiciden değiştirilebilir. */
+function siradakiAdayRengi(sira) {
+    const renkler = partiler.map(p => String(p.renk || '').toUpperCase()).filter(Boolean);
+    if (!renkler.length) return '#888888';
+    const kullanilan = new Set(adaylar.map(a => String(a.renk || '').toUpperCase()));
+    const bos = renkler.find(r => !kullanilan.has(r));
+    return bos || renkler[(sira === undefined ? adaylar.length : sira) % renkler.length];
+}
+
 window.adayEkle = function () {
     const ad = $('adayAdi').value.trim();
     if (!ad) return;
     if (adaylar.some(a => a.ad === ad)) { alert('Bu adda bir aday zaten var.'); return; }
     adaylar.push({ id: 'a' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-                   ad, renk: ADAY_RENKLERI[adaylar.length % ADAY_RENKLERI.length] });
+                   ad, renk: siradakiAdayRengi(), foto: null });
     $('adayAdi').value = '';
     partiler.forEach(p => { payAl(p.ad); });
     tazele();
 };
+/* Aday sırası: dağıtım tahtasındaki şerit/rozet sırasını ve sonuç
+   ızgarasının sütun sırasını belirler (oy oranı panelleri zaten oya göre
+   sıralı). Ana projeksiyondaki handleDragStart/Drop ikilisinin karşılığı. */
+let adaySurukSira = null;
+window.adaySurukBasla = function (e, i) {
+    adaySurukSira = i;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(i));
+    e.currentTarget.classList.add('surukleniyor');
+};
+window.adaySurukUstunde = function (e) {
+    if (adaySurukSira === null) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.classList.add('drag-over');
+};
+window.adayBirak = function (e, hedef) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    const kaynak = adaySurukSira;
+    adaySurukSira = null;
+    if (kaynak === null || kaynak === hedef || !adaylar[kaynak]) return;
+    const a = adaylar.splice(kaynak, 1)[0];
+    adaylar.splice(hedef, 0, a);
+    tazele();
+};
+window.adaySurukBitti = function () {
+    adaySurukSira = null;
+    document.querySelectorAll('#adayListe .cb-aday-satir').forEach(s =>
+        s.classList.remove('drag-over', 'surukleniyor'));
+};
+
 window.adaySil = function (i) {
     const id = adaylar[i].id;
     adaylar.splice(i, 1);
@@ -2918,6 +3083,125 @@ function igHaritaSvg(en, boy) {
     return k.outerHTML;
 }
 
+/* Metin ölçümü: sayfanın kendi yazı tipiyle tuvalde ölçülür ve SVG'ye yazılan
+   her satır bu ölçüye göre sığdırılır — önce yazı küçültülür, yetmezse
+   sonuna "…" konur. Eskiden boyutlar yalnız tuval oranından türetiliyordu;
+   uzun aday adları yüzdeye, şerit etiketleri komşu dilime biniyordu. */
+let _igOlcer = null;
+function igMetinEn(s, boy, kalinlik, ls) {
+    if (!_igOlcer) _igOlcer = document.createElement('canvas').getContext('2d');
+    _igOlcer.font = `${kalinlik || 400} ${boy}px 'Product Sans', system-ui, sans-serif`;
+    const m = String(s);
+    return _igOlcer.measureText(m).width + (ls || 0) * Math.max(0, m.length - 1);
+}
+function igSigdir(s, maxEn, boy, kalinlik, ls, minOran) {
+    const min = Math.max(9, Math.round(boy * (minOran || 0.7)));
+    let b = Math.max(min, Math.round(boy));
+    while (b > min && igMetinEn(s, b, kalinlik, ls) > maxEn) b--;
+    let m = String(s), kisaldi = false;
+    if (igMetinEn(m, b, kalinlik, ls) > maxEn) {
+        kisaldi = true;
+        while (m.length > 1 && igMetinEn(m + '…', b, kalinlik, ls) > maxEn) m = m.slice(0, -1);
+        m = m.replace(/\s+$/, '') + '…';
+    }
+    return { m, b, kisaldi };
+}
+/* Yazı tipinin satır kutusu (taban çizgisinin üstü ve altı), boyla orantılı.
+   Satırları üst üste dizerken oranı tahmin etmek yerine ölçü kullanılır;
+   tahmini oranlar kazanan bloğunda satırların birbirine binmesine yol açıyordu. */
+let _igSatirOran = null;
+function igSatirKutusu(boy) {
+    if (!_igSatirOran) {
+        if (!_igOlcer) _igOlcer = document.createElement('canvas').getContext('2d');
+        _igOlcer.font = "900 100px 'Product Sans', system-ui, sans-serif";
+        const m = _igOlcer.measureText('ÇĞİÖŞÜgjpqy');
+        const ust = m.fontBoundingBoxAscent || m.actualBoundingBoxAscent || 95;
+        const alt = m.fontBoundingBoxDescent || m.actualBoundingBoxDescent || 25;
+        _igSatirOran = { ust: ust / 100, alt: alt / 100 };
+    }
+    return { ust: boy * _igSatirOran.ust, alt: boy * _igSatirOran.alt };
+}
+
+/* Tek satırlık, sığdırılmış metin. o.atla: sığmıyorsa hiç yazma (yüzde gibi
+   kısaltılamayacak etiketler için). */
+function igYazi(x, y, s, o) {
+    const f = igSigdir(s, o.en, o.boy, o.kalinlik, o.ls, o.min);
+    if (f.kisaldi && o.atla) return '';
+    return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="${f.b}" font-weight="${o.kalinlik || 400}"`
+         + ` fill="${o.renk}"${o.ls ? ` letter-spacing="${o.ls}"` : ''}${o.hiza ? ` text-anchor="${o.hiza}"` : ''}`
+         + `>${igKac(f.m)}</text>`;
+}
+
+/* Pasta grafiği. Dilimler 12 yönünden saat yönüne, oya göre büyükten
+   küçüğe dizilir; aralarında zemin renginde ince ayraç vardır. Yüzde etiketi
+   yalnız sığan dilime yazılır — küçük dilimlerin değeri lejantta. */
+function igPasta(cx, cy, r, dilimler, zemin) {
+    const toplam = dilimler.reduce((a, d) => a + d.deger, 0);
+    if (!(toplam > 0) || !(r > 0)) return '';
+    const gorunur = dilimler.filter(d => d.deger / toplam > 0.0005);
+    let g = '';
+    if (gorunur.length === 1) {
+        const d = gorunur[0];
+        g += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${d.renk}"/>`;
+        g += igYazi(cx, cy + r * 0.05, '%' + oran(100), { en: r * 1.4, boy: r * 0.16, kalinlik: 900,
+                    renk: d.yazi, hiza: 'middle', atla: true });
+        return g;
+    }
+    const ayrac = Math.max(1.5, r * 0.012);
+    let aci = -Math.PI / 2;
+    const etiketler = [];
+    gorunur.forEach(d => {
+        const pay = d.deger / toplam, a2 = aci + pay * Math.PI * 2;
+        const x1 = cx + r * Math.cos(aci), y1 = cy + r * Math.sin(aci);
+        const x2 = cx + r * Math.cos(a2), y2 = cy + r * Math.sin(a2);
+        g += `<path d="M${cx.toFixed(1)},${cy.toFixed(1)} L${x1.toFixed(1)},${y1.toFixed(1)}`
+           + ` A${r.toFixed(1)},${r.toFixed(1)} 0 ${pay > 0.5 ? 1 : 0} 1 ${x2.toFixed(1)},${y2.toFixed(1)} Z"`
+           + ` fill="${d.renk}" stroke="${zemin}" stroke-width="${ayrac.toFixed(1)}" stroke-linejoin="round"/>`;
+        etiketler.push({ d, pay, orta: (aci + a2) / 2 });
+        aci = a2;
+    });
+    // Etiketler dilimlerin üstüne, en sonda yazılır (ayraç çizgisi kesmesin).
+    etiketler.forEach(({ d, pay, orta }) => {
+        if (pay < 0.05) return;
+        const lr = r * 0.64;
+        const lx = cx + lr * Math.cos(orta), ly = cy + lr * Math.sin(orta);
+        const boy = r * (pay > 0.15 ? 0.13 : 0.105);
+        // Dilimin o yarıçaptaki kiriş genişliği; etiket bundan taşmamalı.
+        const kiris = 2 * lr * Math.sin(Math.min(Math.PI / 2, pay * Math.PI)) * 0.86;
+        g += igYazi(lx, ly + boy * 0.36, '%' + oran(pay * 100), { en: Math.min(r * 0.9, kiris), boy,
+                    kalinlik: 900, renk: d.yazi, hiza: 'middle', min: 0.78, atla: true });
+    });
+    return g;
+}
+
+/* Lejant: renk dairesi, ad, sağa yaslı yüzde, altında oy sayısı. Satır boyu
+   alana göre ölçeklenir; her metin kendi sütununa sığdırılır. */
+function igLejant(x, y, en, boy, satirlar, yazi, ikincil, cizgi) {
+    const n = Math.max(satirlar.length, 1);
+    const sb = Math.min(boy / n, boy * 0.24, 118);
+    let g = '';
+    let ly = y + (boy - sb * n) / 2;                 // dikeyde ortala
+    const adBoy = sb * 0.34, oyBoy = sb * 0.22;
+    const nokta = sb * 0.15;
+    const yuzdeEn = igMetinEn('%100,00', adBoy, 900) + sb * 0.2;
+    satirlar.forEach((s, i) => {
+        const adX = x + nokta * 2 + sb * 0.22;
+        const adEn = Math.max(20, en - (adX - x) - yuzdeEn);
+        g += `<circle cx="${(x + nokta).toFixed(1)}" cy="${(ly + sb * 0.34).toFixed(1)}" r="${nokta.toFixed(1)}" fill="${s.renk}"/>`;
+        g += igYazi(adX, ly + sb * 0.46, s.ad, { en: adEn, boy: adBoy, kalinlik: 800, renk: yazi });
+        g += igYazi(x + en, ly + sb * 0.46, '%' + oran(s.pct), { en: yuzdeEn, boy: adBoy, kalinlik: 900,
+                    renk: s.yuzdeRenk || s.renk, hiza: 'end' });
+        g += igYazi(adX, ly + sb * 0.78, sayi(s.oy) + ' oy', { en: en - (adX - x), boy: oyBoy,
+                    kalinlik: 700, renk: ikincil });
+        if (i < satirlar.length - 1) {
+            g += `<line x1="${adX.toFixed(1)}" y1="${(ly + sb * 0.94).toFixed(1)}" x2="${(x + en).toFixed(1)}"`
+               + ` y2="${(ly + sb * 0.94).toFixed(1)}" stroke="${cizgi}" stroke-width="1.5"/>`;
+        }
+        ly += sb;
+    });
+    return g;
+}
+
 function igSvgKur() {
     const b = IG_BOYUT[igBicim], W = b.en, H = b.boy;
     const yatay = W > H * 1.2;
@@ -2925,13 +3209,15 @@ function igSvgKur() {
     const yazi = igRenk('--text', '#16181d');
     const ikincil = igRenk('--text-secondary', '#6a7180');
     const cizgi = igRenk('--border', '#e2e5ea');
+    const iz = igRenk('--track', '#eceef2');
 
     const sirali = adaylar.map(a => ({ a, oy: sonuc.ulke[a.id] || 0 })).sort((x, y) => y.oy - x.oy);
     const pct = o => sonuc.toplamOy > 0 ? o / sonuc.toplamOy * 100 : 0;
-    const lider = sirali[0], ikinci = sirali[1];
+    const lider = sirali[0];
     const salt = lider && pct(lider.oy) > 50;
 
     const P = Math.round(W * 0.042);                 // kenar payı
+    const icerikEn = W - P * 2;
     let y = P;
     let g = '';
 
@@ -2940,108 +3226,94 @@ function igSvgKur() {
     const alt = ($('igAltBaslik') && $('igAltBaslik').value.trim()) || '';
     const basBoy = Math.round(W * 0.038);
     y += basBoy;
-    g += `<text x="${P}" y="${y}" font-size="${basBoy}" font-weight="900" fill="${yazi}"
-            letter-spacing="-1">${igKac(bas)}</text>`;
+    g += igYazi(P, y, bas, { en: icerikEn, boy: basBoy, kalinlik: 900, renk: yazi, ls: -1, min: 0.6 });
     if (alt) {
         y += Math.round(basBoy * 0.75);
-        g += `<text x="${P}" y="${y}" font-size="${Math.round(basBoy * 0.42)}" font-weight="700"
-                fill="${ikincil}">${igKac(alt)}</text>`;
+        g += igYazi(P, y, alt, { en: icerikEn, boy: basBoy * 0.42, kalinlik: 700, renk: ikincil });
     }
     y += Math.round(basBoy * 0.55);
     g += `<line x1="${P}" y1="${y}" x2="${W - P}" y2="${y}" stroke="${cizgi}" stroke-width="2"/>`;
     y += Math.round(basBoy * 0.75);
 
-    // ── Sonuç şeridi ──
-    const seritBoy = Math.round(H * 0.055);
-    let sx = P;
-    const seritEn = W - P * 2;
-    sirali.forEach(x => {
-        const w = seritEn * pct(x.oy) / 100;
-        if (w <= 0.5) return;
-        g += `<rect x="${sx}" y="${y}" width="${w}" height="${seritBoy}" fill="${x.a.renk}"/>`;
-        if (w > seritEn * 0.13) {
-            g += `<text x="${sx + w / 2}" y="${y + seritBoy * 0.66}" font-size="${Math.round(seritBoy * 0.38)}"
-                    font-weight="900" fill="#ffffff" text-anchor="middle">${igKac(x.a.ad)} %${oran(pct(x.oy))}</text>`;
-        }
-        sx += w;
-    });
-    if (sx < P + seritEn - 0.5) {
-        g += `<rect x="${sx}" y="${y}" width="${P + seritEn - sx}" height="${seritBoy}"
-                fill="${igRenk('--track', '#eceef2')}"/>`;
-    }
-    y += seritBoy + Math.round(basBoy * 0.7);
-
     // ── Kazanan ──
-    // `y` bu bloğun ÜSTÜ; üç satır aşağı doğru dizilir. Eskiden `y` isim
-    // satırının taban çizgisiydi ve üstteki küçük etiket şeride biniyordu.
+    // `y` bloğun ÜSTÜ; üç satır aşağı dizilir. En yakın rakiple fark yazılmaz.
     if (lider) {
         const kBoy = Math.round(W * 0.045);
-        const blok = kBoy * 1.62;
-        g += `<rect x="${P}" y="${y}" width="${Math.round(W * 0.009)}" height="${blok}" fill="${lider.a.renk}"/>`;
-        const kx = P + Math.round(W * 0.009) + Math.round(W * 0.016);
-        g += `<text x="${kx}" y="${y + kBoy * 0.32}" font-size="${Math.round(kBoy * 0.3)}" font-weight="900"
-                fill="${ikincil}" letter-spacing="1.5">${salt ? 'İLK TURDA SEÇİLİR' : 'ÖNDE — SALT ÇOĞUNLUK YOK'}</text>`;
-        g += `<text x="${kx}" y="${y + kBoy * 1.08}" font-size="${kBoy}" font-weight="900"
-                fill="${yazi}" letter-spacing="-1.5">${igKac(lider.a.ad)}</text>`;
-        const fark = ikinci ? ' · ' + igKac(ikinci.a.ad) + ' ile ' + oran(pct(lider.oy) - pct(ikinci.oy)) + ' puan fark' : '';
-        g += `<text x="${kx}" y="${y + kBoy * 1.5}" font-size="${Math.round(kBoy * 0.32)}" font-weight="800"
-                fill="${ikincil}">%${oran(pct(lider.oy))} · ${sayi(lider.oy)} oy${fark}</text>`;
-        y += blok + Math.round(basBoy * 0.55);
+        const serit = Math.round(W * 0.009);
+        const kx = P + serit + Math.round(W * 0.016), kEn = W - P - kx;
+        // Üç satır, satır kutuları üst üste binmeden sırayla dizilir.
+        const satirlarK = [
+            { s: salt ? 'İLK TURDA SEÇİLİR' : 'İLK TURDA BİTMİYOR',
+              o: { en: kEn, boy: kBoy * 0.3, kalinlik: 900, renk: ikincil, ls: 1.5 }, ara: kBoy * 0.06 },
+            { s: lider.a.ad, o: { en: kEn, boy: kBoy, kalinlik: 900, renk: yazi, ls: -1.5, min: 0.6 }, ara: kBoy * 0.04 },
+            { s: '%' + oran(pct(lider.oy)) + ' · ' + sayi(lider.oy) + ' oy',
+              o: { en: kEn, boy: kBoy * 0.32, kalinlik: 800, renk: ikincil }, ara: 0 }
+        ];
+        let ky = y, metinK = '';
+        satirlarK.forEach(s => {
+            const k = igSatirKutusu(s.o.boy);
+            metinK += igYazi(kx, ky + k.ust, s.s, s.o);
+            ky += k.ust + k.alt + s.ara;
+        });
+        g += `<rect x="${P}" y="${y}" width="${serit}" height="${(ky - y).toFixed(1)}" fill="${lider.a.renk}"/>` + metinK;
+        y = ky + Math.round(basBoy * 0.7);
     }
 
-    // ── Aday satırları ve harita ──
+    // ── Gövde: pasta + lejant (+ harita) ──
+    const altBoy = Math.round(H * 0.035);
+    const govdeUst = y, govdeAlt = H - P - altBoy;
+    const govdeBoy = Math.max(0, govdeAlt - govdeUst);
     const haritaVar = igHarita && $('svgMapWrapper').querySelector('svg');
-    const govdeUst = y;
-    const govdeBoy = H - govdeUst - P - Math.round(H * 0.035);
 
-    let listeX = P, listeEn = W - P * 2;
-    if (haritaVar && yatay) {
-        listeEn = Math.round((W - P * 2) * 0.44);
-        const hEn = W - P * 2 - listeEn - Math.round(W * 0.03);
-        g += `<g transform="translate(${P + listeEn + Math.round(W * 0.03)},${govdeUst})">`
-           + igHaritaSvg(hEn, govdeBoy) + '</g>';
+    const dilimler = sirali.map(x => ({ deger: x.oy, renk: x.a.renk, yazi: kontrastYazi(x.a.renk) }));
+    const satirlar = sirali.map(x => ({ ad: x.a.ad, pct: pct(x.oy), oy: x.oy, renk: x.a.renk }));
+    if (sonuc.dagitilmamis > 0 && pct(sonuc.dagitilmamis) >= 0.5) {
+        dilimler.push({ deger: sonuc.dagitilmamis, renk: iz, yazi: ikincil });
+        satirlar.push({ ad: 'Dağıtılmamış', pct: pct(sonuc.dagitilmamis), oy: sonuc.dagitilmamis,
+                        renk: iz, yuzdeRenk: ikincil });
     }
+    const bosluk = Math.round(W * 0.03);
 
-    const satirBoy = Math.min(Math.round(govdeBoy / Math.max(sirali.length, 1)), Math.round(H * 0.085));
-    const enB = Math.max(...sirali.map(x => pct(x.oy)), 0.01);
-    let ly = govdeUst;
-    const listeBoy = satirBoy * sirali.length;
-
-    sirali.forEach(x => {
-        const p = pct(x.oy);
-        const adBoy = Math.round(satirBoy * 0.3);
-        const nokta = Math.round(satirBoy * 0.2);
-        g += `<circle cx="${listeX + nokta}" cy="${ly + satirBoy * 0.3}" r="${nokta}" fill="${x.a.renk}"/>`;
-        g += `<text x="${listeX + nokta * 2.9}" y="${ly + satirBoy * 0.39}" font-size="${adBoy}"
-                font-weight="800" fill="${yazi}">${igKac(x.a.ad)}</text>`;
-        g += `<text x="${listeX + listeEn}" y="${ly + satirBoy * 0.39}" font-size="${adBoy}"
-                font-weight="900" fill="${x.a.renk}" text-anchor="end">%${oran(p)}</text>`;
-        const cBoy = Math.round(satirBoy * 0.22), cy = ly + satirBoy * 0.52;
-        g += `<rect x="${listeX}" y="${cy}" width="${listeEn}" height="${cBoy}"
-                fill="${igRenk('--track', '#eceef2')}"/>`;
-        g += `<rect x="${listeX}" y="${cy}" width="${listeEn * (p / enB)}" height="${cBoy}" fill="${x.a.renk}"/>`;
-        g += `<text x="${listeX + listeEn}" y="${cy + cBoy * 2.0}" font-size="${Math.round(satirBoy * 0.2)}"
-                font-weight="700" fill="${ikincil}" text-anchor="end">${sayi(x.oy)} oy</text>`;
-        ly += satirBoy;
-    });
-
-    // Dar biçimlerde harita listenin altında kalan boşluğa yerleşir
-    if (haritaVar && !yatay) {
-        const kalan = govdeUst + govdeBoy - (govdeUst + listeBoy) - Math.round(H * 0.02);
-        if (kalan > H * 0.12) {
-            g += `<g transform="translate(${P},${govdeUst + listeBoy + Math.round(H * 0.02)})">`
-               + igHaritaSvg(W - P * 2, kalan) + '</g>';
+    if (yatay) {
+        // [pasta | lejant] [harita]
+        const solEn = haritaVar ? Math.round(icerikEn * 0.58) : icerikEn;
+        const r = Math.max(0, Math.min(govdeBoy / 2, solEn * (haritaVar ? 0.215 : 0.2)));
+        const cy = govdeUst + govdeBoy / 2;
+        g += igPasta(P + r, cy, r, dilimler, zemin);
+        const lx = P + r * 2 + bosluk;
+        g += igLejant(lx, govdeUst, solEn - (lx - P), govdeBoy, satirlar, yazi, ikincil, cizgi);
+        if (haritaVar) {
+            const hx = P + solEn + bosluk;
+            g += `<g transform="translate(${hx},${govdeUst})">` + igHaritaSvg(W - P - hx, govdeBoy) + '</g>';
+        }
+    } else {
+        // Üstte [pasta | lejant], altta harita
+        const minSatir = Math.round(H * 0.034);
+        let blokBoy = Math.min(icerikEn * 0.46, govdeBoy * (haritaVar ? 0.52 : 1));
+        blokBoy = Math.min(govdeBoy, Math.max(blokBoy, satirlar.length * minSatir));
+        const r = Math.min(blokBoy / 2, icerikEn * 0.23);
+        g += igPasta(P + r, govdeUst + blokBoy / 2, r, dilimler, zemin);
+        const lx = P + r * 2 + bosluk;
+        g += igLejant(lx, govdeUst, W - P - lx, blokBoy, satirlar, yazi, ikincil, cizgi);
+        if (haritaVar) {
+            const hy = govdeUst + blokBoy + Math.round(H * 0.025);
+            const kalan = govdeAlt - hy;
+            if (kalan > H * 0.12) {
+                g += `<g transform="translate(${P},${hy})">` + igHaritaSvg(icerikEn, kalan) + '</g>';
+            }
         }
     }
 
     // ── Alt bilgi ──
     const altY = H - P * 0.55;
+    const altYazi = Math.round(W * 0.0145);
     g += `<line x1="${P}" y1="${altY - Math.round(H * 0.026)}" x2="${W - P}" y2="${altY - Math.round(H * 0.026)}"
             stroke="${cizgi}" stroke-width="2"/>`;
-    g += `<text x="${P}" y="${altY}" font-size="${Math.round(W * 0.0145)}" font-weight="800"
-            fill="${ikincil}">${sayi(sonuc.toplamOy)} geçerli oy · ${cevreler.length} seçim çevresi</text>`;
-    g += `<text x="${W - P}" y="${altY}" font-size="${Math.round(W * 0.0145)}" font-weight="800"
-            fill="${ikincil}" text-anchor="end">${new Date().toLocaleDateString('tr-TR')}</text>`;
+    const tarih = new Date().toLocaleDateString('tr-TR');
+    const tarihEn = igMetinEn(tarih, altYazi, 800) + altYazi;
+    g += igYazi(P, altY, sayi(sonuc.toplamOy) + ' geçerli oy · ' + cevreler.length + ' seçim çevresi',
+                { en: icerikEn - tarihEn, boy: altYazi, kalinlik: 800, renk: ikincil });
+    g += igYazi(W - P, altY, tarih, { en: tarihEn, boy: altYazi, kalinlik: 800, renk: ikincil, hiza: 'end' });
 
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
         <style>${igYaziTipiCss()}
@@ -3217,7 +3489,7 @@ function tabanDagilimiUret() {
         surum: KAYIT_SURUMU,
         birim: 'taban',                       // değerler partinin tabanının yüzdesi
         tarih: new Date().toISOString(),
-        adaylar: adaylar.map(a => ({ id: a.id, ad: a.ad, renk: a.renk })),
+        adaylar: adaylar.map(a => ({ id: a.id, ad: a.ad, renk: a.renk, foto: a.foto || null })),
         dagilim: d,
         // Yalnız bilgi ve birim çözümü için; yüklerken veri kaynağı olarak kullanılmaz.
         partiler: partiler.map(p => ({ ad: p.ad, nat: p.nat, renk: p.renk }))
@@ -3230,7 +3502,8 @@ function tamProjeUret() {
         surum: KAYIT_SURUMU,
         tarih: new Date().toISOString(),
         mv: proje,                            // milletvekili projeksiyonu, olduğu gibi
-        cb: tabanDagilimiUret()
+        cb: tabanDagilimiUret(),
+        ayar: { cogunluk: renkAyar.cogunluk, onde: renkAyar.onde }   // harita renklendirme
     };
 }
 
@@ -3282,11 +3555,17 @@ function tabanUygula(v, notEkle) {
     const natKaynak = {};
     (v.partiler || []).forEach(p => { natKaynak[p.ad] = p.nat; });
 
-    adaylar = (v.adaylar || []).map((a, i) => ({
-        id: a.id || ('a' + i + Math.random().toString(36).slice(2, 6)),
-        ad: a.ad || ('Aday ' + (i + 1)),
-        renk: a.renk || ADAY_RENKLERI[i % ADAY_RENKLERI.length]
-    }));
+    // Renk kaydı olmayan eski dosyalar parti renklerini sırayla alır
+    // (siradakiAdayRengi, dolmakta olan listeye bakarak tekrar etmez).
+    adaylar = [];
+    (v.adaylar || []).forEach((a, i) => {
+        adaylar.push({
+            id: a.id || ('a' + i + Math.random().toString(36).slice(2, 6)),
+            ad: a.ad || ('Aday ' + (i + 1)),
+            renk: a.renk || siradakiAdayRengi(i),
+            foto: a.foto || null
+        });
+    });
 
     const yeni = {}, eslesmeyen = [];
     Object.keys(v.dagilim || {}).forEach(pAd => {
@@ -3386,6 +3665,7 @@ async function dosyaAl(veri) {
 
     if (veri.tip === 'pgm-cb-projeksiyon') {
         if (!veri.mv) { alert('Tam kayıt dosyasında milletvekili projeksiyonu yok.'); return; }
+        if (veri.ayar) renkAyarUygula(veri.ayar);
         await projeAl(veri.mv);
         if (veri.cb) { tabanUygula(veri.cb); projeOzetCiz(); tazele(); }
         return;
@@ -3514,17 +3794,76 @@ function cpHueMove(e) {
 }
 
 
+/* ── Aday fotoğrafları ────────────────────────────────────────────────────
+   Ana projeksiyondaki parti logosu seçiminin karşılığı. Biyometrik PNG'ler
+   aday_fotograflari/ klasöründen okunur; parti ikonlarındaki gibi iki kaynak
+   birleştirilir: sunucunun klasör listesi (yerel sunucular verir) ve
+   manifest.json (GitHub Pages gibi listeleme vermeyen sunucular için ŞART —
+   yeni dosya eklendiğinde oraya da yazılmalı). Klasör şimdilik boş. */
+const FOTO_KLASORU = 'aday_fotograflari/';
+const FOTO_DESENI = /^[A-Za-z0-9_\-. ]+\.(png|jpe?g|webp)$/i;
+let adayFotolari = null;          // null = henüz aranmadı
+let fotoAramasi = null;
+function adayFotolariniBul() {
+    if (fotoAramasi) return fotoAramasi;
+    fotoAramasi = (async () => {
+        const bulunan = new Set();
+        try {
+            const r = await fetch(FOTO_KLASORU, { cache: 'no-store' });
+            if (r.ok) (await r.text()).match(/[A-Za-z0-9_\-.]+\.(png|jpe?g|webp)/gi)?.forEach(f => bulunan.add(f));
+        } catch (e) { /* listeleme kapalı olabilir */ }
+        try {
+            const r = await fetch(FOTO_KLASORU + 'manifest.json', { cache: 'no-store' });
+            if (r.ok) {
+                const j = await r.json();
+                (Array.isArray(j) ? j : (j.fotograflar || j.dosyalar || []))
+                    .forEach(f => { if (typeof f === 'string') bulunan.add(f); });
+            }
+        } catch (e) { /* manifest olmayabilir */ }
+        adayFotolari = [...bulunan].filter(f => FOTO_DESENI.test(f))
+            .sort((a, b) => a.localeCompare(b, 'tr'));
+        return adayFotolari;
+    })();
+    return fotoAramasi;
+}
+// Adayın fotoğraf adresi; dosya adı güvenli desene uymuyorsa hiç kullanılmaz.
+function adayFotoUrl(a) {
+    return (a && a.foto && FOTO_DESENI.test(a.foto)) ? FOTO_KLASORU + encodeURIComponent(a.foto) : null;
+}
+
+let bekleyenFoto = null;
+function fotoIzgarasiCiz() {
+    const kap = $('fotoModalGrid');
+    if (!kap) return;
+    const secili = v => v === bekleyenFoto ? 'box-shadow:0 0 0 3px var(--primary); transform:scale(1.04);' : '';
+    const liste = adayFotolari || [];
+    kap.innerHTML = `<div class="icon-pick-box" title="Fotoğraf Yok" style="${secili(null)}" onclick="adayFotoSec(null)">
+            <span style="font-size:10px;color:var(--text-secondary);">Yok</span></div>`
+        + liste.map(f => `<div class="icon-pick-box foto-kutu" style="${secili(f)}" title="${escapeStr(f)}"
+                onclick="adayFotoSec('${escapeStr(f)}')"><img src="${FOTO_KLASORU + encodeURIComponent(f)}"
+                alt="" loading="lazy"></div>`).join('');
+    const not = $('fotoBosNot');
+    if (not) not.style.display = (adayFotolari && !liste.length) ? '' : 'none';
+}
+window.adayFotoSec = function (f) { bekleyenFoto = f; fotoIzgarasiCiz(); };
+
 let renkHedefi = null;
 window.renkSeciciAc = function (i) {
     renkHedefi = i;
-    $('styleModalTitle').textContent = adaylar[i].ad + ' — Renk';
+    $('styleModalTitle').textContent = adaylar[i].ad + ' — Görünüm';
     cpSetHex(adaylar[i].renk || '#000000');
+    bekleyenFoto = adaylar[i].foto || null;
+    fotoIzgarasiCiz();
+    adayFotolariniBul().then(fotoIzgarasiCiz);
     $('colorModalOverlay').style.display = 'flex';
     setTimeout(() => { $('cpHex').focus(); $('cpHex').select(); }, 50);
 };
 window.closeColorModal = function () { $('colorModalOverlay').style.display = 'none'; };
 window.saveColorModal = function () {
-    if (renkHedefi !== null && adaylar[renkHedefi]) adaylar[renkHedefi].renk = cpGetHex();
+    if (renkHedefi !== null && adaylar[renkHedefi]) {
+        adaylar[renkHedefi].renk = cpGetHex();
+        adaylar[renkHedefi].foto = bekleyenFoto || null;
+    }
     closeColorModal(); tazele();
 };
 
@@ -3589,7 +3928,21 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* Tablo kaydırma — index.html'den birebir. */
+// Orta tık sürükleme durumu (render'dan bağımsız tek dinleyici çifti kullanır)
 let tablePan = null;
+window.addEventListener('mousemove', e => {
+    if (!tablePan) return;
+    e.preventDefault();
+    tablePan.el.scrollLeft = tablePan.startLeft - (e.clientX - tablePan.startX);
+});
+window.addEventListener('mouseup', () => {
+    if (!tablePan) return;
+    tablePan.el.style.cursor = '';
+    tablePan = null;
+});
+
+// Tablonun üstündeki ikinci kaydırma çubuğunu tabloya bağlar ve orta tık ile
+// sürükleyerek yatay gezinmeyi açar. Touchpad'in yatay kaydırması zaten çalışır.
 function setupTableScroll(area, restoreLeft) {
     const scrollEl = area.querySelector('[data-tscroll]');
     const topEl = area.querySelector('[data-tscroll-top]');
@@ -3597,24 +3950,46 @@ function setupTableScroll(area, restoreLeft) {
     const table = area.querySelector('[data-ttable]');
     if (!scrollEl || !topEl || !spacer || !table) return;
 
-    const syncWidth = () => {
-        // Panel animasyonu sürerken ölçüm alınmaz: her karede scrollWidth okuyup
-        // hemen ardından genişlik yazmak, 2304 hücreli tabloyu kare başına bir kez
-        // yeniden yerleştirmeye zorlar (oku-yaz-oku kilitlenmesi).
-        if (document.body.classList.contains('panels-animating')) return;
-        spacer.style.width = table.scrollWidth + 'px';
-        // Taşma yoksa üst çubuk gizlenir
-        topEl.style.display = table.scrollWidth > scrollEl.clientWidth + 1 ? 'block' : 'none';
+    // Ölçüm PAHALI: table.scrollWidth okumak 973 satırlık tabloyu yeniden
+    // yerleşime sokuyor (~800 ms). Eskiden her kurulumda üç kez (anında, rAF,
+    // setTimeout) çağrılıyor, üstelik ResizeObserver hem sarıcıyı hem tabloyu
+    // izlediği için her çizimde birkaç kez daha tetikleniyordu. Artık:
+    //   · ölçümler tek bir rAF'ta birleştirilir,
+    //   · scrollWidth bir kez okunur,
+    //   · değer değişmediyse hiçbir şey yazılmaz (yaz-oku döngüsü kopar),
+    //   · yalnız kaydırma sarıcısı izlenir; tablonun kendi boyu ondan türer.
+    let sonGenislik = -1, olcumBekliyor = false;
+    const olc = () => {
+        olcumBekliyor = false;
+        // Panel animasyonu sürüyorsa ölçüm ERTELENİR, atlanmaz: tek denemeyi
+        // düşürmek üst kaydırma çubuğunu ölü bırakıyordu.
+        if (document.body.classList.contains('panels-animating')) { syncWidth(); return; }
+        const w = table.scrollWidth;
+        if (w === sonGenislik) return;
+        sonGenislik = w;
+        spacer.style.width = w + 'px';
+        topEl.style.display = w > scrollEl.clientWidth + 1 ? 'block' : 'none';
     };
-    area._tSync = syncWidth;           // animasyon bitince dışarıdan bir kez çağrılır
-    syncWidth();                       // rAF'ı beklemeden ilk ölçüm
-    requestAnimationFrame(syncWidth);  // yazı tipi/düzen oturduktan sonra tekrar
-    setTimeout(syncWidth, 0);
+    const syncWidth = () => {
+        if (olcumBekliyor) return;
+        olcumBekliyor = true;
+        requestAnimationFrame(olc);
+    };
+    // İlk ölçüm SENKRON: sekme arka planda ya da pencere çizim yapmıyorken
+    // requestAnimationFrame hiç tetiklenmeyebiliyor; ölçümü tamamen rAF'a
+    // bırakmak üst kaydırma çubuğunu ölü bırakıyordu. rAF yalnız ardışık
+    // çağrıları birleştirmek için kullanılıyor.
+    area._tSync = () => { sonGenislik = -1; olc(); };          // dışarıdan zorla
+    olc();
+    // Yazı tipi ve düzen oturduktan sonra bir kez daha bakılır. Bu ikinci
+    // bakış rAF üzerinden: senkron ölçüm zaten yapıldığı için çizim yapmayan
+    // bir sekmede hiç tetiklenmemesi sorun değil, tetiklendiğinde de genişlik
+    // değişmemişse hiçbir şey yazmıyor.
+    syncWidth();
     if (window.ResizeObserver) {
         if (area._tRO) area._tRO.disconnect();   // önceki render'ın (artık kopmuş) düğümünü bırak
-        area._tRO = new ResizeObserver(() => syncWidth());
+        area._tRO = new ResizeObserver(() => { sonGenislik = -1; syncWidth(); });
         area._tRO.observe(scrollEl);
-        area._tRO.observe(table);
     }
 
     let lock = false;
