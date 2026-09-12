@@ -7,6 +7,15 @@ veri setleri bunlardan **türetilmiştir**. Silinmemeleri gerekir: bir daha
 ## YSK ham dökümleri
 - `2023_secim_sonuclari.json` — 2023 genel seçimi tam sonuç (ilçe/sandık düzeyi).
   `ilce_2023.json` ve `veri_2023_tam.json` bundan üretildi.
+
+  **Bir düzeltme var:** bu dosya ATA İttifakı'nı `ZAFER PARTİSİ + AP + MİLLET`
+  diye kaydeder ve pusuladaki ittifak mührü oylarını üçüne birden dağıtır
+  (`oylar` alanı; `oylarHam` dağıtım öncesidir). Millet Partisi bu ittifakın
+  üyesi değildi. Türetilmiş dosyalarda düzeltildi: `parti_sablonu_2023.json`
+  ittifakı iki üyeyle kurar, `veri_2023_tam.json` ise 4.938 mühür oyunu yalnız
+  Zafer ve AP'ye paylaştırır (Millet'ten 176 oy alınıp 153'ü Zafer'e, 23'ü
+  AP'ye verildi). Bu dosya kasten olduğu gibi bırakıldı — YSK kaydının kendisi.
+  Yeniden türetme yapan biri aynı düzeltmeyi uygulamalıdır.
 - `2024_yerel.json` — 2024 yerel seçim il/ilçe dökümü. `veri_2024_tam.json` kaynağı.
 - `genel_2018_r.json`, `genel_2023_r.json` — çevre bazlı ham döküm; tam sonuç
   dosyalarının ara aşaması.

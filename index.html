@@ -199,7 +199,9 @@
         button.status-btn.pasif  { background: var(--pasif); color: #fff; border-color: var(--pasif); }
 
         .data-row { background: var(--surface); padding:10px; border-radius: var(--r-row); margin-bottom:7px; box-shadow: var(--shadow-row); border: 1px solid var(--border); border-left: 5px solid var(--border); font-size:11.5px; transition: background-color 0.2s; color: var(--text); }
-        .data-row:hover { background: #fdfcfa; }
+        /* Vurgu rengi temadan gelir: sabit açık ton koyu ve OLED temada satırı
+           bembeyaz yapıp üstündeki açık renkli yazıyı okunmaz hale getiriyordu. */
+        .data-row:hover { background: var(--surface-alt); }
         .data-row.drag-over { background-color: var(--table-head-bg) !important; border-style: dashed; }
         
         .editable-name { background: transparent; border: 1px solid transparent; padding:3.5px; font-weight: bold; color: var(--text); flex: 1; min-width:45px; outline: none; border-radius: 7px; transition: 0.2s; margin:0 3.5px; }
@@ -716,21 +718,7 @@
         .settings-toggle-btn, .nav-btn, .expand-btn, .icon-pick-box, .zone-move-btn {
             border: var(--outline-w) solid var(--outline) !important;
         }
-        /* Sert ofset gölge çizgi film temasının imzası; sade temada hiç
-           çizilmez. Kurallar !important taşıdığı ve bir kısmı sade temanın
-           toplu gölge sıfırlamasından daha yüksek özgüllükte olduğu için
-           tema seçiciyle kapatılmaları şart. */
-        html[data-tema="cizgi"] button { box-shadow: 3px 3px 0 var(--outline) !important; }
-        html[data-tema="cizgi"] button:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--outline) !important; }
-        html[data-tema="cizgi"] button:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--outline) !important; }
-        /* Kare/ikon butonlar daha ince gölge alsın ki sıkışık yerlerde taşmasın */
-        html[data-tema="cizgi"] button.toggle-btn, html[data-tema="cizgi"] button.status-btn,
-        html[data-tema="cizgi"] .data-row .danger, html[data-tema="cizgi"] .panel-toggle,
-        html[data-tema="cizgi"] #mapToolbar button, html[data-tema="cizgi"] #modeSwitch button {
-            box-shadow: 2px 2px 0 var(--outline) !important;
-        }
         #modeSwitch button:not(.active) { box-shadow: none !important; border-color: transparent !important; }
-        html[data-tema="cizgi"] input:focus, html[data-tema="cizgi"] select:focus { box-shadow: 3px 3px 0 var(--primary); }
 
         /* Parti renk daireleri ve rozetler konturlu */
         .pdot, .locked-badge { border: 2px solid var(--outline); }
@@ -1006,9 +994,6 @@
         /* Koyu zeminde beyaz kutu gibi duran sabit renkler. */
         html[data-parlaklik="koyu"] .gz-tablo td.gz-ad,
         html[data-parlaklik="oled"] .gz-tablo td.gz-ad { background: inherit; }
-        /* Çizgi film temasının kalın siyah konturu koyu zeminde kayboluyor. */
-        html[data-parlaklik="koyu"][data-tema="cizgi"],
-        html[data-parlaklik="oled"][data-tema="cizgi"] { --outline: #6b7280; }
 
         /* ═══ MOBİL ═══════════════════════════════════════════════════════
            Aynı DOM, farklı yerleşim: paneller çekmeceye, navigasyon alta.
@@ -1154,10 +1139,6 @@
         <button id="leftPanelToggle" class="panel-toggle" onclick="toggleSidePanel('left')" title="Paneli gizle/göster">◀</button>
     </div>
 
-    <div class="tema-secici" id="temaSecici" style="margin-bottom:6px;">
-        <button data-tema-sec="sade"  onclick="setTema('sade')">Sade</button>
-        <button data-tema-sec="cizgi" onclick="setTema('cizgi')">Çizgi Film</button>
-    </div>
     <div class="tema-secici" id="parlaklikSecici">
         <button data-parlaklik-sec="acik" onclick="setParlaklik('acik')">Açık</button>
         <button data-parlaklik-sec="koyu" onclick="setParlaklik('koyu')">Koyu</button>
@@ -1246,6 +1227,16 @@
                         </div>
                     </div>
                     <input type="checkbox" id="showMVDotsInp" onchange="updateMapColors()" style="width:18px; height:18px; flex-shrink:0;" checked>
+                </div>
+
+                <div class="settings-row">
+                    <div class="settings-row-info">
+                        <div>
+                            <div class="settings-row-title">Oy Sayılarını Göster</div>
+                            <div class="settings-row-desc">Kapalıyken yalnız yüzdeler görünür. Izgara hücreleri, harita üzerindeki kutu, çevre ve ilçe detayları, oy oranları paneli ve toplu inceleme aynı anda uyar.</div>
+                        </div>
+                    </div>
+                    <input type="checkbox" id="oySayiInp" onchange="oySayilariDegis(this.checked)" style="width:18px; height:18px; flex-shrink:0;">
                 </div>
 
                 <div class="settings-row">
@@ -2057,6 +2048,12 @@ let mapDictionary = {};
 let customDotPositions = {}; 
 let mapMode = 'party'; // 'party' | 'alliance'
 let digerDisplayEnabled = false;   // varsayılan kapalı; kullanıcı açabilir
+/* Yalnız GÖRÜNÜM: ham oy sayıları gösterilsin mi? Kapalıyken (varsayılan)
+   sonuç yüzeylerinde yalnız yüzde kalır — ızgara hücreleri, harita üzerindeki
+   kutu, çevre/ilçe detayları, oy oranları paneli ve toplu inceleme. Hesaba
+   etkisi yok. Nüfus ve bağımsız panelleri bunun dışında: oradaki sayılar
+   sonuç değil, düzenlenen girdinin kendisi. */
+let oySayilariGorunur = false;
 
 // İnfografik (1920x1080) öge yerleşimi — kullanıcı "Yerleşimi Düzenle" ile sürükleyip
 // yeniden boyutlandırabilir. localStorage'da saklanır; yoksa varsayılan kullanılır.
@@ -2081,6 +2078,45 @@ window.setMapColorMode = function(v) {
     refreshIlcePaint();
     if (Object.keys(globalResults).length) renderResults(globalResults);
 };
+
+/* Oy sayısı görünürlüğü. Hesap değişmediği için yalnız çizim tazelenir;
+   açık detay paneli de kendini yeniden kurar (hover kutusu zaten her
+   harekette baştan yazılıyor). */
+window.oySayilariDegis = function(v) {
+    oySayilariGorunur = !!v;
+    const c = $('oySayiInp');
+    if (c) c.checked = oySayilariGorunur;
+    if (Object.keys(globalResults).length) renderResults(globalResults);
+    if (currentOverlayData && $('districtOverlay').style.display === 'block') refreshOpenDetail();
+};
+
+/* Izgaradan kurulan parti / ittifak filtresi bu vekili kapsıyor mu?
+   Vekil anahtarları ortak liste birleştirmesinden geçmiş adlardır; filtre ise
+   bir ızgara sütunudur, yani üstüne "Diğer" gruplaması da uygulanmış olabilir. */
+function filtreVekiliKapsar(p) {
+    if (activePartyFilter) {
+        if (p === activePartyFilter) return true;
+        const dg = digerGroups.find(d => d.isEnabled !== false && d.name === activePartyFilter);
+        return !!(dg && dg.members.includes(p));
+    }
+    if (activeAllianceFilter) {
+        const it = electoralAlliances.find(a => a.isEnabled !== false && a.name === activeAllianceFilter);
+        return !!(it && it.members.includes(p));
+    }
+    return false;
+}
+/* Filtre açıkken kapsam dışında kalan vekil noktalarının rengi: çok açık gri.
+   Noktaların kendi koyu konturu olduğu için bu tonda da sayılabilir kalıyorlar,
+   ama vurgulanan renkle aralarındaki fark belirginleşiyor. */
+const FILTRE_NOKTA_GRI = '#f2f4f7';
+function filtreVurguRengi() {
+    if (activePartyFilter) return getPartyColor(activePartyFilter);
+    if (activeAllianceFilter) {
+        const it = electoralAlliances.find(a => a.name === activeAllianceFilter);
+        return (it && it.color) || '#888888';
+    }
+    return null;
+}
 
 // Bir çevrenin kazananı. Harita, ızgara ve infografik aynı kuralı kullansın diye
 // tek yerden verilir.
@@ -2357,19 +2393,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ═══ Tema ═══════════════════════════════════════════════════════════════
-// Varsayılan "sade"; eski çizgi film görünümü tercihe bağlı. Seçim tarayıcıda
-// saklanır. Haritalar ve parlamento diyagramı temadan etkilenmez — renkleri
-// parti verisinden, sınırları --map-stroke'tan gelir.
-window.setTema = function(ad) {
-    const t = (ad === 'cizgi') ? 'cizgi' : 'sade';
-    document.documentElement.setAttribute('data-tema', t);
-    try { localStorage.setItem('pgm_tema', t); } catch (e) {}
-    document.querySelectorAll('[data-tema-sec]').forEach(b => {
-        b.classList.toggle('aktif', b.getAttribute('data-tema-sec') === t);
-    });
-};
+// Tek görünüm var: sade. Haritalar ve parlamento diyagramı bundan etkilenmez —
+// renkleri parti verisinden, sınırları --map-stroke'tan gelir.
 
-/* Parlaklık tema'dan bağımsız: iki tema da açık/koyu/OLED çalışır. */
+/* Parlaklık: açık/koyu/OLED. */
 const PARLAKLIKLAR = ['acik', 'koyu', 'oled'];
 window.setParlaklik = function(ad) {
     const p = PARLAKLIKLAR.includes(ad) ? ad : 'acik';
@@ -2386,21 +2413,14 @@ window.setParlaklik = function(ad) {
 
 // Sayfa boyanmadan uygula: aksi halde açılışta beyaz bir kare çakıyor.
 (function () {
-    let t = 'sade', p = 'acik';
-    try {
-        t = localStorage.getItem('pgm_tema') || 'sade';
-        p = localStorage.getItem('pgm_parlaklik') || 'acik';
-    } catch (e) {}
-    document.documentElement.setAttribute('data-tema', t === 'cizgi' ? 'cizgi' : 'sade');
+    let p = 'acik';
+    try { p = localStorage.getItem('pgm_parlaklik') || 'acik'; } catch (e) {}
+    document.documentElement.setAttribute('data-tema', 'sade');
     if (p === 'koyu' || p === 'oled') document.documentElement.setAttribute('data-parlaklik', p);
 })();
 document.addEventListener('DOMContentLoaded', () => {
-    let t = 'sade', p = 'acik';
-    try {
-        t = localStorage.getItem('pgm_tema') || 'sade';
-        p = localStorage.getItem('pgm_parlaklik') || 'acik';
-    } catch (e) {}
-    setTema(t);
+    let p = 'acik';
+    try { p = localStorage.getItem('pgm_parlaklik') || 'acik'; } catch (e) {}
     setParlaklik(p);
 });
 
@@ -2635,6 +2655,20 @@ function updateMapColors() {
                     let isDominant = (mvs > displayData.seats / 2);
                     targetColor = blendWithWhite(pColor, isDominant ? domRatio : pluRatio);
                 }
+            } else if (activeAllianceFilter) {
+                // Parti filtresinin ittifak karşılığı: ittifakın vekil çıkardığı
+                // çevreler ittifak renginde, kalanlar boş. Üye adları ham sonuçta
+                // (ortak liste birleştirmesinden sonra) aranır, böylece harita
+                // görünüm kipinden bağımsız çalışır.
+                const it = electoralAlliances.find(a => a.isEnabled !== false && a.name === activeAllianceFilter);
+                if (it) {
+                    let mvs = 0;
+                    it.members.forEach(m => { mvs += (result.mvs && result.mvs[m]) || 0; });
+                    if (mvs > 0) {
+                        const isDominant = (mvs > (result.seats || 1) / 2);
+                        targetColor = blendWithWhite(it.color || '#888888', isDominant ? domRatio : pluRatio);
+                    }
+                }
             } else {
 let maxMvs = -1;
                 let maxVotes = -1;
@@ -2738,6 +2772,12 @@ let maxMvs = -1;
                         });
                         
                         let colors = mpList.map(p => {
+                            // Filtre açıkken harita tek soruya indirgenir: bu vekil
+                            // filtrelenen partinin/ittifakın mı? Konumlar korunur,
+                            // kapsam dışındaki bütün noktalar griye düşer.
+                            if (activePartyFilter || activeAllianceFilter) {
+                                return filtreVekiliKapsar(p) ? filtreVurguRengi() : FILTRE_NOKTA_GRI;
+                            }
                             if (digerDisplayEnabled) {
                                 const dg = digerGroups.find(d => d.isEnabled !== false && d.members.includes(p));
                                 if (dg && dg.color) return dg.color;
@@ -3035,7 +3075,7 @@ function entityStatRow(p, seats, pct, cmp, cmpOn, maxPct, opts) {
             <span style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); padding-left:${px(6)}; color:#fff; clip-path:inset(0 ${100 - barW}% 0 0); overflow:hidden; ${cizik}">&thinsp;${pctStr}</span>
         </div>
         ${cmpOn ? `<span style="min-width:${px(dar ? 30 : 34)}; text-align:right; flex-shrink:0;">${dPct}</span>` : ''}
-        ${opts.votes !== undefined ? `<span style="width:${px(dar ? 54 : 58)}; text-align:right; flex-shrink:0; font-size:${px(9.5)}; color:var(--text-secondary); font-variant-numeric:tabular-nums;">${Math.round(opts.votes).toLocaleString('tr-TR')}</span>` : ''}
+        ${(opts.votes !== undefined && oySayilariGorunur) ? `<span style="width:${px(dar ? 54 : 58)}; text-align:right; flex-shrink:0; font-size:${px(9.5)}; color:var(--text-secondary); font-variant-numeric:tabular-nums;">${Math.round(opts.votes).toLocaleString('tr-TR')}</span>` : ''}
     </div>`;
 }
 
@@ -3910,7 +3950,7 @@ function handleMapHover(e) {
                 + sirali.map(p => entityStatRow(p, 0, d.oylar[p] / d.toplam * 100, null, false, enB,
                         { hideSeats: true, votes: d.oylar[p] })).join('')
                 + `<div style="font-size:9.5px;color:var(--text-secondary);margin-top:5px;border-top:2px dashed var(--border-dashed);padding-top:4px;">
-                     Geçerli oy ${Math.round(d.toplam).toLocaleString('tr-TR')} · ilçe sonucu</div>`;
+                     ${oySayilariGorunur ? 'Geçerli oy ' + Math.round(d.toplam).toLocaleString('tr-TR') + ' · ' : ''}ilçe sonucu</div>`;
             tt.style.display = 'block';
             const tw = tt.offsetWidth, th = tt.offsetHeight;
             let L = e.pageX + 15, T = e.pageY + 15;
@@ -5337,7 +5377,6 @@ function partyRowHtml(ep, idx, inDiger, sortedGlobal) {
                 <input type="text" class="editable-name" value="${escapeStr(ep.name)}" onchange="renameParty(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
                 
                 <input type="text" inputmode="decimal" value="${fmtPctInput(ep.nat)}" style="width:58px; margin:0; font-weight:bold; color:var(--primary); flex-shrink:0;" oninput="extraParties[${idx}].nat=parsePctInputOrZero(this.value); updateTotalTracker();">
-                <span style="font-weight:bold; color:var(--text-secondary); flex-shrink:0;">%</span>
                 <button class="danger" onclick="deleteParty(${idx})">✖</button>
             </div>
             ${ep.isOpen && compareEnabled && compareResults ? `
@@ -6554,6 +6593,8 @@ function applyProjectData(data) {
         if(s.showMVDots !== undefined) {
             $('showMVDotsInp').checked = s.showMVDots;
         }
+        oySayilariGorunur = !!s.oySayilari;
+        if ($('oySayiInp')) $('oySayiInp').checked = oySayilariGorunur;
         if(s.hideBuyuk !== undefined && $('hideBuyukInp')) $('hideBuyukInp').checked = !!s.hideBuyuk;
         if(s.mapColorMode !== undefined) {
             mapColorMode = (s.mapColorMode === 'seats') ? 'seats' : 'first';
@@ -7416,9 +7457,14 @@ function createParliamentArch(seatsObj, total) {
         if (count <= 0) continue;
         const color = getPartyColor(name);
         const safeP = escapeStr(name);
-        const isFocused = activePartyFilter === name;
-        const baseOpacity = (activePartyFilter && !isFocused) ? '0.15' : '1';
-        svg += `<g data-party="${safeP}" style="fill:${color};opacity:${baseOpacity};cursor:pointer;" onclick="togglePartyFilter('${safeP}')">`;
+        // Filtre parti ya da ittifak olabilir; diyagram ikisinde de kapsam
+        // dışındaki grupları soluklaştırır.
+        const filtreVar = !!(activePartyFilter || activeAllianceFilter);
+        const isFocused = filtreVar && filtreVekiliKapsar(name);
+        const baseOpacity = (filtreVar && !isFocused) ? '0.15' : '1';
+        // Diyagramdan filtre AÇILMAZ; filtre yalnız sonuç ızgarasındaki parti
+        // başlığından kurulur. Diyagram o filtreyi yalnızca yansıtır (soluklaşma).
+        svg += `<g data-party="${safeP}" style="fill:${color};opacity:${baseOpacity};">`;
         for (let i = 0; i < count && idx < positions.length; i++, idx++) {
             const {x, y} = positions[idx];
             svg += `<circle cx="${(M+CS*x).toFixed(2)}" cy="${(M+CS*(1-y)).toFixed(2)}" r="${sR}"/>`;
@@ -7441,10 +7487,10 @@ function _archShowHover(el, event, name, count, total) {
     showChartTooltip(event, name, count, total);
 }
 function _archClearHover() {
-    const focused = activePartyFilter;
+    const filtreVar = !!(activePartyFilter || activeAllianceFilter);
     document.querySelectorAll('#parliamentChartArea g[data-party]').forEach(g => {
-        const isFocused = focused && g.getAttribute('data-party') === focused;
-        g.style.opacity = (focused && !isFocused) ? '0.15' : '1';
+        const isFocused = filtreVar && filtreVekiliKapsar(g.getAttribute('data-party'));
+        g.style.opacity = (filtreVar && !isFocused) ? '0.15' : '1';
     });
 }
 
@@ -7455,6 +7501,11 @@ function createParliamentDiagram(seatsObj, total) {
 
 function renderResults(res){
     const area = $('results');
+    // Yatay kaydırma konumu TEMİZLEMEDEN ÖNCE okunmalı: aşağıda ızgara
+    // kurulurken ölçülmeye çalışılıyordu ama kaydırıcı o noktada çoktan
+    // silinmiş oluyordu. Sonuç: bir partiye göre sıralayınca tablo her
+    // seferinde en sola atlıyordu.
+    const _izgaraKaydirma = area.querySelector('[data-tscroll]')?.scrollLeft || 0;
     area.innerHTML = '';
 
     let totalMvs = {};
@@ -7497,7 +7548,15 @@ function renderResults(res){
         $('parliamentContainer').style.display = 'none';
     }
 
+    /* Seçerek toplu inceleme açık ve en az bir çevre seçiliyse ızgara da o
+       kapsama iner: yalnız seçili çevreler listelenir, "İlçeler" görünümünde
+       de yalnız onların ilçeleri gelir (ilçe satırları zaten il satırından
+       türüyor). Milli Bakiye havuzu bir çevre değil, seçilemediği için
+       kendiliğinden dışarıda kalır. */
+    const _secimKapsami = (isSelectionModeActive && selectedDistricts.size > 0)
+        ? new Set(selectedDistricts) : null;
     let sortedNames = Object.keys(res);
+    if (_secimKapsami) sortedNames = sortedNames.filter(d => _secimKapsami.has(d));
 
     // Sadece Diğer gruplama uygular, ittifak birleştirmesi yapmaz (filtre ve tablo satırlarında kullanılır)
     function getPartyModeData(item) {
@@ -7851,7 +7910,8 @@ function renderResults(res){
                 const seatsHtml = seats > 0 ? ` <b style="color:var(--text);font-size:11px;">[${seats}]</b>` : '';
                 // Oranın altında, ortalanmış net oy sayısı
                 const votesStr = Math.round(v).toLocaleString('tr-TR');
-                cellHtml = `<div class="gz-o">${pctStr}${seatsHtml}</div><div class="gz-s">${votesStr}</div>`;
+                cellHtml = `<div class="gz-o">${pctStr}${seatsHtml}</div>`
+                         + (oySayilariGorunur ? `<div class="gz-s">${votesStr}</div>` : '');
             }
             // Kazanan dışındaki hücreler hiç style özniteliği taşımaz.
             rowHtml += isWinner
@@ -7870,7 +7930,7 @@ function renderResults(res){
     for (let i = 0; i < satirlar.length; i++) parcalar[i] = satirCiz(satirlar[i], i);
     const rowsHtml = parcalar.join('');
 
-    const prevScrollLeft = area.querySelector('[data-tscroll]')?.scrollLeft || 0;
+    const prevScrollLeft = _izgaraKaydirma;
     const filtreUyarisi = filtreBos
         ? `<div style="margin-bottom:9px; padding:8px 12px; font-size:11.5px; font-weight:700;
                  background:var(--highlight-bg); color:var(--text); border:1px solid var(--border);">
@@ -8097,7 +8157,7 @@ function _snapshotEngineState() {
         // "mudahale" alanı yoksa applyProjectData katmanları [] yapıyor ve
         // sandalye dağılımı sessizce değişiyordu.
         mudahaleAcik, mudahaleTelafi, mudahaleKatmanlari, _mudahaleDizin, mudahaleGizli,
-        darBolgeAcik, mapColorMode, customDotPositions, activePartyFilter,
+        darBolgeAcik, mapColorMode, customDotPositions, activePartyFilter, oySayilariGorunur,
         independentShares, independentOriginal, independentsEnabled,
         compareEnabled, compareLabel, compareRaw, compareResults, compareParties,
         inputs, checks
@@ -8122,6 +8182,7 @@ function _restoreEngineState(b) {
     mudahaleKatmanlari = b.mudahaleKatmanlari; _mudahaleDizin = b._mudahaleDizin;
     mudahaleGizli = b.mudahaleGizli;
     darBolgeAcik = b.darBolgeAcik; mapColorMode = b.mapColorMode;
+    oySayilariGorunur = b.oySayilariGorunur;
     customDotPositions = b.customDotPositions; activePartyFilter = b.activePartyFilter;
     independentShares = b.independentShares; independentOriginal = b.independentOriginal;
     independentsEnabled = b.independentsEnabled;
@@ -9931,7 +9992,7 @@ function toggleSelectionMode() {
         btn.style.background = 'var(--surface)';
         selectedDistricts.clear();
     }
-    updateSelectionUI();
+    secimGorunumunuTazele();
 }
 
 function toggleDistrictSelection(dName) {
@@ -9941,7 +10002,15 @@ function toggleDistrictSelection(dName) {
     } else {
         selectedDistricts.add(dName);
     }
-    updateSelectionUI();
+    secimGorunumunuTazele();
+}
+
+/* Seçim değişince ızgara da kapsamı izlemeli. renderResults zaten sonunda
+   updateSelectionUI'yi çağırdığı için yan panel ve parlamento diyagramı
+   ondan geliyor; sonuç yoksa tek başına yan panel tazelenir. */
+function secimGorunumunuTazele() {
+    if (Object.keys(globalResults).length) renderResults(globalResults);
+    else updateSelectionUI();
 }
 
 function updateSelectionUI() {
@@ -10132,6 +10201,7 @@ function _captureState() {
             dominantWhite: $('dominantWhiteInp') ? $('dominantWhiteInp').value : undefined,
             pluralityWhite: $('pluralityWhiteInp') ? $('pluralityWhiteInp').value : undefined,
             showMVDots: $('showMVDotsInp') ? $('showMVDotsInp').checked : undefined,
+            oySayilari: oySayilariGorunur,
             mudahaleAcik: mudahaleAcik,
             mudahaleTelafi: mudahaleTelafi,
             mudahaleGizli: mudahaleGizli,
@@ -10175,6 +10245,10 @@ function restoreSnapshot(snap) {
     if (s.dominantWhite !== undefined && $('dominantWhiteInp')) $('dominantWhiteInp').value = s.dominantWhite;
     if (s.pluralityWhite !== undefined && $('pluralityWhiteInp')) $('pluralityWhiteInp').value = s.pluralityWhite;
     if (s.showMVDots !== undefined && $('showMVDotsInp')) $('showMVDotsInp').checked = s.showMVDots;
+    if (s.oySayilari !== undefined) {
+        oySayilariGorunur = !!s.oySayilari;
+        if ($('oySayiInp')) $('oySayiInp').checked = oySayilariGorunur;
+    }
     if (s.darBolge !== undefined) {
         darBolgeAcik = !!s.darBolge;
         if ($('darBolgeInp')) $('darBolgeInp').checked = darBolgeAcik;
@@ -10252,15 +10326,214 @@ function getEmbeddedFontFaceCss() {
     return css;
 }
 
-// ─── EXPERIMENTAL: Ekran Görüntüsü ───────────────────────────────────────────
-// kat: çözünürlük çarpanı. 1x = 1728x1080 (16:9 çizilip 16:10'a kırpılır).
-async function exportInfographic(kat) {
-    if (Object.keys(globalResults).length === 0) { alert('Önce hesaplama yapın.'); return; }
+/* html2canvas hedef öğeyi çizmeden önce TÜM belgeyi bir iframe'e klonlar; bu
+   yüzden maliyeti sayfada o an ne varsa ona bağlıdır. Stüdyo önizlemesi artık
+   canlı DOM sahnesi olduğu için klona binen ~2000 düğümlük bir yük getiriyordu.
+   Rasterize süresince önizlemeyi belgeden ayırıp sonra geri takıyoruz —
+   kullanıcı için görünen tek şey, birkaç saniye boş kalan önizleme alanı. */
+function igOnizlemeyiAskiyaAl() {
+    const kap = document.getElementById('igOnizlemeKap');
+    if (!kap || !kap.firstChild) return () => {};
+    const parca = document.createDocumentFragment();
+    while (kap.firstChild) parca.appendChild(kap.firstChild);
+    return () => { kap.appendChild(parca); };
+}
+
+/* Klasik 1920x1080 düzenini SAF DOM olarak kurar — hiç rasterize etmez.
+   Dönen öğe henüz sayfaya eklenmemiştir; çağıran ya html2canvas'a verir
+   (PNG indirme) ya da doğrudan ekrana koyup ölçekler (stüdyo önizlemesi).
+   Böylece önizleme ile indirilen PNG aynı düzenden çıkar, ama önizleme
+   html2canvas'ın belge klonlama maliyetini (~4 s) hiç ödemez. */
+function klasikInfografikSahne() {
+    // --- Toplamlar ---
+    // "Seçerek Toplu İncele" açıkken çıktı da o kapsama iner: parti şeridi,
+    // vekil sayıları ve parlamento diyagramı yalnız seçili çevrelerden gelir
+    // (harita zaten ekranda seçili olmayanları soluklaştırıyor).
+    const _kapsam = (isSelectionModeActive && selectedDistricts.size > 0)
+        ? [...selectedDistricts] : Object.keys(globalResults);
+    let totalVotes = 0, totalSeats = 0;
+    const partyVotes = {}, partySeats = {};
+    for (const d of _kapsam) {
+        const res = globalResults[d];
+        if (!res) continue;
+        const dd = getDisplayData(res);
+        totalSeats += res.seats;
+        // Milli Bakiye: oyları çift sayılmaz, vekilleri toplama girer.
+        if (!res.isMilliBakiye) {
+            totalVotes += res.totalVotes;
+            Object.entries(dd.rawVotes).forEach(([p,v]) => { partyVotes[p]=(partyVotes[p]||0)+v; });
+        }
+        Object.entries(dd.mvs).forEach(([p,s]) => { partySeats[p]=(partySeats[p]||0)+s; });
+    }
+
+    // --- Harita dot sıralamasıyla aynı rank hesabı ---
+    const partyRanks = {};
+    extraParties.forEach(ep => partyRanks[ep.name] = parseFloat(ep.nat) || 0);
+    coalitions.forEach(c => {
+        if (c.isEnabled === false) return;
+        let sum = 0; c.members.forEach(m => sum += (partyRanks[m]||0));
+        partyRanks[c.name] = sum;
+    });
+    const allianceMaxScores = {};
+    const inAllianceSet = new Set();
+    electoralAlliances.filter(a => a.isEnabled !== false).forEach(a => {
+        let mx = -1;
+        (a.members||[]).forEach(m => { if((partyRanks[m]||0)>mx) mx=partyRanks[m]||0; });
+        allianceMaxScores[a.name] = mx;
+    });
+
+    // --- Tüm slotları belirle: ittifak grubu veya tekli bağımsız ---
+    const allSlots = [];
+    electoralAlliances.filter(a => a.isEnabled !== false).forEach(a => {
+        const members = (a.members||[]).filter(p => extraParties.find(ep=>ep.name===p));
+        if (!members.length) return;
+        if (!members.some(p => (partySeats[p]||0) > 0)) return;
+        // Ülke genelinde ne vekili ne oyu olan üye karta girmez: fermuar listesinde
+        // oyunu tamamen devreden partiler "0 MV / %0,00" olarak görünmemeli.
+        const visible = members.filter(p => (partySeats[p]||0) > 0 || (partyVotes[p]||0) > 0);
+        if (!visible.length) return;
+        visible.sort((x,y) => (partyRanks[y]||0)-(partyRanks[x]||0));
+        allSlots.push({ label: a.name, score: allianceMaxScores[a.name]||0, parties: visible });
+        members.forEach(p => inAllianceSet.add(p));
+    });
+    extraParties.map(ep=>ep.name).filter(p => !inAllianceSet.has(p) && (partySeats[p]||0) > 0).forEach(p => {
+        allSlots.push({ label: '', score: partyRanks[p]||0, parties: [p] });
+    });
+    allSlots.sort((a,b) => b.score - a.score);
+
+    // --- Parti kartı HTML: dikey dikdörtgen 4:3 (genişlik:yükseklik = 3:4) ---
+    // --- Parti kartı: dikey dikdörtgen 4:5 oran (genişlik:yükseklik = 4:5) ---
+    function makePartyCard(p) {
+        const color = partiLogoZemini(p);
+        const mv = partySeats[p] || 0;
+        const pct = totalVotes > 0 ? (partyVotes[p]||0)/totalVotes*100 : 0;
+        const fsize = p.length > 14 ? '11px' : p.length > 9 ? '13px' : p.length > 5 ? '16px' : '18px';
+        // Birleşik ortak listelerin de kendi logosu olabilir; katılma listelerinde ad
+        // ana partinin adı olduğu için ilk arama zaten doğru logoyu bulur.
+        const ep = extraParties.find(e => e.name === p) || coalitions.find(c => c.name === p);
+        const rawIcon = ep && ep.icon ? partyIconRaw[ep.icon] : null;
+        const badgeContent = rawIcon
+            ? `<span style="display:flex;align-items:center;justify-content:center;width:70%;height:70%;">${recolorIconSvg(rawIcon, (ep && ep.iconColor) || '#ffffff')}</span>`
+            : `<span style="color:white;font-weight:900;font-size:${fsize};line-height:1.25;text-align:center;padding:7px;word-break:break-word;">${p}</span>`;
+        return `<div style="text-align:center;flex-shrink:0;">
+            <div style="width:83px;height:104px;background:${color};display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto 8px;">
+                ${badgeContent}
+            </div>
+            <div style="font-size:29px;font-weight:900;color:#111;line-height:1;">${mv}</div>
+            <div style="font-size:13.5px;font-weight:bold;color:#555;margin-top:4.5px;">%${pct.toFixed(2)}</div>
+        </div>`;
+    }
+
+    // Parti şeridi: ayraçsız
+    let partyStripHTML = '';
+    allSlots.forEach((slot) => {
+        const cards = slot.parties.map(makePartyCard).join('');
+        partyStripHTML += `<div style="display:inline-flex;flex-direction:column;align-items:center;margin:0 9px;">
+            ${slot.label ? `<div style="font-size:13.5px;font-weight:900;color:#111;margin-bottom:8px;text-align:center;">${slot.label}</div>` : `<div style="height:29px;"></div>`}
+            <div style="display:flex;gap:8px;justify-content:center;">${cards}</div>
+        </div>`;
+    });
+
+    // --- Harita SVG: tam genişlik ortada ---
+    const mapSvgEl = document.querySelector('#svgMapWrapper svg');
+    let mapSvgHTML = '';
+    if (mapSvgEl) {
+        const cl = mapSvgEl.cloneNode(true);
+        cl.removeAttribute('width'); cl.removeAttribute('height');
+        cl.setAttribute('width','100%'); cl.setAttribute('height','100%');
+        cl.setAttribute('preserveAspectRatio','xMidYMid meet');
+        cl.style.cssText = 'display:block;';
+        mapSvgHTML = cl.outerHTML;
+    }
+
+    // --- Parlamento diyagramı: container'ı dolduracak şekilde ---
+    const defaultSortedForArch = Object.keys(partySeats).sort((a,b)=>partySeats[b]-partySeats[a]);
+    const orderedForArch = parliamentOrderOverride.length > 0
+        ? [...parliamentOrderOverride.filter(p => partySeats[p] > 0), ...defaultSortedForArch.filter(p => !parliamentOrderOverride.includes(p))]
+        : defaultSortedForArch;
+    const sortedForArch = {};
+    orderedForArch.forEach(k => { if (partySeats[k]) sortedForArch[k] = partySeats[k]; });
+    const archRawSVG = createParliamentDiagram(sortedForArch, totalSeats);
+    const archTemp = document.createElement('div');
+    archTemp.innerHTML = archRawSVG;
+    const archSvgEl = archTemp.querySelector('svg');
+    if (archSvgEl) {
+        archSvgEl.removeAttribute('width'); archSvgEl.removeAttribute('height');
+        archSvgEl.setAttribute('width','100%'); archSvgEl.setAttribute('height','100%');
+        archSvgEl.setAttribute('preserveAspectRatio','xMidYMid meet');
+        archSvgEl.style.cssText = 'display:block;width:100%;height:100%;';
+        // Yazı tipini ve rengi SVG'nin içine taşı: dışa aktarımda sayfanın
+        // @font-face'i ve CSS değişkenleri bu SVG'ye ulaşmıyor.
+        const fdefs = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+        fdefs.textContent = getEmbeddedFontFaceCss() +
+            "text{font-family:'Product Sans',Arial,sans-serif;}";
+        archSvgEl.insertBefore(fdefs, archSvgEl.firstChild);
+        archSvgEl.querySelectorAll('text').forEach(t => {
+            t.setAttribute('font-family', "'Product Sans', Arial, sans-serif");
+            if ((t.getAttribute('fill') || '').includes('var(')) t.setAttribute('fill', '#111');
+        });
+    }
+    const archSVG = archTemp.innerHTML;
+
+    // --- Meta bilgiler ---
+    const mathVal = $('mathMethodInp') ? $('mathMethodInp').value : 'dhondt';
+    const mathLabel = { dhondt: "D'Hondt", hare: 'Hare Kotası', wta: 'Winner Takes All' }[mathVal] || mathVal;
+    const calcVal = $('calcMethodInp') ? $('calcMethodInp').value : 'classic';
+    const calcLabel = calcVal === 'alliance' ? 'İttifak İçi Dağıtım' : 'Klasik';
+    const thresholdVal = parsePctInputOrZero($('thresholdInp').value) || 7;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('tr-TR', {year:'numeric', month:'long'});
+
+    // --- Düzen: absolute positioning — kullanıcının "Yerleşimi Düzenle" ile ayarladığı
+    // konumlar (yoksa varsayılan) ---
+    const W = 1920, H = 1080;
+    const L = infographicLayout || DEFAULT_INFOGRAPHIC_LAYOUT;
+    const exportDiv = document.createElement('div');
+    exportDiv.style.cssText = `position:fixed;left:-8999px;top:0;width:${W}px;height:${H}px;overflow:hidden;background:#fff;font-family:'Product Sans',Arial,sans-serif;color:#111;`;
+
+    exportDiv.innerHTML = `
+        <div style="position:absolute;left:${L.partyStrip.x}px;top:${L.partyStrip.y}px;width:${L.partyStrip.w}px;height:${L.partyStrip.h}px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;">
+            ${partyStripHTML}
+        </div>
+        <div style="position:absolute;left:${L.map.x}px;top:${L.map.y}px;width:${L.map.w}px;height:${L.map.h}px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+            ${mapSvgHTML}
+        </div>
+        <div style="position:absolute;left:${L.arch.x}px;top:${L.arch.y}px;width:${L.arch.w}px;height:${L.arch.h}px;overflow:hidden;">
+            ${archSVG}
+        </div>
+        <div style="position:absolute;left:${L.info.x}px;top:${L.info.y}px;width:${L.info.w}px;height:${L.info.h}px;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:7px;">
+            <div style="font-size:18px;font-weight:bold;margin-bottom:9px;">Baraj: %${thresholdVal}</div>
+            <div style="font-size:18px;font-weight:bold;margin-bottom:9px;">${mathLabel}</div>
+            <div style="font-size:18px;font-weight:bold;margin-bottom:9px;">${calcLabel}</div>
+            <div style="font-size:13.5px;color:#888;">${dateStr}</div>
+        </div>`;
+
+    /* Klonlanan harita ve parlamento SVG'lerinin id'leri sayfadakilerle birebir
+       aynı. Dışa aktarımda sahne bir an duruyordu, artık önizlemede ekranda
+       kalıyor; çift id bırakmak getElementById'yi yanlış öğeye götürürdü.
+       SVG'ler iç referans (url(#…), <use href>) kullanmadığı için id'ler
+       görünümü bozmadan silinebilir. */
+    exportDiv.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
+
+    // 16:10 kırpma: yükseklik korunur, iki yandan eşit pay alınır.
+    return { el: exportDiv, W, H, kirpW: Math.round(H * 16 / 10) };
+}
+
+// ─── Klasik infografik PNG ───────────────────────────────────────────────────
+/* kat: çözünürlük çarpanı. 1x = 1728x1080 (16:9 çizilip 16:10'a kırpılır).
+   sadeceTuval=true ise PNG indirilmez, üretilen
+   tuval döndürülür (stüdyodaki klasik önizleme bunu kullanır). */
+async function exportInfographic(kat, sadeceTuval) {
+    if (Object.keys(globalResults).length === 0) {
+        if (sadeceTuval) throw new Error('Önce hesaplama yapın.');
+        alert('Önce hesaplama yapın.'); return;
+    }
     // Düğme artık stüdyonun içinde; buradan çağrıldığında da çalışsın diye
     // referans opsiyonel tutulur.
-    const btn = $('exportInfographicBtn') || $('igKlasikBtn');
+    const btn = sadeceTuval ? null : ($('exportInfographicBtn') || $('igKlasikBtn'));
     const origHTML = btn ? btn.innerHTML : '';
     if (btn) { btn.innerHTML = '⏳'; btn.disabled = true; }
+    let onizlemeyiGeriGetir = () => {};
     try {
         await ensureHtml2Canvas();
         // Yazı tipi hazır olmadan rasterize edilirse yedek fonta düşer
@@ -10269,164 +10542,9 @@ async function exportInfographic(kat) {
             try { await document.fonts.ready; } catch (e) {}
         }
 
-        // --- Ulusal veri ---
-        let totalVotes = 0, totalSeats = 0;
-        const partyVotes = {}, partySeats = {};
-        for (const d in globalResults) {
-            const res = globalResults[d];
-            const dd = getDisplayData(res);
-            totalSeats += res.seats;
-            // Milli Bakiye: oyları çift sayılmaz, vekilleri toplama girer.
-            if (!res.isMilliBakiye) {
-                totalVotes += res.totalVotes;
-                Object.entries(dd.rawVotes).forEach(([p,v]) => { partyVotes[p]=(partyVotes[p]||0)+v; });
-            }
-            Object.entries(dd.mvs).forEach(([p,s]) => { partySeats[p]=(partySeats[p]||0)+s; });
-        }
-
-        // --- Harita dot sıralamasıyla aynı rank hesabı ---
-        const partyRanks = {};
-        extraParties.forEach(ep => partyRanks[ep.name] = parseFloat(ep.nat) || 0);
-        coalitions.forEach(c => {
-            if (c.isEnabled === false) return;
-            let sum = 0; c.members.forEach(m => sum += (partyRanks[m]||0));
-            partyRanks[c.name] = sum;
-        });
-        const allianceMaxScores = {};
-        const inAllianceSet = new Set();
-        electoralAlliances.filter(a => a.isEnabled !== false).forEach(a => {
-            let mx = -1;
-            (a.members||[]).forEach(m => { if((partyRanks[m]||0)>mx) mx=partyRanks[m]||0; });
-            allianceMaxScores[a.name] = mx;
-        });
-
-        // --- Tüm slotları belirle: ittifak grubu veya tekli bağımsız ---
-        const allSlots = [];
-        electoralAlliances.filter(a => a.isEnabled !== false).forEach(a => {
-            const members = (a.members||[]).filter(p => extraParties.find(ep=>ep.name===p));
-            if (!members.length) return;
-            if (!members.some(p => (partySeats[p]||0) > 0)) return;
-            // Ülke genelinde ne vekili ne oyu olan üye karta girmez: fermuar listesinde
-            // oyunu tamamen devreden partiler "0 MV / %0,00" olarak görünmemeli.
-            const visible = members.filter(p => (partySeats[p]||0) > 0 || (partyVotes[p]||0) > 0);
-            if (!visible.length) return;
-            visible.sort((x,y) => (partyRanks[y]||0)-(partyRanks[x]||0));
-            allSlots.push({ label: a.name, score: allianceMaxScores[a.name]||0, parties: visible });
-            members.forEach(p => inAllianceSet.add(p));
-        });
-        extraParties.map(ep=>ep.name).filter(p => !inAllianceSet.has(p) && (partySeats[p]||0) > 0).forEach(p => {
-            allSlots.push({ label: '', score: partyRanks[p]||0, parties: [p] });
-        });
-        allSlots.sort((a,b) => b.score - a.score);
-
-        // --- Parti kartı HTML: dikey dikdörtgen 4:3 (genişlik:yükseklik = 3:4) ---
-        // --- Parti kartı: dikey dikdörtgen 4:5 oran (genişlik:yükseklik = 4:5) ---
-        function makePartyCard(p) {
-            const color = partiLogoZemini(p);
-            const mv = partySeats[p] || 0;
-            const pct = totalVotes > 0 ? (partyVotes[p]||0)/totalVotes*100 : 0;
-            const fsize = p.length > 14 ? '11px' : p.length > 9 ? '13px' : p.length > 5 ? '16px' : '18px';
-            // Birleşik ortak listelerin de kendi logosu olabilir; katılma listelerinde ad
-            // ana partinin adı olduğu için ilk arama zaten doğru logoyu bulur.
-            const ep = extraParties.find(e => e.name === p) || coalitions.find(c => c.name === p);
-            const rawIcon = ep && ep.icon ? partyIconRaw[ep.icon] : null;
-            const badgeContent = rawIcon
-                ? `<span style="display:flex;align-items:center;justify-content:center;width:70%;height:70%;">${recolorIconSvg(rawIcon, (ep && ep.iconColor) || '#ffffff')}</span>`
-                : `<span style="color:white;font-weight:900;font-size:${fsize};line-height:1.25;text-align:center;padding:7px;word-break:break-word;">${p}</span>`;
-            return `<div style="text-align:center;flex-shrink:0;">
-                <div style="width:83px;height:104px;background:${color};display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto 8px;">
-                    ${badgeContent}
-                </div>
-                <div style="font-size:29px;font-weight:900;color:#111;line-height:1;">${mv}</div>
-                <div style="font-size:13.5px;font-weight:bold;color:#555;margin-top:4.5px;">%${pct.toFixed(2)}</div>
-            </div>`;
-        }
-
-        // Parti şeridi: ayraçsız
-        let partyStripHTML = '';
-        allSlots.forEach((slot) => {
-            const cards = slot.parties.map(makePartyCard).join('');
-            partyStripHTML += `<div style="display:inline-flex;flex-direction:column;align-items:center;margin:0 9px;">
-                ${slot.label ? `<div style="font-size:13.5px;font-weight:900;color:#111;margin-bottom:8px;text-align:center;">${slot.label}</div>` : `<div style="height:29px;"></div>`}
-                <div style="display:flex;gap:8px;justify-content:center;">${cards}</div>
-            </div>`;
-        });
-
-        // --- Harita SVG: tam genişlik ortada ---
-        const mapSvgEl = document.querySelector('#svgMapWrapper svg');
-        let mapSvgHTML = '';
-        if (mapSvgEl) {
-            const cl = mapSvgEl.cloneNode(true);
-            cl.removeAttribute('width'); cl.removeAttribute('height');
-            cl.setAttribute('width','100%'); cl.setAttribute('height','100%');
-            cl.setAttribute('preserveAspectRatio','xMidYMid meet');
-            cl.style.cssText = 'display:block;';
-            mapSvgHTML = cl.outerHTML;
-        }
-
-        // --- Parlamento diyagramı: container'ı dolduracak şekilde ---
-        const defaultSortedForArch = Object.keys(partySeats).sort((a,b)=>partySeats[b]-partySeats[a]);
-        const orderedForArch = parliamentOrderOverride.length > 0
-            ? [...parliamentOrderOverride.filter(p => partySeats[p] > 0), ...defaultSortedForArch.filter(p => !parliamentOrderOverride.includes(p))]
-            : defaultSortedForArch;
-        const sortedForArch = {};
-        orderedForArch.forEach(k => { if (partySeats[k]) sortedForArch[k] = partySeats[k]; });
-        const archRawSVG = createParliamentDiagram(sortedForArch, totalSeats);
-        const archTemp = document.createElement('div');
-        archTemp.innerHTML = archRawSVG;
-        const archSvgEl = archTemp.querySelector('svg');
-        if (archSvgEl) {
-            archSvgEl.removeAttribute('width'); archSvgEl.removeAttribute('height');
-            archSvgEl.setAttribute('width','100%'); archSvgEl.setAttribute('height','100%');
-            archSvgEl.setAttribute('preserveAspectRatio','xMidYMid meet');
-            archSvgEl.style.cssText = 'display:block;width:100%;height:100%;';
-            // Yazı tipini ve rengi SVG'nin içine taşı: dışa aktarımda sayfanın
-            // @font-face'i ve CSS değişkenleri bu SVG'ye ulaşmıyor.
-            const fdefs = document.createElementNS('http://www.w3.org/2000/svg', 'style');
-            fdefs.textContent = getEmbeddedFontFaceCss() +
-                "text{font-family:'Product Sans',Arial,sans-serif;}";
-            archSvgEl.insertBefore(fdefs, archSvgEl.firstChild);
-            archSvgEl.querySelectorAll('text').forEach(t => {
-                t.setAttribute('font-family', "'Product Sans', Arial, sans-serif");
-                if ((t.getAttribute('fill') || '').includes('var(')) t.setAttribute('fill', '#111');
-            });
-        }
-        const archSVG = archTemp.innerHTML;
-
-        // --- Meta bilgiler ---
-        const mathVal = $('mathMethodInp') ? $('mathMethodInp').value : 'dhondt';
-        const mathLabel = { dhondt: "D'Hondt", hare: 'Hare Kotası', wta: 'Winner Takes All' }[mathVal] || mathVal;
-        const calcVal = $('calcMethodInp') ? $('calcMethodInp').value : 'classic';
-        const calcLabel = calcVal === 'alliance' ? 'İttifak İçi Dağıtım' : 'Klasik';
-        const thresholdVal = parsePctInputOrZero($('thresholdInp').value) || 7;
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('tr-TR', {year:'numeric', month:'long'});
-
-        // --- Düzen: absolute positioning — kullanıcının "Yerleşimi Düzenle" ile ayarladığı
-        // konumlar (yoksa varsayılan) ---
-        const W = 1920, H = 1080;
-        const L = infographicLayout || DEFAULT_INFOGRAPHIC_LAYOUT;
-        const exportDiv = document.createElement('div');
-        exportDiv.style.cssText = `position:fixed;left:-8999px;top:0;width:${W}px;height:${H}px;overflow:hidden;background:#fff;font-family:'Product Sans',Arial,sans-serif;color:#111;`;
-
-        exportDiv.innerHTML = `
-            <div style="position:absolute;left:${L.partyStrip.x}px;top:${L.partyStrip.y}px;width:${L.partyStrip.w}px;height:${L.partyStrip.h}px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;">
-                ${partyStripHTML}
-            </div>
-            <div style="position:absolute;left:${L.map.x}px;top:${L.map.y}px;width:${L.map.w}px;height:${L.map.h}px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-                ${mapSvgHTML}
-            </div>
-            <div style="position:absolute;left:${L.arch.x}px;top:${L.arch.y}px;width:${L.arch.w}px;height:${L.arch.h}px;overflow:hidden;">
-                ${archSVG}
-            </div>
-            <div style="position:absolute;left:${L.info.x}px;top:${L.info.y}px;width:${L.info.w}px;height:${L.info.h}px;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:7px;">
-                <div style="font-size:18px;font-weight:bold;margin-bottom:9px;">Baraj: %${thresholdVal}</div>
-                <div style="font-size:18px;font-weight:bold;margin-bottom:9px;">${mathLabel}</div>
-                <div style="font-size:18px;font-weight:bold;margin-bottom:9px;">${calcLabel}</div>
-                <div style="font-size:13.5px;color:#888;">${dateStr}</div>
-            </div>`;
-
+        const { el: exportDiv, W, H } = klasikInfografikSahne();
         document.body.appendChild(exportDiv);
+        onizlemeyiGeriGetir = igOnizlemeyiAskiyaAl();
         const canvas = await html2canvas(exportDiv, {
             scale: Math.max(1, kat || 1), useCORS: true, allowTaint: true,
             backgroundColor: '#ffffff', width: W, height: H, logging: false
@@ -10449,14 +10567,21 @@ async function exportInfographic(kat) {
             octx.drawImage(canvas, sx, 0, targetW, canvas.height, 0, 0, targetW, canvas.height);
         }
 
+        // Önizleme kipinde dosya indirilmez, tuval geri verilir; stüdyo onu
+        // doğrudan gösterir. Böylece önizleme ile indirilen PNG aynı boru
+        // hattından çıkar, ikisi arasında fark kalmaz.
+        if (sadeceTuval) return outCanvas;
+
         const link = document.createElement('a');
-        link.download = 'projeksiyon_infografik_' + now.toISOString().slice(0,10) + '.png';
+        link.download = 'projeksiyon_infografik_' + new Date().toISOString().slice(0,10) + '.png';
         link.href = outCanvas.toDataURL('image/png');
         link.click();
     } catch(err) {
         console.error('İnfografik export hatası:', err);
+        if (sadeceTuval) throw err;
         alert('Export başarısız: ' + err.message);
     } finally {
+        onizlemeyiGeriGetir();
         if (btn) { btn.innerHTML = origHTML; btn.disabled = false; }
     }
 }
@@ -10528,6 +10653,11 @@ async function captureParliamentPanel(triggerBtn) {
     el.style.border = 'none';
     el.style.borderRadius = '0';
 
+    // html2canvas satır içi SVG'yi ayrı bir görüntü olarak rasterize eder ve o
+    // görüntü sayfanın @font-face kurallarını görmez: toplam vekil sayısı yedek
+    // yazı tipiyle çiziliyordu. Kuralı (gömülü base64 font dahil) SVG'nin içine
+    // kopyalıyoruz; çekim bitince geri alınır.
+    const fontStili = svgYaziTipiGom($('parliamentChartArea'));
     try {
         await ensureHtml2Canvas();
         const canvas = await html2canvas(el, {
@@ -10546,6 +10676,10 @@ async function captureParliamentPanel(triggerBtn) {
         console.error(err);
         alert('Ekran görüntüsü alınamadı: ' + err.message);
     } finally {
+        if (fontStili) fontStili.remove();
+        $('parliamentChartArea').querySelectorAll('text[data-eski-fill]').forEach(t => {
+            t.setAttribute('fill', t.dataset.eskiFill); delete t.dataset.eskiFill;
+        });
         el.style.background = prevBg;
         el.style.boxShadow = prevBoxShadow;
         el.style.border = prevBorder;
@@ -10553,6 +10687,36 @@ async function captureParliamentPanel(triggerBtn) {
         btn.innerHTML = origHTML;
         btn.disabled = false;
     }
+}
+
+/* Sayfanın @font-face kurallarını verilen kaptaki SVG'nin içine kopyalar ve
+   eklenen <style> düğümünü döndürür (çağıran temizler). Font zaten base64
+   gömülü olduğu için serileştirilmiş SVG'de de çözülür. */
+function svgYaziTipiGom(kap) {
+    const svg = kap && kap.querySelector('svg');
+    if (!svg) return null;
+    let css = '';
+    for (const sheet of document.styleSheets) {
+        let rules; try { rules = sheet.cssRules; } catch (e) { continue; }
+        for (const r of rules) {
+            const fontFace = (r.constructor && r.constructor.name === 'CSSFontFaceRule') || r.type === 5;
+            if (fontFace) css += r.cssText + ' ';
+        }
+    }
+    // fill="var(--text)" serileştirilmiş SVG'de çözülmez, siyaha düşer:
+    // o anki hesaplanmış renk satır içine sabitlenir.
+    const yaziRengi = getComputedStyle(document.documentElement).getPropertyValue('--text').trim();
+    if (yaziRengi) svg.querySelectorAll('text').forEach(t => {
+        if ((t.getAttribute('fill') || '').indexOf('var(') === 0) {
+            t.dataset.eskiFill = t.getAttribute('fill');
+            t.setAttribute('fill', yaziRengi);
+        }
+    });
+    if (!css) return null;
+    const st = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+    st.textContent = css + " text { font-family: 'Product Sans', system-ui, sans-serif; }";
+    svg.insertBefore(st, svg.firstChild);
+    return st;
 }
 
 async function capturePartyListPanel(triggerBtn) {
@@ -10850,6 +11014,7 @@ function projeVerisiUret() {
             dominantWhite: parseFloat($('dominantWhiteInp').value) ?? 20,
             pluralityWhite: parseFloat($('pluralityWhiteInp').value) ?? 40,
             showMVDots: $('showMVDotsInp').checked,
+            oySayilari: oySayilariGorunur,
             hideBuyuk: $('hideBuyukInp') ? $('hideBuyukInp').checked : false,
             mapColorMode: mapColorMode
         }

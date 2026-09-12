@@ -687,21 +687,7 @@
         .settings-toggle-btn, .nav-btn, .expand-btn, .icon-pick-box, .zone-move-btn {
             border: var(--outline-w) solid var(--outline) !important;
         }
-        /* Sert ofset gölge çizgi film temasının imzası; sade temada hiç
-           çizilmez. Kurallar !important taşıdığı ve bir kısmı sade temanın
-           toplu gölge sıfırlamasından daha yüksek özgüllükte olduğu için
-           tema seçiciyle kapatılmaları şart. */
-        html[data-tema="cizgi"] button { box-shadow: 3px 3px 0 var(--outline) !important; }
-        html[data-tema="cizgi"] button:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--outline) !important; }
-        html[data-tema="cizgi"] button:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--outline) !important; }
-        /* Kare/ikon butonlar daha ince gölge alsın ki sıkışık yerlerde taşmasın */
-        html[data-tema="cizgi"] button.toggle-btn, html[data-tema="cizgi"] button.status-btn,
-        html[data-tema="cizgi"] .data-row .danger, html[data-tema="cizgi"] .panel-toggle,
-        html[data-tema="cizgi"] #mapToolbar button, html[data-tema="cizgi"] #modeSwitch button {
-            box-shadow: 2px 2px 0 var(--outline) !important;
-        }
         #modeSwitch button:not(.active) { box-shadow: none !important; border-color: transparent !important; }
-        html[data-tema="cizgi"] input:focus, html[data-tema="cizgi"] select:focus { box-shadow: 3px 3px 0 var(--primary); }
 
         /* Parti renk daireleri ve rozetler konturlu */
         .pdot, .locked-badge { border: 2px solid var(--outline); }
@@ -977,9 +963,6 @@
         /* Koyu zeminde beyaz kutu gibi duran sabit renkler. */
         html[data-parlaklik="koyu"] .gz-tablo td.gz-ad,
         html[data-parlaklik="oled"] .gz-tablo td.gz-ad { background: inherit; }
-        /* Çizgi film temasının kalın siyah konturu koyu zeminde kayboluyor. */
-        html[data-parlaklik="koyu"][data-tema="cizgi"],
-        html[data-parlaklik="oled"][data-tema="cizgi"] { --outline: #6b7280; }
 
         /* ═══ MOBİL ═══════════════════════════════════════════════════════
            Aynı DOM, farklı yerleşim: paneller çekmeceye, navigasyon alta.

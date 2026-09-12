@@ -32,7 +32,15 @@ const g = {
     get kiyasAcik()  { return typeof compareEnabled !== 'undefined' && compareEnabled
                               && typeof compareResults !== 'undefined' && !!compareResults; },
     get kiyasAd()    { return typeof compareLabel !== 'undefined' ? compareLabel : ''; },
-    get kiyasPartiler() { return typeof compareParties !== 'undefined' ? (compareParties || []) : []; }
+    get kiyasPartiler() { return typeof compareParties !== 'undefined' ? (compareParties || []) : []; },
+    /* "Seçerek Toplu İncele" açık ve en az bir çevre seçiliyse infografik de o
+       kapsama iner: oy oranları, vekil dağılımı ve kıyas farkları yalnız bu
+       çevrelerden hesaplanır. Seçim yoksa null → ülke geneli. */
+    get seciliCevreler() {
+        if (typeof isSelectionModeActive === 'undefined' || !isSelectionModeActive) return null;
+        if (typeof selectedDistricts === 'undefined' || !selectedDistricts.size) return null;
+        return [...selectedDistricts];
+    }
 };
 
 /* ── Yardımcılar ──────────────────────────────────────────────────────────── */
@@ -68,8 +76,8 @@ const TEMA = {
 };
 
 const METIN = {
-    marka: 'PGM Projeksiyon',
-    kicker: 'SEÇİM PROJEKSİYONU',
+    marka: 'PGM PROJEKSİYON',
+    kicker: 'Genel Seçim Simülasyonu',
     oyBaslik: 'PARTİ OY ORANLARI',
     mvBaslik: 'MİLLETVEKİLİ DAĞILIMI',
     altbilgi: 'PGM Projeksiyon'
@@ -99,9 +107,11 @@ IG.FORMATLAR = {
              ol: 1.06, kenar: 38, aralik: 24, haritaPay: 0.49, yayPay: 1.0,
              yanPay: 1, ortaPay: 1.55, yayMin: 130 },
     // Karede harita sütunu bir tık geniş, parlamento sütunu bir tık dar.
+    // Karede harita sütunu bir tık daha geniş; fazlalık parlamento sütunundan
+    // kısılır, toplam genişlik değişmediği için düzen aynı kalır.
     kare:  { ad: 'Kare 1:1 · 1080×1080',   en: 1080, boy: 1080, duzen: 'kare',
              ol: 0.95, kenar: 28, aralik: 16, haritaPay: 1, yayPay: 1,
-             haritaSutun: 1.12, yaySutun: 0.88, yayMin: 130 }
+             haritaSutun: 1.18, yaySutun: 0.82, yayMin: 130 }
 };
 
 const MIN_OL = 0.5;
@@ -123,10 +133,12 @@ function ittifakBilgisi(ad) {
     return { ad: a.name, renk: (a.color && a.color !== '#888888') ? a.color : partiRenk(ad) };
 }
 
-/* Kıyas projeksiyonundaki karşılığı: { mv, pct } ya da null. */
-function kiyasKaydi(ad) {
+/* Kıyas projeksiyonundaki karşılığı: { mv, pct } ya da null.
+   kapsam verilirse (seçili çevreler) kıyas da yalnız o çevrelerden toplanır —
+   compareStatsFor ikinci argüman olarak çevre listesi alıyor. */
+function kiyasKaydi(ad, kapsam) {
     if (!g.kiyasAcik || typeof compareStatsFor !== 'function') return null;
-    try { return compareStatsFor(ad, null); } catch (e) { return null; }
+    try { return compareStatsFor(ad, kapsam || null); } catch (e) { return null; }
 }
 
 /* Dar bölge modu index.html'de yaşıyor; infografik onu okur ama zorunlu
@@ -138,11 +150,13 @@ function darBolgeMu() {
 
 IG.veriTopla = function () {
     const res = g.sonuc;
+    const kapsam = g.seciliCevreler;              // null = ülke geneli
     let toplamOy = 0, toplamKoltuk = 0;
     const partiOy = {}, partiKoltuk = {};
 
-    Object.keys(res).forEach(d => {
+    (kapsam || Object.keys(res)).forEach(d => {
         const r = res[d];
+        if (!r) return;
         const dd = getDisplayData(r);
         toplamKoltuk += r.seats || 0;
         if (!r.isMilliBakiye) {
@@ -154,7 +168,9 @@ IG.veriTopla = function () {
 
     // Dar bölge: sandalye = ilçe sayısı, her ilçe kendi birincisine.
     // Nispi temsil sonucunun üstüne yazılır; oy toplamları değişmez.
-    if (darBolgeMu()) {
+    // Seçim kipi açıkken dar bölge sayımı ülke geneli kaldığı için iki ölçü
+    // birbirini tutmaz; o durumda nispi temsil sonucu korunur.
+    if (darBolgeMu() && !kapsam) {
         const db = darBolgeSandalyeleri();
         if (db && db.toplam) {
             Object.keys(partiKoltuk).forEach(k => { delete partiKoltuk[k]; });
@@ -167,7 +183,7 @@ IG.veriTopla = function () {
         const oy = partiOy[ad] || 0;
         const pct = toplamOy > 0 ? oy / toplamOy * 100 : 0;
         const koltuk = partiKoltuk[ad] || 0;
-        const k = kiyasKaydi(ad);
+        const k = kiyasKaydi(ad, kapsam);
         return {
             ad, renk: partiRenk(ad), oy, pct, koltuk,
             ittifak: ittifakBilgisi(ad),
@@ -200,7 +216,7 @@ IG.veriTopla = function () {
         });
         g.kiyasPartiler.forEach(ad => {
             if (varOlan.has(ad) || eslenmis.has(ad)) return;
-            const k = kiyasKaydi(ad);
+            const k = kiyasKaydi(ad, kapsam);
             if (!k || !k.mv) return;
             liste.push({ ad, renk: partiRenk(ad), oy: 0, pct: 0, koltuk: 0,
                          yeniOy: false, yeniKoltuk: false,
@@ -229,7 +245,10 @@ IG.veriTopla = function () {
         gruplu, grupsuz, yitirenler,
         yaySira: sira,
         kiyasVar: g.kiyasAcik,
-        kiyasAd: g.kiyasAd
+        kiyasAd: g.kiyasAd,
+        // Çıktının hangi kapsamı anlattığı: seçim kipi açıkken okuyucu ülke
+        // geneli sanmasın diye bölüm başlığına yazılır.
+        kapsamAdet: kapsam ? kapsam.length : 0
     };
 };
 
@@ -248,7 +267,7 @@ const STIL = `
 .ig-marka { font-weight: 800; letter-spacing: -0.4px; line-height: 1.16;
     font-size: calc(34px * var(--ig-ol)); }
 .ig-kicker { margin-top: calc(7px * var(--ig-ol)); font-size: calc(10.5px * var(--ig-ol));
-    font-weight: 800; letter-spacing: calc(2.4px * var(--ig-ol)); color: var(--ig-vurgu); }
+    font-weight: 800; letter-spacing: calc(2.4px * var(--ig-ol)); color: var(--ig-yeni); }
 
 /* ── Gövde iskeleti ── */
 .ig-govde { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
@@ -444,7 +463,7 @@ function bolumBas(baslik, baglam) {
 function blokBaslik() {
     return `<header class="ig-baslik">
         <div class="ig-marka">${kacis(METIN.marka)}</div>
-        <div class="ig-kicker">${kacis(trUst(METIN.kicker))}</div>
+        <div class="ig-kicker">${kacis(METIN.kicker)}</div>
     </header>`;
 }
 
@@ -519,7 +538,8 @@ function blokOy(veri, ol) {
             ${veri.kiyasVar ? deltaCip(p.dOy, 2, false, p.yeniOy) : ''}
         </div>`;
     }).join('');
-    return `<section class="ig-bolum ig-oy">${bolumBas(METIN.oyBaslik, '')}${satirlar}</section>`;
+    const kapsamNotu = veri.kapsamAdet ? 'SEÇİLİ ' + veri.kapsamAdet + ' ÇEVRE' : '';
+    return `<section class="ig-bolum ig-oy">${bolumBas(METIN.oyBaslik, kapsamNotu)}${satirlar}</section>`;
 }
 
 /* Gömülü yazı tipi kuralı — bir kez okunur. SVG dışa aktarılırken içine
@@ -691,7 +711,7 @@ function sahneKur(fmtAd, veri, ol, sadeceOlcu) {
     sahne.style.cssText = `width:${f.en}px;height:${f.boy}px;`
         + `--ig-koyu:${TEMA.koyu};--ig-baslik-yazi:${TEMA.baslikYazi};--ig-zemin:${TEMA.zemin};`
         + `--ig-metin:${TEMA.metin};--ig-gri:${TEMA.gri};--ig-cizgi:${TEMA.cizgi};`
-        + `--ig-vurgu:${TEMA.vurgu};--ig-sans:${TEMA.sans};`
+        + `--ig-vurgu:${TEMA.vurgu};--ig-yeni:${TEMA.yeni};--ig-sans:${TEMA.sans};`
         + `--ig-harita-kontur:${TEMA.haritaKontur};`
         + `--ig-harita-kontur-kalinlik:${TEMA.haritaKonturKalinlik};`
         + `--ig-ol:${ol};--ig-kenar:${f.kenar}px;--ig-aralik:${f.aralik}px;`;
@@ -759,6 +779,10 @@ IG.png = async function (fmtAd, kat) {
     kap.style.cssText = 'position:fixed;left:-99999px;top:0;z-index:-1;';
     kap.appendChild(sahne);
     document.body.appendChild(kap);
+    /* Önizleme sahnesi belgede duruyor; html2canvas tüm belgeyi klonladığı için
+       rasterize süresince onu geçici olarak ayırmak süreyi belirgin kısaltır. */
+    const onizlemeyiGeriGetir = (typeof igOnizlemeyiAskiyaAl === 'function')
+        ? igOnizlemeyiAskiyaAl() : () => {};
     try {
         if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -773,6 +797,7 @@ IG.png = async function (fmtAd, kat) {
         link.click();
     } finally {
         document.body.removeChild(kap);
+        onizlemeyiGeriGetir();
     }
 };
 
@@ -812,22 +837,50 @@ function panelCiz() {
             : 'Değişim değerleri için sağ panelden bir <b>kıyas projeksiyonu</b> yükleyip etkinleştirin.'}</div>`;
 }
 
+/* Klasik önizleme: indirmeyle AYNI düzeni kuran klasikInfografikSahne()'yi
+   çağırır, ama html2canvas'a hiç uğramaz — sahne canlı DOM olarak gösterilip
+   CSS transform ile küçültülür, tıpkı diğer üç formatta olduğu gibi. Rasterize
+   etmek yalnız indirme anına kaldığı için önizleme anlık açılır.
+   PNG 16:10'a kırpıldığından önizleme de aynı kırpmayı yapar: sahne, ortadan
+   kirpW genişliğinde bir pencereye kaydırılarak yerleştirilir. */
+function klasikOnizle(kap, alan) {
+    if (typeof klasikInfografikSahne !== 'function') {
+        kap.innerHTML = '<div style="padding:24px;font-size:12.5px;color:#c00;">Klasik çıktı bu sürümde yok.</div>';
+        return;
+    }
+    let s;
+    try { s = klasikInfografikSahne(); }
+    catch (err) {
+        kap.innerHTML = `<div style="padding:24px;font-size:12.5px;color:#c00;">Klasik önizleme üretilemedi: ${kacis(err.message)}</div>`;
+        return;
+    }
+    const kirpW = Math.min(s.kirpW, s.W);
+    const olcek = Math.min((alan.clientWidth - 48) / kirpW, (alan.clientHeight - 48) / s.H, 1);
+    // Sahne ekrana girecek: dışa aktarımdaki "ekranın dışına park et" konumu kalkar.
+    s.el.style.position = 'absolute';
+    s.el.style.left = (-(s.W - kirpW) / 2) + 'px';
+    s.el.style.top = '0';
+    s.el.style.transformOrigin = '0 0';
+    kap.innerHTML = '';
+    const pencere = document.createElement('div');
+    pencere.style.cssText = `position:relative;width:${kirpW}px;height:${s.H}px;overflow:hidden;`
+        + `background:#fff;transform:scale(${olcek});transform-origin:0 0;`;
+    pencere.appendChild(s.el);
+    kap.appendChild(pencere);
+    kap.style.width = Math.round(kirpW * olcek) + 'px';
+    kap.style.height = Math.round(s.H * olcek) + 'px';
+}
+
 function onizlemeCiz() {
     clearTimeout(cizZamanlayici);
     cizZamanlayici = setTimeout(() => {
         const kap = document.getElementById('igOnizlemeKap');
         const alan = document.getElementById('igOnizlemeAlan');
         kap.innerHTML = '';
-        // Klasik çıktı ekrandaki panellerin fotoğrafıdır; burada yeniden
-        // kurulmadığı için önizlemesi de yok.
+        /* Klasik çıktı ayrı bir düzen; önizlemesi de diğerleri gibi canlı DOM
+           sahnesi olarak çizilir (indirmeyle aynı kurulum kodu, rasterize yok). */
         if (FORMAT === 'klasik') {
-            kap.style.width = ''; kap.style.height = '';
-            kap.innerHTML = `<div style="padding:36px 28px;max-width:420px;text-align:center;
-                font-size:12.5px;line-height:1.6;color:var(--text-secondary,#666);">
-                <b style="display:block;font-size:15px;margin-bottom:8px;color:var(--text,#111);">Klasik çıktı</b>
-                Ekrandaki parti şeridi, harita ve parlamento panelinin fotoğrafı olarak üretilir.
-                Bu yüzden burada önizlemesi yoktur. Çıktı ${KLASIK.en}×${KLASIK.boy} oranındadır;
-                yukarıdaki 1× / 2× / 3× düğmeleriyle indirin.</div>`;
+            klasikOnizle(kap, alan);
             return;
         }
         let sahne;
