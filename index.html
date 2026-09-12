@@ -1125,6 +1125,10 @@
 
 <div id="modeSwitch">
     <button id="modeBtnGenel" class="active" onclick="switchProjectionMode('genel')">Genel</button>
+    <!-- 2024 modu GEÇİCİ OLARAK GİZLİ. Kodu, şablonları ve veri dosyaları
+         yerinde duruyor (apply2024Mode + parti_sablonu_2024/nufus_2024/
+         bagimsiz_2024.json); geri açmak için aşağıdaki display:none yeter. -->
+    <button id="modeBtn2024" onclick="switchProjectionMode('2024')" style="display:none;">2024</button>
     <button id="modeBtn2023" onclick="switchProjectionMode('2023')">2023</button>
     <button id="modeBtn2018" onclick="switchProjectionMode('2018')">2018</button>
     <button id="modeBtn2002" onclick="switchProjectionMode('2002')">2002</button>
@@ -5028,7 +5032,9 @@ window.deleteParty = function(idx) {
     mudahaleVarligiSil(name);
     // Ana partisi silindiği için düşen katılma listelerinin katmanları da gider.
     silinenListeler.forEach(c => mudahaleVarligiSil(c.name));
-    $('thresholdInp').value = 7;
+    // Baraj BURADA SIFIRLANMAZ: parti silmenin baraj oranıyla ilgisi yok.
+    // Eskiden koşulsuz 7'ye çekiliyordu; kullanıcının kurduğu eşik (örn. %2,5)
+    // bir parti silinir silinmez sessizce kayboluyordu.
     refreshPartyDependentViews();
 };
 
@@ -7669,7 +7675,7 @@ function renderResults(res){
     const ths = `padding:9px 10px; text-align:center; font-size:13px; white-space:nowrap; border:1px solid var(--border);`;
 
     const genisletilebilirIller = new Set();
-    Object.keys(ilceSonuc).forEach(id => {
+    if (ilceKullanilabilir()) Object.keys(ilceSonuc).forEach(id => {
         const b = ilceSonuc[id];
         if (b && res[b.cevre]) genisletilebilirIller.add(b.cevre);
     });
@@ -7708,8 +7714,12 @@ function renderResults(res){
     // "Yalnızca İlçeler" dışındaki modlarda ana sıralama iller üzerindedir;
     // bir ilin ilçeleri kendi içinde sıralanır. "Yalnızca İlçeler"de ise tüm
     // ilçeler tek havuzda sıralanır.
+    // İlçe verisi olmayan modlarda (2002, 2024) ızgara da ilçe tanımaz.
+    // ilceSonuc bellekte önceki moddan kalmış olabiliyor; süzgeç olmadan
+    // genişletme üçgeni çıkıyor ve o yılın ilçe payları başka bir seçimin
+    // sonucuna serpiştirilmiş gibi görünüyordu.
     const cevreIlce = {};
-    Object.keys(ilceSonuc).forEach(id => {
+    if (ilceKullanilabilir()) Object.keys(ilceSonuc).forEach(id => {
         const b = ilceSonuc[id];
         if (!b || !res[b.cevre]) return;
         (cevreIlce[b.cevre] = cevreIlce[b.cevre] || []).push(id);
@@ -8560,14 +8570,17 @@ function restoreModeState(st) {
     runProjection();
 }
 
-const MOD_BTN = { genel: 'modeBtnGenel', '2023': 'modeBtn2023',
+const MOD_BTN = { genel: 'modeBtnGenel', '2024': 'modeBtn2024', '2023': 'modeBtn2023',
                   '2018': 'modeBtn2018', '2002': 'modeBtn2002' };
+// İlçe sonucu OLMAYAN modlar: 2002'nin ilçe dökümü hiç yok, 2024 ise yerel
+// seçim olduğu için elimizde yalnız il düzeyinde toplam var.
+const ILCESIZ_MODLAR = ['2002', '2024'];
 
 /* 2002 modunda ilçe verisi YOK: o seçimin ilçe sonuçlarını taşıyan bir
    dosyamız olmadığı gibi, 2002'nin ilçe sınırları da bugünküyle örtüşmüyor.
    Harita katmanı düğmesi ve ızgaranın ilçe seçenekleri bu modda kapanır. */
 function ilceKullanilabilir() {
-    return typeof currentMode === 'undefined' || currentMode !== '2002';
+    return typeof currentMode === 'undefined' || ILCESIZ_MODLAR.indexOf(currentMode) < 0;
 }
 function ilceArayuzunuTazele() {
     const acik = ilceKullanilabilir();
@@ -8641,6 +8654,7 @@ window.switchProjectionMode = async function(mode) {
         else if (mode === '2023') await apply2023Mode(true);
         else if (mode === '2018') await apply2018Mode(true);
         else if (mode === '2002') await apply2002Mode(true);
+        else if (mode === '2024') await apply2024Mode(true);
         // 'genel' ilk kez seçilemez (açılışta zaten o), yedek durum hep vardır
     } catch (err) {
         currentMode = onceki;
@@ -8862,6 +8876,87 @@ window.apply2002Mode = async function(sessiz) {
         if (!sessiz) alert('2002 Modu hazır. Bu modda ilçe görünümü yoktur.');
     } catch (err) {
         alert('2002 Modu kurulamadı: ' + err.message);
+    }
+};
+
+// ═══ 2024 Modu ═══════════════════════════════════════════════════════════════
+/* 2024 bir YEREL seçimdir; diğer yıl modları gibi gerçek bir meclisi yeniden
+   üretmez. Sorduğu soru şu: "31 Mart 2024'te büyükşehir/il belediye başkanlığı
+   için verilen oylar, bugünkü milletvekili sistemine taşınsaydı meclis nasıl
+   olurdu?" Bu yüzden partiler ve çevre ağırlıkları 2024'ten, seçim kuralları
+   (600 sandalye, güncel çevre dağılımı, %7 baraj, klasik D'Hondt) bugünden gelir.
+   İttifak yoktur: yerel seçimde ittifakların sandalyeye etkisi diye bir şey yok,
+   uydurmak yerine partiler kendi oylarıyla yarışır.
+
+   İlçe görünümü KAPALI — 2002 gibi. Elimizdeki 2024 dökümü il düzeyinde;
+   ilçe kırılımı hiç yok (bkz. kaynak_veri/2024_yerel.json). */
+window.apply2024Mode = async function(sessiz) {
+    if (!sessiz && !confirm('2024 Modu kurulacak: partiler, veri seti ağırlıkları, çevre '
+               + 'oyları ve bağımsız blok 2024 yerel seçim değerleriyle değiştirilecek.\n\n'
+               + 'Mevcut parti listesi ve ayarlar kaybolur. Devam edilsin mi?')) return;
+    try {
+        const [sab, nuf, bag, koltuk] = await Promise.all([
+            fetch('parti_sablonu_2024.json', { cache: 'no-store' }).then(r => r.json()),
+            fetch('nufus_2024.json', { cache: 'no-store' }).then(r => r.json()),
+            fetch('bagimsiz_2024.json', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
+            // Yerel seçimin kendi sandalye dağılımı yok; bugünkü 600'lük dağılım.
+            fetch('koltuk_verisi.json', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
+        ]);
+        if (!await veriSetiSagla('2024', 'veri_2024_tam.json', '2024 Yerel')) return;
+        takeSnapshot();
+
+        // 1) Yalnız 2024 veri seti
+        datasets.forEach(d => { d.weight = (d.id === '2024') ? 1 : 0; d.isEnabled = (d.id === '2024'); });
+        yilModuVeriSifirla('2024');
+        rebuildDistrictPerf(); renderDatasets();
+
+        // 2) Çevre ağırlığı: 2024 geçerli oyu
+        loadPopulationData(nuf); renderPopulationPanel();
+
+        // 3) Bağımsız sabit blok: geçerli oydan parti oyları düşünce kalan pay.
+        //    Erzincan, Kırklareli ve Tunceli gibi çevrelerde bağımsız aday
+        //    yarışı kazandığı için bu blok kabarıktır.
+        if (bag) { loadIndependentData(bag); independentsEnabled = true; renderIndependentPanel(); }
+
+        // 4) Sandalyeler: bugünkü 600'lük dağılım
+        if (koltuk) customSeatOverrides = JSON.parse(JSON.stringify(koltuk));
+
+        // 5) Partiler — benzerlik birebir kendi koduna
+        extraParties = sab.partiler.map(p => ({
+            name: p.ad, nat: p.nat, color: p.renk,
+            similarity: { [p.kod]: 1 },
+            compareParty: '', isOpen: false, isEnabled: true,
+            icon: p.ikon || null,
+            iconColor: p.ikonRenk || '#FFFFFF',
+            accent: p.vurgu || 'bg',
+            accentColor: p.vurguRenk || ''
+        }));
+
+        // 6) Yerel seçimde ittifak/fermuar yok
+        electoralAlliances = [];
+        coalitions = []; digerGroups = [];
+        localDisabledParties = {};
+        const _koddan = {};
+        sab.partiler.forEach(p => { _koddan[p.kod] = p.ad; });
+        parliamentOrderOverride = (sab.parlamentoSirasi || []).map(k => _koddan[k]).filter(Boolean);
+        ensureDigerGroup();
+
+        // 7) Seçim ayarları: bugünkü kurallar — %7 baraj, klasik D'Hondt
+        yilModuMudahaleSifirla();
+        $('thresholdInp').value = fmtPctInput(sab.esikVarsayilan || 7);
+        $('mathMethodInp').value = 'dhondt';
+        $('calcMethodInp').value = 'classic';
+        if ($('sharpnessInp')) $('sharpnessInp').value = fmtPctInput(1);
+        $('mbEnabledInp').checked = false;
+        if ($('linEnabledInp')) $('linEnabledInp').checked = false;
+
+        ilceArayuzunuTazele();
+        refreshAllEntityViews(); renderDiger(); updateTotalTracker();
+        runProjection();
+        if (!sessiz) alert('2024 Modu hazır. Yerel seçim oyları bugünkü milletvekili '
+                         + 'sistemine taşındı; bu modda ilçe görünümü yoktur.');
+    } catch (err) {
+        alert('2024 Modu kurulamadı: ' + err.message);
     }
 };
 

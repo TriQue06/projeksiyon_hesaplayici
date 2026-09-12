@@ -1,0 +1,301 @@
+{
+ "_tool": "parti_sablonu",
+ "v": 1,
+ "label": "2024 Partileri",
+ "esikVarsayilan": 7,
+ "kaynak": "YSK 2024 yerel seçim büyükşehir/il belediye başkanlığı sonuçları (veri_2024_tam.json toplamları). Oranlar geçerli oy toplamına göredir; kalan pay bağımsız ve diğer bloğundadır. 2024 bir YEREL seçimdir: ittifak ve baraj yoktur, bu şablon o oyların bugünkü milletvekili sistemine taşınmış halidir.",
+ "partiler": [
+  {
+   "ad": "CHP",
+   "kod": "chp",
+   "renk": "#E81E32",
+   "nat": 35.7828,
+   "ikon": "chp_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "AK Parti",
+   "kod": "ak_parti",
+   "renk": "#F0A824",
+   "nat": 33.0368,
+   "ikon": "ak_parti_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "Yeniden Refah",
+   "kod": "yeniden_refah",
+   "renk": "#37AD4F",
+   "nat": 6.7932,
+   "ikon": "yeniden_refah_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "MHP",
+   "kod": "mhp",
+   "renk": "#A63260",
+   "nat": 5.9584,
+   "ikon": "mhp_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "DEM Parti",
+   "kod": "dem_parti",
+   "renk": "#9F3AC9",
+   "nat": 5.4213,
+   "ikon": "dem_parti_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "İYİ Parti",
+   "kod": "iyi_parti",
+   "renk": "#2AAFE8",
+   "nat": 4.6084,
+   "ikon": "iyi_parti_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "Zafer Partisi",
+   "kod": "zafer_partisi",
+   "renk": "#F27E1F",
+   "nat": 1.8959,
+   "ikon": "zafer_partisi_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "Saadet",
+   "kod": "saadet",
+   "renk": "#C7724E",
+   "nat": 1.1997,
+   "ikon": "saadet_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "Büyük Birlik",
+   "kod": "buyuk_birlik",
+   "renk": "#2EB88E",
+   "nat": 1.1976,
+   "ikon": "buyuk_birlik_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "HÜDA PAR",
+   "kod": "huda_par",
+   "renk": "#9EBA4A",
+   "nat": 0.5977,
+   "ikon": "huda_par_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "TİP",
+   "kod": "tip",
+   "renk": "#F035AE",
+   "nat": 0.4419,
+   "ikon": "tip_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "DP",
+   "kod": "dp",
+   "renk": "#000000",
+   "nat": 0.3798,
+   "ikon": "dp_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "DEVA Partisi",
+   "kod": "deva_partisi",
+   "renk": "#1A92BA",
+   "nat": 0.3652,
+   "ikon": "deva_partisi_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "BTP",
+   "kod": "btp",
+   "renk": "#AB312B",
+   "nat": 0.2917,
+   "ikon": "btp_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "TKP",
+   "kod": "tkp",
+   "renk": "#000000",
+   "nat": 0.2651,
+   "ikon": "tkp_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "Memleket",
+   "kod": "memleket",
+   "renk": "#0C63AB",
+   "nat": 0.2402,
+   "ikon": "memleket_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "DSP",
+   "kod": "dsp",
+   "renk": "#000000",
+   "nat": 0.1138,
+   "ikon": "dsp_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "Gelecek Partisi",
+   "kod": "gelecek_partisi",
+   "renk": "#000000",
+   "nat": 0.1061,
+   "ikon": "gelecek_partisi_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "Millet",
+   "kod": "millet",
+   "renk": "#000000",
+   "nat": 0.0648,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "Vatan Partisi",
+   "kod": "vatan_partisi",
+   "renk": "#000000",
+   "nat": 0.0599,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "HKP",
+   "kod": "hkp",
+   "renk": "#000000",
+   "nat": 0.044,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "Milli Yol",
+   "kod": "milli_yol",
+   "renk": "#000000",
+   "nat": 0.0363,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "ANAP",
+   "kod": "anap",
+   "renk": "#000000",
+   "nat": 0.034,
+   "ikon": "anap_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "EMEP",
+   "kod": "emep",
+   "renk": "#000000",
+   "nat": 0.0321,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "YTP",
+   "kod": "ytp",
+   "renk": "#000000",
+   "nat": 0.0227,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "AB Parti",
+   "kod": "ab_parti",
+   "renk": "#000000",
+   "nat": 0.0129,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "AP",
+   "kod": "ap",
+   "renk": "#000000",
+   "nat": 0.0125,
+   "ikon": "ap_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "HAK PAR",
+   "kod": "hak_par",
+   "renk": "#000000",
+   "nat": 0.0106,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "SOL Parti",
+   "kod": "sol_parti",
+   "renk": "#000000",
+   "nat": 0.0086,
+   "ikon": "sol_parti_icon.svg",
+   "ikonRenk": "#FFFFFF",
+   "vurgu": "bg"
+  },
+  {
+   "ad": "ABP",
+   "kod": "abp",
+   "renk": "#000000",
+   "nat": 0.0069,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "TKH",
+   "kod": "tkh",
+   "renk": "#000000",
+   "nat": 0.006,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "OCAK",
+   "kod": "ocak",
+   "renk": "#000000",
+   "nat": 0.0035,
+   "vurgu": "bg"
+  },
+  {
+   "ad": "ADP",
+   "kod": "adp",
+   "renk": "#000000",
+   "nat": 0.002,
+   "vurgu": "bg"
+  }
+ ],
+ "ittifaklar": {},
+ "ittifakRenkleri": {},
+ "fermuarListeleri": {},
+ "parlamentoSirasi": [
+  "tip",
+  "dem_parti",
+  "chp",
+  "iyi_parti",
+  "memleket",
+  "saadet",
+  "gelecek_partisi",
+  "deva_partisi",
+  "zafer_partisi",
+  "ak_parti",
+  "mhp",
+  "yeniden_refah",
+  "buyuk_birlik",
+  "huda_par"
+ ]
+}

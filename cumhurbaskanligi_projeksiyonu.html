@@ -1179,12 +1179,22 @@
 
         .cb-bos-not { font-size: 11px; color: var(--text-secondary); font-weight: 700; }
 
-        /* Sonuç şeridi ve kazanan kutusu */
-        .cb-sonuc-serit { display: flex; height: 44px; border: 1px solid var(--outline);
-                          overflow: hidden; margin-bottom: 13px; }
-        .cb-sonuc-serit div { display: flex; align-items: center; justify-content: center;
-                              color: #fff; font-size: 12.5px; font-weight: 900;
-                              overflow: hidden; white-space: nowrap; }
+        /* Kazanan kutusu ve sonuç pastası (infografikteki grafiğin aynısı) */
+        .cb-pasta-kap { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+        .cb-pasta { width: 220px; max-width: 100%; height: auto; flex-shrink: 0; }
+        .cb-pasta text { font-family: 'Product Sans', system-ui, sans-serif; }
+        .cb-lejant { flex: 1; min-width: 200px; }
+        .cb-lej-satir { display: flex; align-items: center; gap: 10px; padding: 7px 0;
+                        border-bottom: 1px solid var(--border-subtle, var(--border)); }
+        .cb-lej-satir:last-child { border-bottom: none; }
+        .cb-lej-nokta { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; }
+        .cb-lej-ad { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .cb-lej-ad b { font-size: 13px; font-weight: 800; color: var(--text);
+                       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cb-lej-ad small { font-size: 10.5px; font-weight: 700; color: var(--text-secondary);
+                           font-variant-numeric: tabular-nums; }
+        .cb-lej-pct { font-size: 14px; font-weight: 900; white-space: nowrap;
+                      font-variant-numeric: tabular-nums; }
         .cb-kazanan { display: flex; align-items: center; gap: 13px; padding: 14px;
                       border: 1px solid var(--border); background: var(--surface); margin-bottom: 16px; }
         .cb-kazanan b { font-size: 1.5rem; font-weight: 900; letter-spacing: -.5px; display: block; }
@@ -1556,11 +1566,6 @@
             <div class="style-col" id="styleFotoCol">
                 <div class="style-col-title">Fotoğraf</div>
                 <div class="icon-modal-grid" id="fotoModalGrid"></div>
-                <div id="fotoBosNot" style="display:none; font-size:10px; line-height:1.5; font-weight:700;
-                     color:var(--text-secondary); margin-top:9px;">
-                    Henüz fotoğraf yok. Biyometrik PNG'leri <b>aday_fotograflari/</b> klasörüne
-                    koyup dosya adlarını oradaki <b>manifest.json</b>'a ekleyin.
-                </div>
             </div>
         </div>
         <div style="display:flex; gap:9px; justify-content:space-between; margin-top:12.5px;">
@@ -2467,17 +2472,26 @@ function sonucCiz() {
     const lider = sirali[0], ikinci = sirali[1];
     const salt = pct(lider.oy) > 50;
 
-    const serit = sirali.map(x => {
-        const w = pct(x.oy);
-        return w > 0 ? `<div style="width:${w}%;background:${x.a.renk};" title="${escapeStr(x.a.ad)} · %${oran(w)}">
-            ${w > 9 ? escapeStr(x.a.ad) + ' %' + oran(w) : ''}</div>` : '';
-    }).join('') + (sonuc.dagitilmamis > 0.5
-        ? `<div style="width:${pct(sonuc.dagitilmamis)}%;background:var(--track);color:var(--text-dim);"
-             title="Dağıtılmamış">${pct(sonuc.dagitilmamis) > 9 ? 'Dağıtılmamış' : ''}</div>` : '');
+    // Pasta + lejant: infografikteki grafiğin aynısı (igPasta paylaşılıyor).
+    // Tema renkleri o anki değerlerinden okunur; tema değişince sonucCiz
+    // yeniden çağrıldığı için ayraçlar zeminle uyumlu kalır.
+    const iz = igRenk('--track', '#eceef2'), ikincilRenk = igRenk('--text-secondary', '#6a7180');
+    const dilimler = sirali.map(x => ({ deger: x.oy, renk: x.a.renk, yazi: kontrastYazi(x.a.renk) }));
+    const lejant = sirali.map(x => ({ ad: x.a.ad, pct: pct(x.oy), oy: x.oy, renk: x.a.renk, pctRenk: x.a.renk }));
+    if (sonuc.dagitilmamis > 0 && pct(sonuc.dagitilmamis) >= 0.5) {
+        dilimler.push({ deger: sonuc.dagitilmamis, renk: iz, yazi: ikincilRenk });
+        lejant.push({ ad: 'Dağıtılmamış', pct: pct(sonuc.dagitilmamis), oy: sonuc.dagitilmamis,
+                      renk: iz, pctRenk: 'var(--text-secondary)' });
+    }
+    const pasta = `<svg class="cb-pasta" viewBox="0 0 220 220" role="img" aria-label="Aday oy oranları">`
+        + igPasta(110, 110, 106, dilimler, igRenk('--surface', '#ffffff')) + '</svg>';
+    const lejantHtml = lejant.map(s => `<div class="cb-lej-satir">
+            <span class="cb-lej-nokta" style="background:${s.renk};"></span>
+            <div class="cb-lej-ad"><b title="${escapeStr(s.ad)}">${escapeStr(s.ad)}</b><small>${sayi(s.oy)} oy</small></div>
+            <span class="cb-lej-pct" style="color:${s.pctRenk};">%${oran(s.pct)}</span>
+        </div>`).join('');
 
-    const enB = Math.max(...sirali.map(x => pct(x.oy)), 0.01);
     $('sonucAlani').innerHTML = `
-        <div class="cb-sonuc-serit">${serit}</div>
         <div class="cb-kazanan">
             <span style="width:16px;height:46px;background:${lider.a.renk};flex-shrink:0;"></span>
             <div style="flex:1;min-width:0;">
@@ -2491,7 +2505,7 @@ function sonucCiz() {
         </div>
         <div style="font-size:10.5px;font-weight:900;letter-spacing:.4px;color:var(--text-secondary);
                     text-transform:uppercase;margin-bottom:9px;">Aday Oy Oranları</div>
-        ${sirali.map(x => adaySatir(x.a, pct(x.oy), enB, { votes: x.oy })).join('')}`;
+        <div class="cb-pasta-kap">${pasta}<div class="cb-lejant">${lejantHtml}</div></div>`;
 
     izgaraCiz();
     updateMapColors();
@@ -3265,8 +3279,10 @@ function igSvgKur() {
     const govdeBoy = Math.max(0, govdeAlt - govdeUst);
     const haritaVar = igHarita && $('svgMapWrapper').querySelector('svg');
 
-    const dilimler = sirali.map(x => ({ deger: x.oy, renk: x.a.renk, yazi: kontrastYazi(x.a.renk) }));
-    const satirlar = sirali.map(x => ({ ad: x.a.ad, pct: pct(x.oy), oy: x.oy, renk: x.a.renk }));
+    // Hiç oy almayan (%0,00 görünecek) aday listelenmez; pastada zaten dilimi yok.
+    const oyAlan = sirali.filter(x => pct(x.oy) >= 0.005);
+    const dilimler = oyAlan.map(x => ({ deger: x.oy, renk: x.a.renk, yazi: kontrastYazi(x.a.renk) }));
+    const satirlar = oyAlan.map(x => ({ ad: x.a.ad, pct: pct(x.oy), oy: x.oy, renk: x.a.renk }));
     if (sonuc.dagitilmamis > 0 && pct(sonuc.dagitilmamis) >= 0.5) {
         dilimler.push({ deger: sonuc.dagitilmamis, renk: iz, yazi: ikincil });
         satirlar.push({ ad: 'Dağıtılmamış', pct: pct(sonuc.dagitilmamis), oy: sonuc.dagitilmamis,
@@ -3842,8 +3858,6 @@ function fotoIzgarasiCiz() {
         + liste.map(f => `<div class="icon-pick-box foto-kutu" style="${secili(f)}" title="${escapeStr(f)}"
                 onclick="adayFotoSec('${escapeStr(f)}')"><img src="${FOTO_KLASORU + encodeURIComponent(f)}"
                 alt="" loading="lazy"></div>`).join('');
-    const not = $('fotoBosNot');
-    if (not) not.style.display = (adayFotolari && !liste.length) ? '' : 'none';
 }
 window.adayFotoSec = function (f) { bekleyenFoto = f; fotoIzgarasiCiz(); };
 
@@ -3894,7 +3908,8 @@ window.setParlaklik = function (p) {
     try { localStorage.setItem('pgm_parlaklik', g); } catch (e) {}
     document.querySelectorAll('[data-parlaklik-sec]').forEach(b =>
         b.classList.toggle('aktif', b.getAttribute('data-parlaklik-sec') === g));
-    if (sonuc) updateMapColors();
+    // Pasta ayraçları ve dağıtılmamış dilimi tema rengini taşıdığı için tam çizim.
+    if (sonuc && partiler.length) sonucCiz();
 };
 (function () {
     let p = 'acik';
