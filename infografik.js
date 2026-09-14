@@ -86,6 +86,8 @@ const METIN = {
 /* Grup kurma eşiği: altında kalan partiler piktogram bloğu yerine kompakt
    listede toplanır. */
 const GRUP_ESIGI = 20;
+/* Seçerek toplu incelemede noktalarla gösterilen parti sayısı. */
+const KAPSAM_NOKTALI = 5;
 
 /* Oy oranı listesinde kaç satır. Sınırsız bırakılınca 20'yi aşan parti listesi
    tuvale sığmıyor ve otomatik ölçek her şeyi okunmaz hâle getirene kadar
@@ -225,8 +227,14 @@ IG.veriTopla = function () {
     }
 
     const koltuklu   = liste.filter(p => p.koltuk > 0).sort((a, b) => b.koltuk - a.koltuk);
-    const gruplu     = koltuklu.filter(p => p.koltuk >= GRUP_ESIGI);
-    const grupsuz    = koltuklu.filter(p => p.koltuk < GRUP_ESIGI);
+    /* Ülke genelinde noktalı gösterim Meclis'te grup kurma eşiğine (20 MV)
+       bağlı. Seçerek toplu incelemede bu eşiğin anlamı yok — birkaç ilde kimse
+       20'ye ulaşmayabilir — o yüzden en çok vekili olan ilk 5 parti noktalarla,
+       kalanlar yalnız sayıyla gösterilir. */
+    const gruplu     = kapsam ? koltuklu.slice(0, KAPSAM_NOKTALI)
+                              : koltuklu.filter(p => p.koltuk >= GRUP_ESIGI);
+    const grupsuz    = kapsam ? koltuklu.slice(KAPSAM_NOKTALI)
+                              : koltuklu.filter(p => p.koltuk < GRUP_ESIGI);
     const yitirenler = liste.filter(p => p.koltuk === 0 && p.kiyasKoltuk > 0)
                             .sort((a, b) => b.kiyasKoltuk - a.kiyasKoltuk);
 
@@ -297,8 +305,8 @@ const STIL = `
 .ig-harita-tuval { flex: 1 1 auto; min-width: 0; min-height: 0; height: 100%;
     display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .ig-harita-tuval svg { width: 100%; height: 100%; display: block; }
-/* !important şart: turkiye_harita.svg'nin kendi <path>'lerinde satır içi
-   stroke tanımı var ve uygulamada da ancak !important ile eziliyor. */
+/* !important şart: uygulamanın harita kuralları (#svgMapWrapper path) kontur
+   rengini ve kalınlığını !important ile yazıyor; klonda ancak böyle ezilir. */
 .ig-harita-tuval svg path, .ig-harita-tuval svg polygon,
 .ig-harita-tuval svg polyline, .ig-harita-tuval svg rect {
     stroke: var(--ig-harita-kontur) !important;
@@ -314,7 +322,8 @@ const STIL = `
 .ig-oy-satir { display: flex; align-items: center; gap: calc(10px * var(--ig-ol));
     padding: calc(7px * var(--ig-ol)) 0; border-bottom: 1px solid var(--ig-cizgi); }
 .ig-oy-satir:last-child { border-bottom: 0; }
-.ig-rozet { width: calc(33px * var(--ig-ol)); height: calc(33px * var(--ig-ol)); flex: 0 0 auto;
+/* Parti logoları her yerde daire. */
+.ig-rozet { width: calc(33px * var(--ig-ol)); height: calc(33px * var(--ig-ol)); flex: 0 0 auto; border-radius: 50%;
     display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .ig-rozet svg { width: 100%; height: 100%; display: block; }
 .ig-rozet > span { width: 100% !important; height: 100% !important; padding: 12%; }
@@ -429,8 +438,9 @@ function rozet(p, boyPx) {
         if (typeof partyIconInlineSvg === 'function') ic = partyIconInlineSvg(p.ad, '#ffffff', boy) || '';
     } catch (e) { ic = ''; }
     if (ic) return `<div class="ig-rozet" style="background:${zemin};">${ic}</div>`;
-    const harfler = trUst(p.ad).replace(/[^A-ZÇĞİÖŞÜ ]/g, '').split(/\s+/).filter(Boolean);
-    const mono = harfler.length >= 2 ? harfler[0][0] + harfler[1][0] : (harfler[0] || '?').slice(0, 2);
+    // Logosuz rozette yalnız baş harf (uygulamadaki rozetle aynı kural).
+    const bas = trUst(p.ad).match(/[A-ZÇĞİÖŞÜ0-9]/);
+    const mono = bas ? bas[0] : '?';
     return `<div class="ig-rozet" style="background:${zemin};"><var>${kacis(mono)}</var></div>`;
 }
 
@@ -480,9 +490,12 @@ function haritaSvg() {
             k.setAttribute('preserveAspectRatio', 'xMidYMid meet');
             k.style.cssText = 'width:100%;height:100%;display:block;';
             // Kontur stil sayfasından geliyordu; kopyada satır içi yazılır.
+            // İl sınırları (ilçe haritasının üst katmanı) üç kat kalın kalır.
             k.querySelectorAll('path,polygon,polyline,rect').forEach(x => {
+                const il = !!x.closest('.il-sinirlari');
                 x.style.stroke = '#ffffff';
-                x.style.strokeWidth = '0.4px';
+                x.style.strokeWidth = il ? '1.2px' : '0.4px';
+                if (il) x.style.fill = 'none';
                 x.style.transition = 'none';
             });
             return k.outerHTML;
@@ -494,6 +507,10 @@ function haritaSvg() {
     kopya.removeAttribute('width'); kopya.removeAttribute('height');
     kopya.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     kopya.style.cssText = 'width:100%;height:100%;display:block;';
+    // Seçerek toplu incele: yalnız seçili çevreler kalır ve alanı doldurur.
+    const kapsam = g.seciliCevreler;
+    if (kapsam && typeof haritaKapsamaKirp === 'function')
+        haritaKapsamaKirp(kaynak, kopya, new Set(kapsam));
 
     const res = g.sonuc;
     kopya.querySelectorAll('[data-district-name]').forEach(el => {
@@ -646,7 +663,8 @@ function blokVekil(veri, ol) {
         </div>`;
     }).join('');
 
-    // Grup kuramayanlar (20 vekilin altı) piktogram yerine tek satırda.
+    // Grup kuramayanlar (20 vekilin altı; seçim kipinde ilk 5'ten sonrakiler)
+    // piktogram yerine tek satırda.
     // Ayrı başlık yok: grup kuramayanlar doğrudan piktogram bloklarının altına,
     // aynı bölümün devamı olarak yazılır.
     const grupsuz = veri.grupsuz.length ? `

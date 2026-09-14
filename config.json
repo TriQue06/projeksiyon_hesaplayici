@@ -38,7 +38,7 @@
  ],
  "population": "nufus_verisi.json",
  "defaultProject": "agustos2_2026.json",
- "map": "turkiye_harita.svg",
+ "map": "turkiye_harita_il.svg",
  "mapping": "eslestirme.json",
  "dotPositions": "default_konum.json",
  "independents": "bagimsiz_2023.json"

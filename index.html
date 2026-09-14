@@ -408,7 +408,7 @@
         .icon-modal-box { background:var(--surface); padding:18px; border-radius:var(--r-modal); width:324px; max-width:92vw; box-shadow:var(--shadow-modal); border:1px solid var(--border); }
         .icon-modal-box h3 { margin-top:0; color:var(--text); margin-bottom:11px; font-size:0.99rem; }
         .icon-modal-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:7px; max-height:306px; overflow-y:auto; padding-right:3.5px; margin-bottom:11px; }
-        .icon-pick-box { aspect-ratio:1; border-radius:var(--r-input); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:7px; box-sizing:border-box; background:var(--surface-alt); transition:0.15s; }
+        .icon-pick-box { aspect-ratio:1; border-radius:50%; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:7px; box-sizing:border-box; background:var(--surface-alt); transition:0.15s; }
         .icon-pick-box:hover { transform:scale(1.06); box-shadow:var(--shadow-lift); }
         .icon-pick-box svg { width:100%; height:100%; display:block; }
 
@@ -598,46 +598,72 @@
             filter: brightness(0.9) drop-shadow(0 0 5px rgba(43,38,30,0.3));
             stroke: var(--map-stroke-hover) !important; stroke-width: 1.1px !important;
         }
-        /* ── Harita paneli araç çubuğu ───────────────────────────────────
-           Tek şerit; duruma göre içerik değişir, üst üste binme olmaz. */
-        #mapToolbar {
-            position: absolute; top: 12px; right: 12px; z-index: 25;
-            display: flex; align-items: center; gap: 6px;
-            padding: 5px 6px; border-radius: var(--r-btn);
-            background: var(--surface); border: 1px solid var(--border);
-            box-shadow: var(--shadow); max-width: calc(100% - 24px);
+        /* İl sınırları ilçe konturunun üç katı: bütün ilçe haritasında iller
+           seçilebilsin. Özgüllük (id+sınıf+öğe) üstteki 0.8px kuralını ezer. */
+        #svgIlceWrapper .il-sinirlari path {
+            fill: none !important; stroke: var(--map-stroke) !important;
+            stroke-width: 2.4px !important; pointer-events: none;
         }
-        #mapToolbar .tb-group { display: flex; align-items: center; gap: 5px; }
+        /* ── Harita şeridi ────────────────────────────────────────────────
+           Haritanın üstünde tek sıra; soldan sağa yuvarlak düğmeler. Üzerine
+           gelinen düğme sağa doğru açılıp ne işe yaradığını yazar. Basılı
+           (etkin) düğme ana renkle dolar. Çevre detayı açıkken sol grup gizlenir,
+           sağda gezinme grubu belirir. */
+        #mapToolbar {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+            padding: 2px 2px 10px; margin: 0 0 9px;
+            border-bottom: 1px solid var(--border);
+        }
+        #mapToolbar .tb-group { display: flex; align-items: center; gap: 7px; }
         #mapToolbar .tb-group[hidden] { display: none; }
-        #mapToolbar button {
+        #tbDetay { margin-left: auto; }
+        .hs-dugme {
+            display: inline-flex; align-items: center; flex-shrink: 0;
+            height: 36px; min-width: 36px; padding: 0; margin: 0; overflow: hidden;
+            background: var(--surface); color: var(--text-secondary);
+            border: 1px solid var(--border); border-radius: 999px; box-shadow: none;
+            font-size: 11px; font-weight: 800; line-height: 1; cursor: pointer;
+            transition: background .18s ease, color .18s ease, border-color .18s ease;
+        }
+        .hs-ikon { flex: 0 0 34px; height: 34px; display: flex; align-items: center; justify-content: center; }
+        .hs-ikon svg { width: 18px; height: 18px; display: block; }
+        .hs-etiket {
+            max-width: 0; opacity: 0; padding-right: 0; white-space: nowrap; overflow: hidden;
+            transition: max-width .25s ease, opacity .18s ease, padding-right .25s ease;
+        }
+        .hs-dugme:hover .hs-etiket, .hs-dugme:focus-visible .hs-etiket {
+            max-width: 240px; opacity: 1; padding-right: 14px;
+        }
+        /* Üzerine gelinince ikon ve açıklama beyaz; okunabilsin diye zemin ana
+           renge döner. Renkler tema belirteçlerinden geldiği için açık, koyu ve
+           OLED'de aynı davranır. Devre dışı düğme (dar bölgede il/ilçe) parlamaz. */
+        .hs-dugme:not(:disabled):hover, .hs-dugme:not(:disabled):focus-visible {
+            background: var(--primary); color: #fff; border-color: var(--primary);
+            transform: none; box-shadow: none;
+        }
+        .hs-dugme[aria-pressed="true"],
+        #mapContainer:has(#mapSlides.show-ilce) #mapLayerBtn {
+            background: var(--primary); color: #fff; border-color: var(--primary);
+        }
+        .hs-dugme:disabled { cursor: not-allowed; }
+        html[data-tema="sade"] #mapToolbar .hs-dugme { border-radius: 999px !important; }
+        /* Büyütülmüş İstanbul/Kocaeli yalnız il haritasında anlamlı. */
+        #mapContainer:has(#mapSlides.show-ilce) #buyukDugme { display: none; }
+        #tbDetay button {
             height: 30px; min-width: 30px; padding: 0 9px; flex-shrink: 0;
             background: var(--input-bg); color: var(--text);
             border: 1px solid var(--border); border-radius: 8px;
             font-size: 13px; line-height: 1; box-shadow: none;
         }
-        #mapToolbar button:hover { background: var(--nav-btn-hover); transform: none; box-shadow: none; }
-        #mapToolbar button.primary {
-            background: var(--primary); color: #fff; border-color: var(--primary);
-            font-size: 11px; font-weight: 900;
-        }
-        #mapToolbar button.primary:hover { background: var(--primary-hover); }
-        #mapToolbar button.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
-        #mapToolbar button.danger:hover { background: var(--danger-hover); border-color: var(--danger-hover); }
+        #tbDetay button:hover { background: var(--nav-btn-hover); transform: none; box-shadow: none; }
+        #tbDetay button.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+        #tbDetay button.danger:hover { background: var(--danger-hover); border-color: var(--danger-hover); }
         #tbDetayAd {
             font-size: 11.5px; font-weight: 900; color: var(--text);
             padding: 0 6px 0 2px; white-space: nowrap; overflow: hidden;
             text-overflow: ellipsis; max-width: 190px;
         }
         #mapToolbar .tb-ayrac { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
-
-        /* Katman değiştirme düğmesi: aradığında göze çarpsın */
-        #mapLayerBtn {
-            background: var(--primary); color: #fff; border: none;
-            border-radius: var(--r-btn); font-size: 11px; font-weight: 900;
-            padding: 7px 13px; box-shadow: 0 2px 8px rgba(48,96,232,0.32);
-            display: flex; align-items: center; gap: 6px; white-space: nowrap;
-        }
-        #mapLayerBtn:hover { background: var(--primary-hover); transform: translateY(-1px); }
 
         #svgMapWrapper svg { width: 100%; height: auto; max-height:540px; filter: drop-shadow(0 4px 12px rgba(43,38,30,0.07)); display: block; margin: 0 auto; user-select: none; }
         #svgMapWrapper path, #svgMapWrapper g, #svgMapWrapper polygon, #svgMapWrapper polyline, #svgMapWrapper rect {
@@ -693,13 +719,18 @@
         .card.collapsed { padding-bottom:12.5px; }
 
         #parliamentChartArea svg circle { stroke: none; }
-        /* Harita karoları ve oy sütunları da konturlu */
-        #svgMapWrapper path, #svgMapWrapper polygon { stroke-width: 1.2px !important; }
+        /* Harita karoları ve oy sütunları da konturlu. Kalınlık EKRAN pikseli:
+           harita panele sığdırılırken küçültüldüğü için 1,2 birimlik kontur
+           0,6 px'e iniyor, iller birbirine karışıyordu. non-scaling-stroke ile
+           harita hangi boyutta çizilirse çizilsin il sınırı 1,2 px kalır. */
+        #svgMapWrapper path, #svgMapWrapper polygon {
+            stroke-width: 1.2px !important; vector-effect: non-scaling-stroke;
+        }
 
         /* ── Yumuşak tema: kalın kontur + sert ofset gölge ──────────────
            Kart, satır, buton ve girdiler tek elden konturlanır. */
         .card, .dist-card, .modal-box, .icon-modal-box,
-        .cell-editor-box, #mapToolbar, #fermuarEditMenu, #mapTooltip,
+        .cell-editor-box, #fermuarEditMenu, #mapTooltip,
         [data-tscroll] {
             border: var(--outline-w) solid var(--outline) !important;
         }
@@ -917,6 +948,12 @@
            burada yuvarlaklık "renk örneği" anlamını taşıyor. */
         html[data-tema="sade"] .cp-daire i,
         html[data-tema="sade"] .cp-takas { border-radius: 50% !important; }
+        /* Parti/ittifak logoları her yerde daire: panel satırları, rozetler,
+           logo seçici, infografik (yeni ve klasik). */
+        .logo-daire { border-radius: 50%; }
+        html[data-tema="sade"] .logo-daire,
+        html[data-tema="sade"] .icon-pick-box,
+        html[data-tema="sade"] .ig-rozet { border-radius: 50% !important; }
 
         /* Kalın çizgi film konturları hairline'a iner. */
         html[data-tema="sade"] .card,
@@ -1145,7 +1182,7 @@
         <button data-parlaklik-sec="oled" onclick="setParlaklik('oled')">OLED</button>
     </div>
 
-    <div class="card archive-card">
+    <div class="card archive-card collapsed">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
             <label>Arşivden Proje Getir</label>
         </div>
@@ -1164,7 +1201,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card collapsed">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
             <label>Cumhurbaşkanlığı Projeksiyonu</label>
         </div>
@@ -1177,7 +1214,7 @@
         </div>
     </div>
 
-    <div class="card infographic-card">
+    <div class="card infographic-card collapsed">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
             <label>İnfografik</label>
         </div>
@@ -1186,7 +1223,7 @@
         </div>
     </div>
 
-    <div class="card selection-card">
+    <div class="card selection-card collapsed">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
             <label>Seçerek Toplu İncele</label>
         </div>
@@ -1252,15 +1289,6 @@
                     </select>
                 </div>
 
-                <div class="settings-row">
-                    <div class="settings-row-info">
-                        <div>
-                            <div class="settings-row-title">Büyük İstanbul ve Kocaeli'yi Gizle</div>
-                            <div class="settings-row-desc">İl haritasının sol altındaki büyütülmüş İstanbul/Kocaeli parçalarını kaldırır.</div>
-                        </div>
-                    </div>
-                    <input type="checkbox" id="hideBuyukInp" onchange="updateMapColors()" style="width:18px; height:18px; flex-shrink:0;">
-                </div>
 
             </div>
 
@@ -1416,13 +1444,28 @@
         <!-- STATİK HARİTA ALANI -->
         <div id="mapContainer" class="card" style="display:none; margin-bottom:22px; text-align:center; padding-bottom:9px; padding-top:9px; position: relative;">
 
+            <!-- Harita şeridi. Durum tutan checkbox'lar (büyükleri gizle, vekil
+                 noktaları) proje kaydı/yüklemesi ve kıyas yedeği için yerinde kalır;
+                 düğmeler onları değiştirip durumu aria-pressed ile gösterir. -->
+            <input type="checkbox" id="hideBuyukInp" checked hidden onchange="updateMapColors()">
             <div id="mapToolbar">
-                <!-- Harita durumu -->
                 <div class="tb-group" id="tbMap">
-                    <button id="mapLayerBtn" class="primary" onclick="toggleMapLayer()" title="İl ve ilçe haritası arasında geçiş yap">🗺️ <span id="mapLayerBtnText">İl</span></button>
-                    <button id="mapScreenshotBtn" onclick="takeScreenshot(this)" title="Ekran Görüntüsü Al">📸</button>
+                    <button id="mapLayerBtn" class="hs-dugme" type="button" onclick="toggleMapLayer()" aria-label="İl ya da İlçe Görünümü">
+                        <span class="hs-ikon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 8 12 13l9.5-5L12 3Z"/><path d="m2.5 13 9.5 5 9.5-5"/></svg></span><span class="hs-etiket">İl ya da İlçe Görünümü</span><span id="mapLayerBtnText" hidden>İl</span>
+                    </button>
+                    <button id="mapScreenshotBtn" class="hs-dugme" type="button" onclick="takeScreenshot(this)" aria-label="Görüntü İndir">
+                        <span class="hs-ikon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h3.2L9 6h6l1.8 2.5H20V19H4Z"/><circle cx="12" cy="13.2" r="3.4"/></svg></span><span class="hs-etiket">Görüntü İndir</span>
+                    </button>
+                    <button id="buyukDugme" class="hs-dugme" type="button" onclick="buyukGosterimDegistir()" aria-label="Detaylı İstanbul ve Kocaeli" aria-pressed="false">
+                        <span class="hs-ikon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/><path id="buyukDugmeArti" d="M10.5 7.5v6M7.5 10.5h6"/></svg></span><span class="hs-etiket">Detaylı İstanbul ve Kocaeli</span>
+                    </button>
+                    <button id="haritaModDugme" class="hs-dugme" type="button" onclick="toggleMapMode()" aria-label="Parti ya da İttifak Görünümü" aria-pressed="false">
+                        <span class="hs-ikon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="5.6"/><circle cx="15" cy="12" r="5.6"/></svg></span><span class="hs-etiket">Parti ya da İttifak Görünümü</span>
+                    </button>
+                    <button id="mvNoktaDugme" class="hs-dugme" type="button" onclick="mvNoktalariDegistir()" aria-label="Milletvekili Noktaları" aria-pressed="true">
+                        <span class="hs-ikon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><g fill="currentColor" stroke="none"><circle cx="6" cy="6" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="12" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></g></svg></span><span class="hs-etiket">Milletvekili Noktaları</span>
+                    </button>
                 </div>
-                <!-- Çevre/ilçe detayı durumu -->
                 <div class="tb-group" id="tbDetay" hidden>
                     <span id="tbDetayAd"></span>
                     <div class="tb-ayrac"></div>
@@ -2046,6 +2089,12 @@ let filterSortMode = 'mv';
 let savedScrollPosition = 0;
 let mapDictionary = {};
 let customDotPositions = {}; 
+/* Vekil noktası konumları haritanın koordinatlarına bağlı. Il haritası
+   turkiye_harita.svg (1575×857) → turkiye_harita_il.svg (1436×865) geçişinde
+   koordinat sistemi değişti; eski projelerin kayıtlı konumları yeni haritada
+   yanlış yere düşüyordu. Kaydedilen projeye harita sürümü yazılır; sürümü
+   tutmayan projenin konumları yok sayılır (proje dosyası değiştirilmez). */
+const HARITA_SURUMU = 'il-2026-09';
 let mapMode = 'party'; // 'party' | 'alliance'
 let digerDisplayEnabled = false;   // varsayılan kapalı; kullanıcı açabilir
 /* Yalnız GÖRÜNÜM: ham oy sayıları gösterilsin mi? Kapalıyken (varsayılan)
@@ -2144,6 +2193,14 @@ let selectedDistricts = new Set();
 // Adı "blendWithWhite" olarak kaldı (çok sayıda çağrı noktası var) ama artık beyaza doğru
 // karıştırmıyor: rengi şeffaflaştırıyor, böylece altındaki temaya göre (açık/koyu) doğru
 // görünüyor — sabit bir beyaz yerine.
+/* Logosu olmayan parti/ittifak rozeti: adın yalnız BAŞ HARFİ. Harf, ad
+   kaçışlanmadan önce alınır ("A&B" kaçışlanınca "A&amp;B" olup harf
+   süzgecine "amp" sızıyordu). Büyük harf Türkçe kurala göre: "iyi" → "İ". */
+function basHarf(ad) {
+    const m = String(ad || '').match(/[A-Za-zÇĞİÖŞÜçğıöşü0-9]/);
+    return m ? m[0].toLocaleUpperCase('tr-TR') : '?';
+}
+
 function blendWithWhite(hexColor, fadeRatio) {
     let hex = hexColor.replace('#', '');
     if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
@@ -2215,6 +2272,8 @@ function toggleMapMode() {
     mapMode = mapMode === 'party' ? 'alliance' : 'party';
     activePartyFilter = null; activeAllianceFilter = null;
 
+    const hm = $('haritaModDugme');
+    if (hm) hm.setAttribute('aria-pressed', mapMode === 'alliance' ? 'true' : 'false');
     const btn = $('mapModeToggleBtn');
     if (mapMode === 'party') {
         btn.innerHTML = '🔄 Görünüm: Partiler';
@@ -2302,6 +2361,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         const cfgRes = await fetch('config.json', { cache: 'no-store' });
         if (!cfgRes.ok) throw new Error('config.json bulunamadı');
         const cfg = await cfgRes.json();
+        // Arşivden proje yüklerken de aynı harita/eşleştirme/konum dosyaları
+        // kullanılsın diye saklanır (eskiden orada dosya adları sabit yazılıydı).
+        window.uygulamaAyari = cfg;
 
         if (cfg.map) {
             setStatus('Türkiye haritası yükleniyor...', 25);
@@ -2362,12 +2424,19 @@ window.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {}
         renderIndependentPanel();
 
-        if (cfg.defaultProject) {
-            setStatus(`Proje yükleniyor: ${cfg.defaultProject}`, 85);
+        // Varsayılan proje: arşivin EN YENİ dosyası. Arşiv listesi yeniden eskiye
+        // sıralı olduğu için ilk gerçek seçenek odur; listeye en üste yeni bir
+        // dosya eklemek onu kendiliğinden varsayılan yapar. Liste boşsa
+        // config.json'daki defaultProject yedek olarak kullanılır.
+        const arsivIlk = [...(($('archiveSelector') || {}).options || [])].find(o => o.value);
+        const varsayilanProje = (arsivIlk && arsivIlk.value) || cfg.defaultProject;
+        if (arsivIlk) $('archiveSelector').value = arsivIlk.value;
+        if (varsayilanProje) {
+            setStatus(`Proje yükleniyor: ${varsayilanProje}`, 85);
             // Onbellekten servis edilirse güncellenen varsayılan proje kullanıcıya hiç
             // ulaşmıyor; veri setlerinde olduğu gibi burada da atlanır.
-            const projRes = await fetch(cfg.defaultProject, { cache: 'no-store' });
-            if (!projRes.ok) throw new Error(`Proje dosyası bulunamadı: ${cfg.defaultProject}`);
+            const projRes = await fetch(varsayilanProje, { cache: 'no-store' });
+            if (!projRes.ok) throw new Error(`Proje dosyası bulunamadı: ${varsayilanProje}`);
             applyProjectData(await projRes.json());   // içindeki dataset bilgisi yoksayılır
 
             setStatus('Projeksiyon hesaplanıyor...', 94);
@@ -2531,10 +2600,13 @@ function updateMapColors() {
     }
     
     const showDots = $('showMVDotsInp') && $('showMVDotsInp').checked;
+    const mvDugme = $('mvNoktaDugme');
+    if (mvDugme) mvDugme.setAttribute('aria-pressed', showDots ? 'true' : 'false');
     // Büyütülmüş İstanbul/Kocaeli parçaları: gizlendiğinde hem şekilleri hem de
     // üzerlerindeki vekil noktaları çizilmez. Nokta ayarıyla çakışmaz —
     // noktalar yalnız İKİSİ de izin verdiğinde çizilir.
     const buyukGizli = $('hideBuyukInp') && $('hideBuyukInp').checked;
+    buyukDugmesiniEsitle();
     const buyukMu = el => {
         let e = el;
         while (e && e.getAttribute) {
@@ -2909,6 +2981,30 @@ let maxMvs = -1;
    içeriğin gerçek sınırları ölçülüp viewBox ona göre daraltılır; harita hem
    ortalanır hem de aynı genişlikte biraz büyümüş görünür. Gizleme
    kapatılınca ilk ölçü geri yüklenir. */
+/* Daire düğmenin görünümü checkbox'tan türetilir; proje yüklemesi ya da kıyas
+   geri yüklemesi checkbox'ı değiştirdiğinde de düğme doğru durumu gösterir. */
+function buyukDugmesiniEsitle() {
+    const d = $('buyukDugme'), c = $('hideBuyukInp');
+    if (!d || !c) return;
+    const gorunur = !c.checked;
+    d.setAttribute('aria-pressed', gorunur ? 'true' : 'false');
+    const arti = $('buyukDugmeArti');
+    if (arti) arti.setAttribute('d', gorunur ? 'M7.5 10.5h6' : 'M10.5 7.5v6M7.5 10.5h6');
+}
+// Şeritteki "Milletvekili Noktaları" düğmesi: ayarlardaki checkbox'ı çevirir.
+window.mvNoktalariDegistir = function() {
+    const c = $('showMVDotsInp');
+    if (!c) return;
+    c.checked = !c.checked;
+    updateMapColors();
+};
+window.buyukGosterimDegistir = function() {
+    const c = $('hideBuyukInp');
+    if (!c) return;
+    c.checked = !c.checked;
+    updateMapColors();
+};
+
 function haritaCerceveAyarla() {
     const svg = document.querySelector('#svgMapWrapper svg');
     if (!svg) return;
@@ -2919,6 +3015,12 @@ function haritaCerceveAyarla() {
     }
     const gizli = $('hideBuyukInp') && $('hideBuyukInp').checked;
     if (!gizli) { svg.setAttribute('viewBox', svg.dataset.ilkCerceve); return; }
+    // Harita dosyası ana çerçeveyi kendisi bildiriyorsa o kullanılır: ilçe
+    // haritasının viewBox'ıyla birebir aynı olduğu için il ↔ ilçe geçişinde
+    // harita yerinden oynamaz. Ölçerek daraltmak %2 pay ve nokta katmanı
+    // yüzünden çerçeveyi ilçe haritasından farklı büyüklükte bırakıyordu.
+    const anaCerceve = svg.getAttribute('data-ana-cerceve');
+    if (anaCerceve) { svg.setAttribute('viewBox', anaCerceve); return; }
     let k;
     try { k = svg.getBBox(); } catch (e) { return; }   // display:none öğeler dışarda kalır
     if (!k || !(k.width > 0) || !(k.height > 0)) return;
@@ -3651,6 +3753,36 @@ function ilceVeriDosyasi() {
 }
 let ilceVeriYuklu = null;      // o an bellekteki dosyanın adı
 
+/* İlçe haritası: TR-adm2-with-city-borders.svg. İki katmanı var —
+   g#features altında 973 ilçe, üstünde g#iller altında 81 ilin dolgusuz dış
+   sınırı. Dosya tek başına açılsın diye kendi stilini taşıyor; sayfaya
+   gömülünce o stil uygulamayla çakışıyor, bu yüzden yüklenir yüklenmez
+   temizlenir:
+   - <style>: ilçeye hover'da %50 soluklaşma ve beyaz kontur ekliyordu.
+   - <title>: tarayıcının kendi ipucu uygulamanın ipucunun üstünde açılıyordu.
+   - svg zemini (whitesmoke): harita panelinin zeminini örtüyordu.
+   İl katmanı .il-sinirlari sınıfıyla işaretlenir; kalınlık CSS'ten gelir.
+   Dolgusuzluk ve tıklanmazlık ise SATIR İÇİ yazılır: PNG dışa aktarımı ve
+   infografik SVG'yi sayfa CSS'i olmadan çiziyor, orada il yolları siyah
+   dolguyla basılırdı. Grup kimlikleri (adana, van…) de silinir — ilçe
+   eşleştirmesi g[id] tarıyor ve il grupları hiçbir çevreye ait değil. */
+function ilceSvgHazirla(wrap) {
+    const svg = wrap.querySelector('svg');
+    if (!svg) return;
+    svg.querySelectorAll('style, title').forEach(x => x.remove());
+    svg.style.removeProperty('background-color');
+    const iller = svg.querySelector('#iller');
+    if (!iller) return;
+    iller.removeAttribute('id');
+    iller.classList.add('il-sinirlari');
+    iller.setAttribute('pointer-events', 'none');
+    iller.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
+    iller.querySelectorAll('path, polygon, polyline').forEach(p => {
+        p.setAttribute('fill', 'none');
+        p.setAttribute('pointer-events', 'none');
+    });
+}
+
 async function loadIlceMap(zorla) {
     const dosya = ilceVeriDosyasi();
     if (ilceMapLoaded && !zorla && ilceVeriYuklu === dosya) return;
@@ -3660,7 +3792,7 @@ async function loadIlceMap(zorla) {
         // Veri dosyaları güncellendiğinde tarayıcı eski kopyayı sunmasın:
         // ilçe verisi zaman içinde il il eklendiği için no-store şart.
         const [svgText, plaka, sonuc] = await Promise.all([
-            fetch('turkiye_harita_ilce.svg', { cache: 'no-store' }).then(r => r.text()),
+            fetch('TR-adm2-with-city-borders.svg', { cache: 'no-store' }).then(r => r.text()),
             fetch('plaka_eslestirme.json', { cache: 'no-store' }).then(r => r.json()),
             fetch(dosya, { cache: 'no-store' }).then(r => r.json()).catch(() => null),
         ]);
@@ -3686,6 +3818,7 @@ async function loadIlceMap(zorla) {
             });
         }
         wrap.innerHTML = svgText;
+        ilceSvgHazirla(wrap);
         const cevreler = plaka.cevreler || {};
         // YSK çok çevreli illeri çevre çevre dosyaladığı için ilçenin gerçek
         // çevresi biliniyor; bu atama plaka varsayımının yerine geçer.
@@ -5372,7 +5505,7 @@ function partyRowHtml(ep, idx, inDiger, sortedGlobal) {
                 
                 <button class="status-btn ${ep.isEnabled !== false ? 'active' : 'pasif'}"  onclick="takeSnapshot(); extraParties[${idx}].isEnabled=!(extraParties[${idx}].isEnabled!==false); updateTotalTracker(); renderExtraParties(); renderParlOrder(); scheduleProjection(0);" title="${ep.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${ep.isEnabled !== false ? 'A' : 'P'}</button>
                 
-                <div title="Renk ve Logo" style="width:23px; height:23px; border-radius:50%; background:${ep.color || '#000000'}; cursor:pointer; box-shadow:0 1px 3px rgba(43,38,30,0.22); flex-shrink:0; transition:0.2s; display:flex; align-items:center; justify-content:center; padding:3px; box-sizing:border-box;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('party', ${idx})">${ep.icon && partyIconRaw[ep.icon] ? recolorIconSvg(partyIconRaw[ep.icon], ep.iconColor || '#ffffff') : ''}</div>
+                <div class="logo-daire" title="Renk ve Logo" style="width:23px; height:23px; border-radius:50%; background:${ep.color || '#000000'}; cursor:pointer; box-shadow:0 1px 3px rgba(43,38,30,0.22); flex-shrink:0; transition:0.2s; display:flex; align-items:center; justify-content:center; padding:3px; box-sizing:border-box;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('party', ${idx})">${ep.icon && partyIconRaw[ep.icon] ? recolorIconSvg(partyIconRaw[ep.icon], ep.iconColor || '#ffffff') : ''}</div>
 
                 <input type="text" class="editable-name" value="${escapeStr(ep.name)}" onchange="renameParty(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
                 
@@ -5432,7 +5565,8 @@ function renderExtraParties(){
         ? oteki.map(x => partyRowHtml(x.ep, x.idx, true, sortedGlobal)).join('')
         : `<div class="diger-zone-empty">Bir partiyi buraya sürükleyin.<br>Kategoriye alınan partiler tabloda ve grafiklerde tek başlık altında toplanır.</div>`;
 
-    const digerKapali = window._digerKapali === true;
+    // Varsayılan kapalı: yalnız kullanıcı açtıysa (false) açık çizilir.
+    const digerKapali = window._digerKapali !== false;
     $('extraPartiesArea').innerHTML = `
         <div class="main-zone" ondragover="handleZoneDragOver(event)" ondragleave="handleZoneDragLeave(event)" ondrop="handleZoneDrop(event, false)">
             ${anaHtml}
@@ -5441,7 +5575,7 @@ function renderExtraParties(){
         <div class="diger-zone ${digerKapali ? 'kapali' : ''}" ondragover="handleZoneDragOver(event)" ondragleave="handleZoneDragLeave(event)" ondrop="handleZoneDrop(event, true)">
             <div class="diger-zone-head">
                 <button class="toggle-btn" title="Kategoriyi aç/kapat"
-                        onclick="window._digerKapali = !window._digerKapali; renderExtraParties();">${digerKapali ? '▸' : '▾'}</button>
+                        onclick="window._digerKapali = ${!digerKapali}; renderExtraParties();">${digerKapali ? '▸' : '▾'}</button>
                 <div title="Rengi Değiştir" style="width:18px; height:18px; border-radius:50%; background:${g.color || '#888888'}; cursor:pointer; box-shadow:0 1px 3px rgba(43,38,30,0.22); flex-shrink:0;" onclick="updateColorModal('diger', 0)"></div>
                 <span>${escapeStr(g.name)}</span>
                 <span class="diger-zone-say">${oteki.length}</span>
@@ -5544,7 +5678,7 @@ function renderCoalitions(){
             ? `<select style="flex:1; min-width:0; padding:4.5px; font-weight:bold;" onchange="setCoalHost(${idx}, this.value)">
                    ${all.map(p => `<option value="${escapeStr(p)}" ${p === c.host ? 'selected' : ''}>${p} listesi</option>`).join('')}
                </select>`
-            : `<div title="Renk ve Logo" style="width:23px; height:23px; border-radius:50%; background:${color}; cursor:pointer; box-shadow:0 1px 3px rgba(43,38,30,0.22); flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:3px; box-sizing:border-box;" onclick="updateColorModal('coal', ${idx})">${iconRaw ? recolorIconSvg(iconRaw, c.iconColor || '#ffffff') : ''}</div>
+            : `<div class="logo-daire" title="Renk ve Logo" style="width:23px; height:23px; border-radius:50%; background:${color}; cursor:pointer; box-shadow:0 1px 3px rgba(43,38,30,0.22); flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:3px; box-sizing:border-box;" onclick="updateColorModal('coal', ${idx})">${iconRaw ? recolorIconSvg(iconRaw, c.iconColor || '#ffffff') : ''}</div>
                <input type="text" class="editable-name" value="${escapeStr(c.name)}" onchange="renameCoalition(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">`;
 
         return `
@@ -6389,19 +6523,23 @@ async function loadFromArchive() {
         // aynı sıra. Ters sırada yapılırsa projeye kaydedilmiş vekil nokta konumları
         // default_konum.json tarafından eziliyordu.
         try {
-            const svgRes = await fetch('turkiye_harita.svg');
+            const ayar = window.uygulamaAyari || {};
+            const svgRes = await fetch(ayar.map || 'turkiye_harita_il.svg');
             if (svgRes.ok) {
                 $('svgMapWrapper').innerHTML = await svgRes.text();
                 $('mapContainer').style.display = 'block';
             }
-            const jsonRes = await fetch('eslestirme.json');
+            const jsonRes = await fetch(ayar.mapping || 'eslestirme.json');
             if (jsonRes.ok) {
                 const dictData = await jsonRes.json();
                 mapDictionary = dictData.cityMapping || dictData;
             }
-            const konumRes = await fetch('default_konum.json');
-            if (konumRes.ok) {
-                customDotPositions = await konumRes.json();
+            // Konum dosyası tanımlı değilse bir önceki projenin konumları
+            // taşınmasın: noktalar çevre şeklinin merkezine yerleşir.
+            customDotPositions = {};
+            if (ayar.dotPositions) {
+                const konumRes = await fetch(ayar.dotPositions);
+                if (konumRes.ok) customDotPositions = await konumRes.json();
             }
         } catch(e) {}
 
@@ -6548,7 +6686,8 @@ function applyProjectData(data) {
     // Veri setleri kurulduktan sonra: eski projelerin çift adlandırmasını sadeleştir
     normalizeSimilarityKeys();
     // Proje kendi konumlarını taşımıyorsa yüklü olan varsayılan konumlar korunur
-    if (data.customDotPositions && Object.keys(data.customDotPositions).length > 0) customDotPositions = data.customDotPositions;
+    if (data.customDotPositions && Object.keys(data.customDotPositions).length > 0
+        && data.haritaSurumu === HARITA_SURUMU) customDotPositions = data.customDotPositions;
     parliamentOrderOverride = data.parliamentOrderOverride || [];
     
     localDisabledParties = {};
@@ -8408,8 +8547,8 @@ function partyBadge(pName, sizePx) {
     const inner = raw
         ? '<span style="display:flex;align-items:center;justify-content:center;width:68%;height:68%;">' + recolorIconSvg(raw, (ep && ep.iconColor) || '#ffffff') + '</span>'
         : '<span style="color:#fff;font-weight:900;font-size:' + Math.round(size * 0.42) + 'px;line-height:1;">'
-          + escapeStr(pName).replace(/[^A-Za-zÇĞİÖŞÜçğıöşü]/g, '').slice(0, 2).toUpperCase() + '</span>';
-    return '<span style="display:inline-flex;align-items:center;justify-content:center;width:' + size + 'px;height:' + size
+          + escapeStr(basHarf(pName)) + '</span>';
+    return '<span class="logo-daire" style="display:inline-flex;align-items:center;justify-content:center;width:' + size + 'px;height:' + size
          + 'px;border-radius:50%;background:' + color + ';flex-shrink:0;overflow:hidden;">' + inner + '</span>';
 }
 
@@ -9434,6 +9573,19 @@ window.toggleSidePanel = function(which) {
     }, 320);
 };
 
+// Açılışta sağ panel (Veri ve Sistem) gizli. Yalnız masaüstü: mobilde paneller
+// zaten kapalı çekmece. Geçiş animasyonu bir kareliğine kapatılır ki sayfa
+// açılırken panelin kapanışı görünmesin.
+(function () {
+    if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches) return;
+    const el = $('sidePanel');
+    if (!el || panelCollapsed.side) return;
+    el.style.transition = 'none';
+    toggleSidePanel('side');
+    void el.offsetWidth;
+    el.style.transition = '';
+})();
+
 // Orta tık sürükleme durumu (render'dan bağımsız tek dinleyici çifti kullanır)
 let tablePan = null;
 window.addEventListener('mousemove', e => {
@@ -10326,6 +10478,61 @@ function getEmbeddedFontFaceCss() {
     return css;
 }
 
+/* Seçerek toplu incele: infografik haritasını seçili çevrelere daraltır.
+   kopya: canlı haritanın klonu (henüz belgede değil). Seçili olmayan çevre
+   yolları ve vekil noktası grupları klondan silinir, viewBox seçili çevrelerin
+   (ve onların noktalarının) sınır kutusuna çekilir. Harita alanı değişmediği
+   için az sayıda il seçildiğinde bölge otomatik büyür.
+   Sınır kutusu CANLI haritadan ölçülür: klon belgede olmadığı için getBBox
+   orada 0 döner. Harita panelde gizliyse (ilçe katmanı açık) ekran ölçüsü de 0
+   gelir; o durumda yerel getBBox'a düşülür. */
+/* yanPay: sınır kutusunun genişliğine oranla iki yana eklenecek ek boşluk.
+   Klasik çıktı 16:10'a kırpıldığı için harita kutusunun iki ucu görünmez
+   kalır; Karadeniz gibi enine uzun seçimlerde uçtaki il kesilmesin diye. */
+function haritaKapsamaKirp(kaynak, kopya, kapsam, yanPay) {
+    if (!kaynak || !kopya || !kapsam || !kapsam.size) return;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const ctm = kaynak.getScreenCTM && kaynak.getScreenCTM();
+    const ters = (ctm && kaynak.getBoundingClientRect().width > 0) ? ctm.inverse() : null;
+    const ekle = el => {
+        let kx0, ky0, kx1, ky1;
+        if (ters) {
+            const r = el.getBoundingClientRect();
+            if (!r.width && !r.height) return;
+            const nk = (x, y) => { const pt = kaynak.createSVGPoint(); pt.x = x; pt.y = y; return pt.matrixTransform(ters); };
+            const a = nk(r.left, r.top), b = nk(r.right, r.bottom);
+            kx0 = Math.min(a.x, b.x); ky0 = Math.min(a.y, b.y); kx1 = Math.max(a.x, b.x); ky1 = Math.max(a.y, b.y);
+        } else {
+            let bb; try { bb = el.getBBox(); } catch (e) { return; }
+            if (!bb.width && !bb.height) return;
+            kx0 = bb.x; ky0 = bb.y; kx1 = bb.x + bb.width; ky1 = bb.y + bb.height;
+        }
+        x0 = Math.min(x0, kx0); y0 = Math.min(y0, ky0); x1 = Math.max(x1, kx1); y1 = Math.max(y1, ky1);
+    };
+    kaynak.querySelectorAll('[data-district-name]').forEach(el => {
+        if (kapsam.has(el.getAttribute('data-district-name'))) ekle(el);
+    });
+    kaynak.querySelectorAll('#mp-dots-layer > [data-district]').forEach(el => {
+        if (kapsam.has(el.getAttribute('data-district'))) ekle(el);
+    });
+
+    // Klon: seçili olmayanlar tamamen gider, kalanların soluklaştırması kalkar.
+    kopya.querySelectorAll('[data-district-name]').forEach(el => {
+        if (!kapsam.has(el.getAttribute('data-district-name'))) el.remove();
+        else el.style.opacity = '1';
+    });
+    kopya.querySelectorAll('#mp-dots-layer > [data-district]').forEach(el => {
+        if (!kapsam.has(el.getAttribute('data-district'))) el.remove();
+        else el.style.opacity = '1';
+    });
+
+    if (!isFinite(x0) || x1 <= x0 || y1 <= y0) return;   // ölçülemedi: tam harita kalır
+    const pay = Math.max(x1 - x0, y1 - y0) * 0.03;
+    const yan = pay + (x1 - x0) * (yanPay || 0);
+    kopya.setAttribute('viewBox', [x0 - yan, y0 - pay, (x1 - x0) + 2 * yan, (y1 - y0) + 2 * pay]
+        .map(v => +v.toFixed(2)).join(' '));
+}
+
 /* html2canvas hedef öğeyi çizmeden önce TÜM belgeyi bir iframe'e klonlar; bu
    yüzden maliyeti sayfada o an ne varsa ona bağlıdır. Stüdyo önizlemesi artık
    canlı DOM sahnesi olduğu için klona binen ~2000 düğümlük bir yük getiriyordu.
@@ -10401,8 +10608,7 @@ function klasikInfografikSahne() {
     });
     allSlots.sort((a,b) => b.score - a.score);
 
-    // --- Parti kartı HTML: dikey dikdörtgen 4:3 (genişlik:yükseklik = 3:4) ---
-    // --- Parti kartı: dikey dikdörtgen 4:5 oran (genişlik:yükseklik = 4:5) ---
+    // --- Parti kartı: daire logo, altında vekil sayısı ve oy oranı ---
     function makePartyCard(p) {
         const color = partiLogoZemini(p);
         const mv = partySeats[p] || 0;
@@ -10416,7 +10622,7 @@ function klasikInfografikSahne() {
             ? `<span style="display:flex;align-items:center;justify-content:center;width:70%;height:70%;">${recolorIconSvg(rawIcon, (ep && ep.iconColor) || '#ffffff')}</span>`
             : `<span style="color:white;font-weight:900;font-size:${fsize};line-height:1.25;text-align:center;padding:7px;word-break:break-word;">${p}</span>`;
         return `<div style="text-align:center;flex-shrink:0;">
-            <div style="width:83px;height:104px;background:${color};display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto 8px;">
+            <div class="logo-daire" style="width:83px;height:83px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto 8px;">
                 ${badgeContent}
             </div>
             <div style="font-size:29px;font-weight:900;color:#111;line-height:1;">${mv}</div>
@@ -10443,6 +10649,11 @@ function klasikInfografikSahne() {
         cl.setAttribute('width','100%'); cl.setAttribute('height','100%');
         cl.setAttribute('preserveAspectRatio','xMidYMid meet');
         cl.style.cssText = 'display:block;';
+        if (isSelectionModeActive && selectedDistricts.size > 0)
+            haritaKapsamaKirp(mapSvgEl, cl, selectedDistricts, 0.08);
+        // Kopya sayfa CSS'inin dışında çizilir: kontur yollara doğrudan yazılır.
+        const haritaKutusu = (infographicLayout || DEFAULT_INFOGRAPHIC_LAYOUT).map;
+        haritaKonturuYaz(cl, haritaKutusu.w, haritaKutusu.h);
         mapSvgHTML = cl.outerHTML;
     }
 
@@ -10604,6 +10815,32 @@ async function takeScreenshot(triggerBtn) {
     }
 }
 
+/* Dışa aktarılan harita kopyasına konturu SATIR İÇİ yazar. Ekrandaki kontur
+   sayfa CSS'inden geliyor; PNG indirme ve klasik infografik haritayı kopyalayıp
+   sayfanın dışında çizdiği için orada kontur hiç yoktu ve iller arası beyaz
+   çizgi kayboluyordu. Kalınlık çıktının gerçek boyutuna göre ölçeklenir:
+   ekranda 754 px genişlikteki haritada 1,2 px ≈ genişliğin binde 1,6'sı;
+   aynı oran korunur ki çıktı ekrandakiyle aynı görünsün. İlçe haritasında
+   ilçe çizgileri yarı kalınlıkta, il sınırları bir buçuk kat.
+   genislikPx/yukseklikPx: haritanın çıktıda kaplayacağı kutu. */
+function haritaKonturuYaz(klon, genislikPx, yukseklikPx) {
+    const vb = (klon.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+    if (vb.length !== 4 || !(vb[2] > 0) || !(vb[3] > 0)) return;
+    const olcek = Math.min(genislikPx / vb[2], yukseklikPx / vb[3]);
+    if (!(olcek > 0)) return;
+    const px = Math.max(1, 0.0016 * vb[2] * olcek);
+    const renk = getComputedStyle(document.documentElement).getPropertyValue('--map-stroke').trim() || '#ffffff';
+    const ilceHaritasi = !!klon.querySelector('.il-sinirlari');
+    klon.querySelectorAll('path, polygon').forEach(p => {
+        if (p.closest('#mp-dots-layer')) return;
+        const katsayi = p.closest('.il-sinirlari') ? 1.5 : (ilceHaritasi ? 0.5 : 1);
+        p.style.setProperty('stroke', renk);
+        p.style.setProperty('stroke-width', (katsayi * px / olcek).toFixed(3) + 'px');
+        p.style.setProperty('stroke-linejoin', 'round');
+        p.style.removeProperty('vector-effect');
+    });
+}
+
 async function captureMapPng(secici) {
     const svgEl = document.querySelector(secici || '#svgMapWrapper svg');
     if (!svgEl) { alert('Harita henüz yüklenmedi!'); return; }
@@ -10614,6 +10851,7 @@ async function captureMapPng(secici) {
     svgClone.setAttribute('width', W);
     svgClone.setAttribute('height', H);
     svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    haritaKonturuYaz(svgClone, W, H);
 
     const svgStr = new XMLSerializer().serializeToString(svgClone);
     const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
@@ -10965,7 +11203,7 @@ async function captureDistrictPanelFallback() {
 function projeVerisiUret() {
     return {
         meta: { version: "10.1-lean", date: new Date().toISOString() },
-        extraParties, coalitions, electoralAlliances, digerGroups, digerDisplayEnabled, customSeatOverrides, customDotPositions, parliamentOrderOverride,
+        extraParties, coalitions, electoralAlliances, digerGroups, digerDisplayEnabled, customSeatOverrides, customDotPositions, haritaSurumu: HARITA_SURUMU, parliamentOrderOverride,
         // Eski sürümlerle açılabilsin diye boş bırakılır; tüm bilgi ittifaklarda.
         fermuarListes: [],
         // Bağımsız blok verisi ve durumu
