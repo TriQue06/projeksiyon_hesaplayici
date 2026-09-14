@@ -706,6 +706,12 @@
         /* Açık açıklama komşu düğmelerin üstünde dursun. */
         .hs-dugme:not(:disabled):hover, .hs-dugme:not(:disabled):focus-visible { z-index: 30; }
         html[data-tema="sade"] .hs-etiket { border-radius: 999px !important; }
+        /* Seçerek Toplu İncele: şeridin ilk düğmesi; hover ve etkin hâli
+           diğerlerinin mavisi yerine kırmızı. */
+        .hs-dugme.hs-kirmizi:not(:disabled):hover,
+        .hs-dugme.hs-kirmizi:not(:disabled):focus-visible,
+        .hs-dugme.hs-kirmizi[aria-pressed="true"] { background: #c0392b; border-color: #c0392b; color: #fff; }
+        .hs-dugme.hs-kirmizi .hs-etiket { background: #c0392b; border-color: #c0392b; }
         /* Üzerine gelinince ikon ve açıklama beyaz; okunabilsin diye zemin ana
            renge döner. Renkler tema belirteçlerinden geldiği için açık, koyu ve
            OLED'de aynı davranır. Devre dışı düğme (dar bölgede il/ilçe) parlamaz. */
@@ -1317,16 +1323,6 @@
         </div>
     </div>
 
-    <div class="card selection-card collapsed">
-        <div class="card-header-row" onclick="toggleCardCollapse(this)">
-            <label>Seçerek Toplu İncele</label>
-        </div>
-        <div class="card-body">
-            <button id="selectionModeToggleBtn" onclick="toggleSelectionMode()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:7px; padding:8px 14.5px; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:6px; font-size:11.5px; font-weight:800; cursor:pointer; transition:0.2s;">
-                <span>🎯</span> Seçerek Toplu İncele
-            </button>
-        </div>
-    </div>
 
     <!-- Ayarlar Paneli -->
     <div class="card collapsed" id="cardAyarlar">
@@ -1516,6 +1512,9 @@
             <input type="checkbox" id="showMVDotsInp" checked hidden onchange="updateMapColors()">
             <div id="mapToolbar">
                 <div class="tb-group" id="tbMap">
+                    <button id="selectionModeToggleBtn" class="hs-dugme hs-kirmizi" type="button" onclick="toggleSelectionMode()" aria-label="Seçerek Toplu İncele" aria-pressed="false">
+                        <span class="hs-ikon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></span><span class="hs-etiket">Seçerek Toplu İncele</span>
+                    </button>
                     <button id="mapLayerBtn" class="hs-dugme" type="button" onclick="toggleMapLayer()" aria-label="İl ya da İlçe Görünümü">
                         <span class="hs-ikon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 8 12 13l9.5-5L12 3Z"/><path d="m2.5 13 9.5 5 9.5-5"/></svg></span><span class="hs-etiket">İl ya da İlçe Görünümü</span><span id="mapLayerBtnText" hidden>İl</span>
                     </button>
@@ -10283,19 +10282,11 @@ function renderDistrictOverlay() {
 // --- ÖZEL İNCELEME (ARA SEÇİM) FONKSİYONLARI ---
 function toggleSelectionMode() {
     isSelectionModeActive = !isSelectionModeActive;
+    // Düğme artık harita şeridinde; durum renkle değil aria-pressed ile
+    // bildirilir, renk CSS'ten gelir (etkin hâli kırmızı).
     const btn = $('selectionModeToggleBtn');
-
-    // Ad sabit kalır; yalnızca renk değişerek durumu bildirir.
-    if (isSelectionModeActive) {
-        btn.style.borderColor = 'var(--purple)';
-        btn.style.color = 'var(--purple)';
-        btn.style.background = 'var(--purple-tint)';
-    } else {
-        btn.style.borderColor = 'var(--border)';
-        btn.style.color = 'var(--text)';
-        btn.style.background = 'var(--surface)';
-        selectedDistricts.clear();
-    }
+    if (btn) btn.setAttribute('aria-pressed', isSelectionModeActive ? 'true' : 'false');
+    if (!isSelectionModeActive) selectedDistricts.clear();
     secimGorunumunuTazele();
 }
 

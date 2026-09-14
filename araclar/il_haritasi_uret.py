@@ -23,7 +23,10 @@ from collections import Counter, defaultdict
 KAYNAK = 'TR-adm2-with-city-borders.svg'
 CIKTI = 'turkiye_harita_il.svg'
 BUYUK_CEVRELER = ['İstanbul 1. Bölge', 'İstanbul 2. Bölge', 'İstanbul 3. Bölge', 'Kocaeli']
-BUYUK_EN_ORANI = 0.27   # büyük gösterim genişliği / ana harita genişliği (eski haritayla aynı oran)
+BUYUK_EN_ORANI = 0.33   # büyük gösterim genişliği / ana harita genişliği
+BUYUK_YUKARI = 100     # büyük gösterimi ana haritanın alt kenarından bu kadar birim yukarı al.
+                       # Sınırı vekil noktaları koyuyor: 2026-09-14(2) konumlarıyla 105'te
+                       # İstanbul 1 ve 3'ün daireleri kıyıdaki illere biniyor (şekiller 135'e kadar temiz).
 
 oku = lambda p: io.open(p, encoding='utf-8').read()
 svg = oku(KAYNAK)
@@ -113,7 +116,7 @@ def kutu(hs):
 x0, y0, x1, y1 = kutu([h for hs in sekil.values() for h in hs])
 bx0, by0, bx1, by1 = kutu([h for c in BUYUK_CEVRELER for h in sekil[c]])
 olcek = (x1 - x0) * BUYUK_EN_ORANI / (bx1 - bx0)
-dx, dy = x0 - bx0 * olcek, y1 - by0 * olcek      # sol hizası = ana haritanın solu, üst = ana haritanın altı
+dx, dy = x0 - bx0 * olcek, y1 - BUYUK_YUKARI - by0 * olcek   # sol = ana haritanın solu; üst = ana haritanın altının BUYUK_YUKARI birim üstü
 
 def d_yaz(hs, donustur=None):
     parcalar = []
@@ -150,7 +153,7 @@ io.open(CIKTI, 'w', encoding='utf-8', newline='\n').write(basl + '\n'.join(govde
 
 print('çevre', len(sekil), '| büyük', len(BUYUK_CEVRELER), '| ölçek', round(olcek, 4))
 print('ana harita kutusu', [round(v, 2) for v in (x0, y0, x1, y1)])
-print('büyük gösterim üstü', round(by0 * olcek + dy, 4), '= ana alt', round(y1, 4), '| sol', round(bx0 * olcek + dx, 4), '= ana sol', round(x0, 4))
+print('büyük gösterim üstü', round(by0 * olcek + dy, 4), '| ana alt', round(y1, 4), '| fark', BUYUK_YUKARI, '| sol', round(bx0 * olcek + dx, 4), '= ana sol', round(x0, 4))
 print('viewBox', vx, vy, vw, round(vh, 2))
 print('bölge birleşimleri (çevre, ilçe halkası, birleşim halkası, ilçe alanı, birleşim alanı):')
 for r in rapor: print('  ', r)
