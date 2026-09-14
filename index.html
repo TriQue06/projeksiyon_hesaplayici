@@ -639,8 +639,10 @@
            kaydırma sırasında da görünür kalır. */
         /* Harita solda dikey ortada durur ve kaydırma alanının dışındadır;
            liste uzasa da yerinden oynamaz. */
+        /* Sonuç ekranında harita sütunu %38 → %36,5: kazanılan birkaç piksel
+           yandaki listeye, yani kısa kalan oy çubuklarına gider. */
         #doDistrictMap {
-            flex: 0 0 38%; max-width: 38%; min-width: 0;
+            flex: 0 0 36.5%; max-width: 36.5%; min-width: 0;
             display: flex; align-items: center; justify-content: center;
             align-self: stretch; height: 100%;
         }
@@ -1487,7 +1489,7 @@
 
     <div id="mainContentWrapper">
         <div id="parliamentContainer" style="display:none; margin-bottom:22px; gap:18px; align-items: stretch;">
-            <div id="parliamentChartCard" class="card" style="flex:3; min-width:0; padding:11px 22px; margin-bottom:0; position: relative; text-align:center;">
+            <div id="parliamentChartCard" class="card" style="flex:2.88; min-width:0; padding:11px 22px; margin-bottom:0; position: relative; text-align:center;">
                 <button id="parliamentScreenshotBtn" class="hs-dugme" type="button" onclick="captureParliamentPanel(this)" aria-label="Görüntü İndir">
                     <span class="hs-ikon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h3.2L9 6h6l1.8 2.5H20V19H4Z"/><circle cx="12" cy="13.2" r="3.4"/></svg></span><span class="hs-etiket">Görüntü İndir</span>
                 </button>
@@ -3256,6 +3258,11 @@ function entityStatRow(p, seats, pct, cmp, cmpOn, maxPct, opts) {
     const color = getPartyColor(p);
     const pasif = !!opts.pasif;
     const cizik = pasif ? 'text-decoration:line-through;' : '';
+    /* Sabit sütunlar en uzun GERÇEK içeriğe göre ölçülü (1,1 ölçekte ölçüldü:
+       vekil farkı "▲233" 29 px, oy farkı "▲29,55" 38 px, vekil sayısı 21 px).
+       Daha geniş tutulduklarında dar yan panelde satır ~30 px taşıyor, oy farkı
+       sütunu görünmez kalıyordu. Çubuk kalan yeri alır; alt sınırı düşük ki
+       satır hiçbir panel genişliğinde taşmasın. */
     const dMv  = cmpOn ? deltaBadge(seats, cmp ? cmp.mv : null, 0, 10 * ol) : '';
     const dPct = cmpOn ? deltaBadge(pct, cmp ? cmp.pct : null, 2, 10 * ol) : '';
     const barW = (maxPct > 0 ? Math.min(100, pct / maxPct * 100) : 0).toFixed(2);
@@ -3266,19 +3273,19 @@ function entityStatRow(p, seats, pct, cmp, cmpOn, maxPct, opts) {
     // Buyuk panelde satirlar arasi nefes payi iki kattan fazla: hover menusunde
     // liste kisa oldugu icin sikisik durabiliyor, panelde okunakliligi bozuyordu.
     const aralik = dar ? 9.5 : 4;
-    return `<div style="display:flex; align-items:center; gap:${px(5)}; margin-bottom:${px(aralik)};
+    return `<div style="display:flex; align-items:center; gap:${px(3.5)}; margin-bottom:${px(aralik)};
                  font-size:${px(11.5)}; font-weight:bold; white-space:nowrap; opacity:${pasif ? '0.6' : '1'};">
         ${opts.mudahale ? mudahaleDugmeleri(opts.mudahale.tip, opts.mudahale.hedef, p, ol) : ''}
         ${partyBadge(p, Math.round(19 * ol))}
         <span style="color:var(--text); overflow:hidden; text-overflow:ellipsis; width:${px(dar ? 55 : 57)}; flex-shrink:0; ${cizik}" title="${escapeStr(p)}">${escapeStr(p)}</span>
-        ${cmpOn ? `<span style="width:${px(30)}; flex:0 0 ${px(30)}; display:inline-flex; justify-content:flex-end; white-space:nowrap;">${dMv}</span>` : ''}
-        ${opts.hideSeats ? '' : `<span style="background:#2c3038; color:#fff; display:inline-flex; align-items:center; justify-content:center; width:${px(34)}; height:${px(19)}; flex-shrink:0;">${seats}</span>`}
-        <div style="flex:1 1 ${px(70)}; min-width:${px(70)}; position:relative; height:${px(21)}; background:var(--track); border-radius:${px(9)}; overflow:hidden; border:${px(1.5)} solid var(--outline);">
+        ${cmpOn ? `<span style="width:${px(27)}; flex:0 0 ${px(27)}; display:inline-flex; justify-content:flex-end; white-space:nowrap;">${dMv}</span>` : ''}
+        ${opts.hideSeats ? '' : `<span style="background:#2c3038; color:#fff; display:inline-flex; align-items:center; justify-content:center; width:${px(26)}; height:${px(19)}; flex-shrink:0;">${seats}</span>`}
+        <div style="flex:1 1 ${px(40)}; min-width:${px(40)}; position:relative; height:${px(21)}; background:var(--track); border-radius:${px(9)}; overflow:hidden;">
             <div style="position:absolute; left:0; top:0; bottom:0; width:${barW}%; background:${cubukZemin};"></div>
             <span style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); padding-left:${px(6)}; color:${color}; clip-path:inset(0 0 0 ${barW}%); overflow:hidden; ${cizik}">&thinsp;${pctStr}</span>
             <span style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); padding-left:${px(6)}; color:#fff; clip-path:inset(0 ${100 - barW}% 0 0); overflow:hidden; ${cizik}">&thinsp;${pctStr}</span>
         </div>
-        ${cmpOn ? `<span style="width:${px(42)}; flex:0 0 ${px(42)}; display:inline-flex; justify-content:flex-end; white-space:nowrap;">${dPct}</span>` : ''}
+        ${cmpOn ? `<span style="width:${px(35.5)}; flex:0 0 ${px(35.5)}; display:inline-flex; justify-content:flex-end; white-space:nowrap;">${dPct}</span>` : ''}
         ${(opts.votes !== undefined && oySayilariGorunur) ? `<span style="width:${px(dar ? 54 : 58)}; text-align:right; flex-shrink:0; font-size:${px(9.5)}; color:var(--text-secondary); font-variant-numeric:tabular-nums;">${Math.round(opts.votes).toLocaleString('tr-TR')}</span>` : ''}
     </div>`;
 }

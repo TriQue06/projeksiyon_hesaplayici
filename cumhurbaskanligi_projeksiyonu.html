@@ -546,8 +546,10 @@
            kaydırma sırasında da görünür kalır. */
         /* Harita solda dikey ortada durur ve kaydırma alanının dışındadır;
            liste uzasa da yerinden oynamaz. */
+        /* Sonuç ekranında harita sütunu %38 → %36,5: kazanılan birkaç piksel
+           yandaki listeye, yani kısa kalan oy çubuklarına gider. */
         #doDistrictMap {
-            flex: 0 0 38%; max-width: 38%; min-width: 0;
+            flex: 0 0 36.5%; max-width: 36.5%; min-width: 0;
             display: flex; align-items: center; justify-content: center;
             align-self: stretch; height: 100%;
         }
@@ -2323,7 +2325,7 @@ function adaySatir(a, pct, maxPct, opts) {
         <span style="color:var(--text); overflow:hidden; text-overflow:ellipsis; width:${px(dar ? 78 : 88)}; flex-shrink:0;"
               title="${escapeStr(a.ad)}">${escapeStr(a.ad)}</span>
         <div style="flex:1; min-width:${px(70)}; position:relative; height:${px(21)}; background:var(--track);
-                    border-radius:${px(9)}; overflow:hidden; border:${px(1.5)} solid var(--outline);">
+                    border-radius:${px(9)}; overflow:hidden;">
             <div style="position:absolute; left:0; top:0; bottom:0; width:${barW}%; background:${a.renk};"></div>
             <span style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); padding-left:${px(6)};
                          color:${a.renk}; clip-path:inset(0 0 0 ${barW}%); overflow:hidden;">&thinsp;${pctStr}</span>
