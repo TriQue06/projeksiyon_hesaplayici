@@ -585,8 +585,8 @@
         #mapToolbar .tb-group[hidden] { display: none; }
         #tbDetay { margin-left: auto; }
         .hs-dugme {
-            display: inline-flex; align-items: center; flex-shrink: 0;
-            height: 36px; min-width: 36px; padding: 0; margin: 0; overflow: hidden;
+            position: relative; display: inline-flex; align-items: center; flex-shrink: 0;
+            height: 36px; min-width: 36px; padding: 0; margin: 0; overflow: visible;
             background: var(--surface); color: var(--text-secondary);
             border: 1px solid var(--border); border-radius: 999px; box-shadow: none;
             font-size: 11px; font-weight: 800; line-height: 1; cursor: pointer;
@@ -595,12 +595,20 @@
         .hs-ikon { flex: 0 0 34px; height: 34px; display: flex; align-items: center; justify-content: center; }
         .hs-ikon svg { width: 18px; height: 18px; display: block; }
         .hs-etiket {
-            max-width: 0; opacity: 0; padding-right: 0; white-space: nowrap; overflow: hidden;
-            transition: max-width .25s ease, opacity .18s ease, padding-right .25s ease;
+            position: absolute; left: -1px; top: -1px; z-index: 1; box-sizing: border-box;
+            height: 36px; display: flex; align-items: center; white-space: nowrap; overflow: hidden;
+            max-width: 36px; padding: 0 0 0 36px; border-radius: 999px;
+            background: var(--primary); color: #fff; border: 1px solid var(--primary);
+            opacity: 0; pointer-events: none;
+            transition: max-width .25s ease, opacity .15s ease, padding-right .25s ease;
         }
-        .hs-dugme:hover .hs-etiket, .hs-dugme:focus-visible .hs-etiket {
-            max-width: 240px; opacity: 1; padding-right: 14px;
+        .hs-ikon { position: relative; z-index: 2; }
+        .hs-dugme:not(:disabled):hover .hs-etiket, .hs-dugme:not(:disabled):focus-visible .hs-etiket {
+            max-width: 320px; opacity: 1; padding-right: 14px;
         }
+        /* Açık açıklama komşu düğmelerin üstünde dursun. */
+        .hs-dugme:not(:disabled):hover, .hs-dugme:not(:disabled):focus-visible { z-index: 30; }
+        html[data-tema="sade"] .hs-etiket { border-radius: 999px !important; }
         /* Üzerine gelinince ikon ve açıklama beyaz; okunabilsin diye zemin ana
            renge döner. Renkler tema belirteçlerinden geldiği için açık, koyu ve
            OLED'de aynı davranır. Devre dışı düğme (dar bölgede il/ilçe) parlamaz. */
@@ -688,9 +696,9 @@
         /* Harita karoları ve oy sütunları da konturlu. Kalınlık EKRAN pikseli:
            harita panele sığdırılırken küçültüldüğü için 1,2 birimlik kontur
            0,6 px'e iniyor, iller birbirine karışıyordu. non-scaling-stroke ile
-           harita hangi boyutta çizilirse çizilsin il sınırı 1,2 px kalır. */
+           harita hangi boyutta çizilirse çizilsin il sınırı 1,5 px kalır. */
         #svgMapWrapper path, #svgMapWrapper polygon {
-            stroke-width: 1.2px !important; vector-effect: non-scaling-stroke;
+            stroke-width: 1.5px !important; vector-effect: non-scaling-stroke;
         }
 
         /* ── Yumuşak tema: kalın kontur + sert ofset gölge ──────────────
@@ -2482,7 +2490,7 @@ window.buyukGosterimDegistir = function () {
    sayfa CSS'inden geliyor; PNG indirme ve klasik infografik haritayı kopyalayıp
    sayfanın dışında çizdiği için orada kontur hiç yoktu ve iller arası beyaz
    çizgi kayboluyordu. Kalınlık çıktının gerçek boyutuna göre ölçeklenir:
-   ekranda 754 px genişlikteki haritada 1,2 px ≈ genişliğin binde 1,6'sı;
+   ekranda 754 px genişlikteki haritada 1,5 px ≈ genişliğin binde 2'si;
    aynı oran korunur ki çıktı ekrandakiyle aynı görünsün. İlçe haritasında
    ilçe çizgileri yarı kalınlıkta, il sınırları bir buçuk kat.
    genislikPx/yukseklikPx: haritanın çıktıda kaplayacağı kutu. */
@@ -2491,7 +2499,7 @@ function haritaKonturuYaz(klon, genislikPx, yukseklikPx) {
     if (vb.length !== 4 || !(vb[2] > 0) || !(vb[3] > 0)) return;
     const olcek = Math.min(genislikPx / vb[2], yukseklikPx / vb[3]);
     if (!(olcek > 0)) return;
-    const px = Math.max(1, 0.0016 * vb[2] * olcek);
+    const px = Math.max(1, 0.002 * vb[2] * olcek);
     const renk = getComputedStyle(document.documentElement).getPropertyValue('--map-stroke').trim() || '#ffffff';
     const ilceHaritasi = !!klon.querySelector('.il-sinirlari');
     klon.querySelectorAll('path, polygon').forEach(p => {

@@ -220,25 +220,34 @@
         .drag-handle { flex-shrink: 0; cursor: grab; padding:3.5px 2px; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-size:14.5px; user-select: none; }
         .drag-handle:active { cursor: grabbing; }
         .drag-handle:hover { color: var(--primary); }
-        /* Parti satırı: aç/kapa, aktif/pasif, logo, ad, oy, çoğalt ve sil aynı
-           yükseklikte (26 px) ve dikeyde ortalı. Logo daire eskisinden %13
-           büyük; oy kutusu ilk genişliği (82 px) ile 2/5'lik dar hâlinin
-           (33 px) ortalaması: 57,5 px. Yalnız masaüstü: mobildeki büyük
+        /* Panel satırları (parti, ortak liste, ittifak, bağımsızlar) ve "Diğer"
+           başlığı: aç/kapa, aktif/pasif, logo/renk dairesi, ad, açılır liste,
+           oy kutusu, metin düğmeleri, çoğalt ve sil aynı yükseklikte (26 px) ve
+           dikeyde ortalı; düğmeler kare. Oy kutusu 57,5 px (ilk genişlik 82 px
+           ile 2/5'lik dar hâlin ortalaması). Yalnız masaüstü: mobildeki büyük
            dokunma hedeflerine dokunulmaz. */
         @media (min-width: 901px) {
-            .parti-satiri .flex-row { align-items: center; }
-            .parti-satiri button.toggle-btn,
-            .parti-satiri button.status-btn { width: 26px; height: 26px; }
-            .parti-satiri .danger {
+            .data-row .flex-row, .diger-zone-head { align-items: center; }
+            .data-row button.toggle-btn, .data-row button.status-btn, .data-row .kopya-btn,
+            .diger-zone-head button.toggle-btn, .diger-zone-head button.status-btn,
+            .diger-zone-head #digerDisplayBtn {
+                width: 26px !important; height: 26px !important;
+            }
+            .data-row .danger {
                 width: 26px !important; height: 26px !important; padding: 0 !important;
                 display: flex; align-items: center; justify-content: center;
             }
-            .parti-satiri .editable-name { height: 26px; box-sizing: border-box; padding: 0 5px; }
-            .parti-satiri input.parti-oy {
-                flex: 0 0 57.5px; width: 57.5px !important; height: 26px; box-sizing: border-box;
-                padding: 0 4px; text-align: center;
+            .data-row .editable-name { height: 26px; box-sizing: border-box; padding: 0 5px; }
+            .data-row .flex-row > select { height: 26px; box-sizing: border-box; padding: 0 6px !important; }
+            .data-row input.parti-oy, .diger-zone-head input.parti-oy {
+                flex: 0 0 57.5px !important; width: 57.5px !important; height: 26px; box-sizing: border-box;
+                padding: 0 4px !important; text-align: center;
             }
-            .parti-satiri .kopya-btn { width: 26px; height: 26px; }
+            /* İttifak satırındaki "Oto", harita ve sıfırlama düğmeleri. */
+            .data-row .satir-metin-btn {
+                height: 26px; box-sizing: border-box; display: inline-flex; align-items: center;
+                justify-content: center; gap: 3px; padding: 0 8px !important; line-height: 1 !important;
+            }
         }
 
         .similarity-grid { display: grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); gap:7px; margin-top:9px; padding-top:9px; border-top: 1px dashed var(--border); }
@@ -671,8 +680,8 @@
         #mapToolbar .tb-group[hidden] { display: none; }
         #tbDetay { margin-left: auto; }
         .hs-dugme {
-            display: inline-flex; align-items: center; flex-shrink: 0;
-            height: 36px; min-width: 36px; padding: 0; margin: 0; overflow: hidden;
+            position: relative; display: inline-flex; align-items: center; flex-shrink: 0;
+            height: 36px; min-width: 36px; padding: 0; margin: 0; overflow: visible;
             background: var(--surface); color: var(--text-secondary);
             border: 1px solid var(--border); border-radius: 999px; box-shadow: none;
             font-size: 11px; font-weight: 800; line-height: 1; cursor: pointer;
@@ -681,12 +690,20 @@
         .hs-ikon { flex: 0 0 34px; height: 34px; display: flex; align-items: center; justify-content: center; }
         .hs-ikon svg { width: 18px; height: 18px; display: block; }
         .hs-etiket {
-            max-width: 0; opacity: 0; padding-right: 0; white-space: nowrap; overflow: hidden;
-            transition: max-width .25s ease, opacity .18s ease, padding-right .25s ease;
+            position: absolute; left: -1px; top: -1px; z-index: 1; box-sizing: border-box;
+            height: 36px; display: flex; align-items: center; white-space: nowrap; overflow: hidden;
+            max-width: 36px; padding: 0 0 0 36px; border-radius: 999px;
+            background: var(--primary); color: #fff; border: 1px solid var(--primary);
+            opacity: 0; pointer-events: none;
+            transition: max-width .25s ease, opacity .15s ease, padding-right .25s ease;
         }
-        .hs-dugme:hover .hs-etiket, .hs-dugme:focus-visible .hs-etiket {
-            max-width: 240px; opacity: 1; padding-right: 14px;
+        .hs-ikon { position: relative; z-index: 2; }
+        .hs-dugme:not(:disabled):hover .hs-etiket, .hs-dugme:not(:disabled):focus-visible .hs-etiket {
+            max-width: 320px; opacity: 1; padding-right: 14px;
         }
+        /* Açık açıklama komşu düğmelerin üstünde dursun. */
+        .hs-dugme:not(:disabled):hover, .hs-dugme:not(:disabled):focus-visible { z-index: 30; }
+        html[data-tema="sade"] .hs-etiket { border-radius: 999px !important; }
         /* Üzerine gelinince ikon ve açıklama beyaz; okunabilsin diye zemin ana
            renge döner. Renkler tema belirteçlerinden geldiği için açık, koyu ve
            OLED'de aynı davranır. Devre dışı düğme (dar bölgede il/ilçe) parlamaz. */
@@ -702,9 +719,13 @@
         html[data-tema="sade"] .hs-dugme { border-radius: 999px !important; }
         /* Parlamento kartındaki indirme dairesi: sağ üst köşede durduğu için
            açıklama SOLA doğru açılır. */
-        #parliamentScreenshotBtn { position: absolute; top: 9px; right: 9px; z-index: 5; flex-direction: row-reverse; }
+        #parliamentScreenshotBtn { position: absolute; top: 9px; right: 9px; z-index: 5; }
+        #parliamentScreenshotBtn .hs-etiket {
+            left: auto; right: -1px; justify-content: flex-start; padding: 0 36px 0 0;
+            transition: max-width .25s ease, opacity .15s ease, padding-left .25s ease;
+        }
         #parliamentScreenshotBtn:not(:disabled):hover .hs-etiket,
-        #parliamentScreenshotBtn:not(:disabled):focus-visible .hs-etiket { padding-right: 0; padding-left: 14px; }
+        #parliamentScreenshotBtn:not(:disabled):focus-visible .hs-etiket { padding: 0 36px 0 14px; }
         /* Büyütülmüş İstanbul/Kocaeli yalnız il haritasında anlamlı. */
         #mapContainer:has(#mapSlides.show-ilce) #buyukDugme { display: none; }
         #tbDetay button {
@@ -780,9 +801,9 @@
         /* Harita karoları ve oy sütunları da konturlu. Kalınlık EKRAN pikseli:
            harita panele sığdırılırken küçültüldüğü için 1,2 birimlik kontur
            0,6 px'e iniyor, iller birbirine karışıyordu. non-scaling-stroke ile
-           harita hangi boyutta çizilirse çizilsin il sınırı 1,2 px kalır. */
+           harita hangi boyutta çizilirse çizilsin il sınırı 1,5 px kalır. */
         #svgMapWrapper path, #svgMapWrapper polygon {
-            stroke-width: 1.2px !important; vector-effect: non-scaling-stroke;
+            stroke-width: 1.5px !important; vector-effect: non-scaling-stroke;
         }
 
         /* ── Yumuşak tema: kalın kontur + sert ofset gölge ──────────────
@@ -1315,27 +1336,8 @@
             <div class="settings-section" style="margin-top:0;">
                 <div class="settings-section-title">Görünüm</div>
 
-                <div class="settings-row">
-                    <div class="settings-row-info">
-                        <div>
-                            <div class="settings-row-title">Harita Görünüm Modu</div>
-                            <div class="settings-row-desc">Harita partilere göre mi, ittifaklara göre mi boyansın?</div>
-                        </div>
-                    </div>
-                    <button id="mapModeToggleBtn" class="settings-toggle-btn" onclick="toggleMapMode()">🔄 Görünüm: Partiler</button>
-                </div>
-
-                <!-- "Diger" gosterim dugmesi kategorinin kendi satirina tasindi. -->
-
-                <div class="settings-row">
-                    <div class="settings-row-info">
-                        <div>
-                            <div class="settings-row-title">Haritada Milletvekili Noktaları</div>
-                            <div class="settings-row-desc">Vekil dağılımı harita üzerinde nokta olarak gösterilir.</div>
-                        </div>
-                    </div>
-                    <input type="checkbox" id="showMVDotsInp" onchange="updateMapColors()" style="width:18px; height:18px; flex-shrink:0;" checked>
-                </div>
+                <!-- Harita görünüm modu, vekil noktaları ve il rengi ayarları harita
+                     şeridindeki düğmelere taşındı. -->
 
                 <div class="settings-row">
                     <div class="settings-row-info">
@@ -1347,18 +1349,6 @@
                     <input type="checkbox" id="oySayiInp" onchange="oySayilariDegis(this.checked)" style="width:18px; height:18px; flex-shrink:0;">
                 </div>
 
-                <div class="settings-row">
-                    <div class="settings-row-info">
-                        <div>
-                            <div class="settings-row-title">İl Rengini Belirleyen</div>
-                            <div class="settings-row-desc">Çevrenin rengi ya vekil çoğunluğundan ya da doğrudan birinci gelen parti/listeden alınır.</div>
-                        </div>
-                    </div>
-                    <select id="mapColorModeInp" onchange="setMapColorMode(this.value)" style="flex-shrink:0; width:152px;">
-                        <option value="first" selected>Birinci parti / liste</option>
-                        <option value="seats">Milletvekili sayısı</option>
-                    </select>
-                </div>
 
 
             </div>
@@ -1510,7 +1500,7 @@
                                 <!-- Mutlak konumlu: kartın yüksekliğini itmez, dolayısıyla parti sayısı
                      arttıkça kart uzamaz; liste doğrudan kaydırılabilir hale gelir.
                      Kart yüksekliğini yalnızca parlamento diyagramı belirler. -->
-                <div id="parliamentSideList" style="overflow-y:auto; display:flex; flex-direction:column; gap:5.5px;"></div>
+                <div id="parliamentSideList" style="overflow-y:auto; display:flex; flex-direction:column; gap:5px;"></div>
             </div>
         </div>
 
@@ -1521,6 +1511,7 @@
                  noktaları) proje kaydı/yüklemesi ve kıyas yedeği için yerinde kalır;
                  düğmeler onları değiştirip durumu aria-pressed ile gösterir. -->
             <input type="checkbox" id="hideBuyukInp" checked hidden onchange="updateMapColors()">
+            <input type="checkbox" id="showMVDotsInp" checked hidden onchange="updateMapColors()">
             <div id="mapToolbar">
                 <div class="tb-group" id="tbMap">
                     <button id="mapLayerBtn" class="hs-dugme" type="button" onclick="toggleMapLayer()" aria-label="İl ya da İlçe Görünümü">
@@ -1537,6 +1528,9 @@
                     </button>
                     <button id="mvNoktaDugme" class="hs-dugme" type="button" onclick="mvNoktalariDegistir()" aria-label="Milletvekili Noktaları" aria-pressed="true">
                         <span class="hs-ikon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><g fill="currentColor" stroke="none"><circle cx="6" cy="6" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="12" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></g></svg></span><span class="hs-etiket">Milletvekili Noktaları</span>
+                    </button>
+                    <button id="renkModDugme" class="hs-dugme" type="button" onclick="setMapColorMode(mapColorMode === 'seats' ? 'first' : 'seats')" aria-label="Milletvekili Çoğunluğu Rengi / Birinci Parti Rengi" aria-pressed="false">
+                        <span class="hs-ikon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2s6 6.4 6 10.8a6 6 0 0 1-12 0c0-4.4 6-10.8 6-10.8Z"/><path d="M9.2 14.6a2.9 2.9 0 0 0 2.8 2.4"/></svg></span><span class="hs-etiket">Milletvekili Çoğunluğu Rengi / Birinci Parti Rengi</span>
                     </button>
                 </div>
                 <div class="tb-group" id="tbDetay" hidden>
@@ -2347,13 +2341,13 @@ function toggleMapMode() {
 
     const hm = $('haritaModDugme');
     if (hm) hm.setAttribute('aria-pressed', mapMode === 'alliance' ? 'true' : 'false');
-    const btn = $('mapModeToggleBtn');
-    if (mapMode === 'party') {
+    const btn = $('mapModeToggleBtn');     // ayarlardaki eski düğme artık yok
+    if (btn && mapMode === 'party') {
         btn.innerHTML = '🔄 Görünüm: Partiler';
         btn.style.background = 'var(--surface)';
         btn.style.color = 'var(--text)';
         btn.style.borderColor = 'var(--primary)';
-    } else {
+    } else if (btn) {
         btn.innerHTML = '🤝 Görünüm: İttifaklar';
         btn.style.background = 'var(--teal)';
         btn.style.color = 'white';
@@ -2701,6 +2695,10 @@ function updateMapColors() {
     const showDots = $('showMVDotsInp') && $('showMVDotsInp').checked;
     const mvDugme = $('mvNoktaDugme');
     if (mvDugme) mvDugme.setAttribute('aria-pressed', showDots ? 'true' : 'false');
+    // Renk kipi düğmesi: basılı = milletvekili çoğunluğu. Proje yüklemesi kipi
+    // değiştirdiğinde de her çizimde buradan eşitlenir.
+    const renkDugme = $('renkModDugme');
+    if (renkDugme) renkDugme.setAttribute('aria-pressed', mapColorMode === 'seats' ? 'true' : 'false');
     // Büyütülmüş İstanbul/Kocaeli parçaları: gizlendiğinde hem şekilleri hem de
     // üzerlerindeki vekil noktaları çizilmez. Nokta ayarıyla çakışmaz —
     // noktalar yalnız İKİSİ de izin verdiğinde çizilir.
@@ -3241,9 +3239,10 @@ window.loadCustomDotPositions = async function(inp) {
 // Tek satır bileşeni: il hover menüsü, ilçe hover menüsü, ilçe listesi ve
 // parlamento yan listesi aynı görünümü paylaşsın diye buradan geçer.
 // opts.hideSeats → ilçelerde sandalye yoktur; opts.votes → oy sayısı sütunu.
-/* Parlamento yanındaki parti oy oranları listesinin ölçeği. 1,2'nin ÜSTÜ
-   entityStatRow'da "büyük panel" düzenini (geniş satır aralığı) açar. */
-const YAN_LISTE_OLCEK = 1.2;
+/* Parlamento yanındaki parti oy oranları listesinin ölçeği: ilk hâli (1,0)
+   ile %20 büyütülmüş hâlinin (1,2) ortalaması. 1,2'nin ÜSTÜ entityStatRow'da
+   "büyük panel" düzenini (geniş satır aralığı) açar. */
+const YAN_LISTE_OLCEK = 1.1;
 
 function entityStatRow(p, seats, pct, cmp, cmpOn, maxPct, opts) {
     opts = opts || {};
@@ -3272,14 +3271,14 @@ function entityStatRow(p, seats, pct, cmp, cmpOn, maxPct, opts) {
         ${opts.mudahale ? mudahaleDugmeleri(opts.mudahale.tip, opts.mudahale.hedef, p, ol) : ''}
         ${partyBadge(p, Math.round(19 * ol))}
         <span style="color:var(--text); overflow:hidden; text-overflow:ellipsis; width:${px(dar ? 55 : 57)}; flex-shrink:0; ${cizik}" title="${escapeStr(p)}">${escapeStr(p)}</span>
-        ${cmpOn ? `<span style="min-width:${px(dar ? 20 : 24)}; text-align:right; flex-shrink:0;">${dMv}</span>` : ''}
+        ${cmpOn ? `<span style="width:${px(30)}; flex:0 0 ${px(30)}; display:inline-flex; justify-content:flex-end; white-space:nowrap;">${dMv}</span>` : ''}
         ${opts.hideSeats ? '' : `<span style="background:#2c3038; color:#fff; display:inline-flex; align-items:center; justify-content:center; width:${px(34)}; height:${px(19)}; flex-shrink:0;">${seats}</span>`}
         <div style="flex:1 1 ${px(70)}; min-width:${px(70)}; position:relative; height:${px(21)}; background:var(--track); border-radius:${px(9)}; overflow:hidden; border:${px(1.5)} solid var(--outline);">
             <div style="position:absolute; left:0; top:0; bottom:0; width:${barW}%; background:${cubukZemin};"></div>
             <span style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); padding-left:${px(6)}; color:${color}; clip-path:inset(0 0 0 ${barW}%); overflow:hidden; ${cizik}">&thinsp;${pctStr}</span>
             <span style="position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); padding-left:${px(6)}; color:#fff; clip-path:inset(0 ${100 - barW}% 0 0); overflow:hidden; ${cizik}">&thinsp;${pctStr}</span>
         </div>
-        ${cmpOn ? `<span style="min-width:${px(dar ? 30 : 34)}; text-align:right; flex-shrink:0;">${dPct}</span>` : ''}
+        ${cmpOn ? `<span style="width:${px(42)}; flex:0 0 ${px(42)}; display:inline-flex; justify-content:flex-end; white-space:nowrap;">${dPct}</span>` : ''}
         ${(opts.votes !== undefined && oySayilariGorunur) ? `<span style="width:${px(dar ? 54 : 58)}; text-align:right; flex-shrink:0; font-size:${px(9.5)}; color:var(--text-secondary); font-variant-numeric:tabular-nums;">${Math.round(opts.votes).toLocaleString('tr-TR')}</span>` : ''}
     </div>`;
 }
@@ -5312,6 +5311,9 @@ window.deleteParty = function(idx) {
     // Eskiden koşulsuz 7'ye çekiliyordu; kullanıcının kurduğu eşik (örn. %2,5)
     // bir parti silinir silinmez sessizce kayboluyordu.
     refreshPartyDependentViews();
+    // Sonuçlar hemen yeniden hesaplanır: aksi halde silinen parti bir sonraki
+    // hesaba kadar haritada, tabloda ve kıyasta yaşamaya devam ediyordu.
+    scheduleProjection(0);
 };
 
 /* Partiyi çoğaltır: kopya hemen altına eklenir, adı "<ad> (1)". Kopya da
@@ -5345,6 +5347,7 @@ window.duplicateParty = function(idx) {
     const sira = parliamentOrderOverride.indexOf(asil.name);
     if (sira > -1) parliamentOrderOverride.splice(sira + 1, 0, ad);
     refreshPartyDependentViews();
+    scheduleProjection(0);
 };
 
 // ── Color Picker ──────────────────────────────────────────────────────────────
@@ -5713,7 +5716,7 @@ function renderExtraParties(){
             <div class="diger-zone-head">
                 <button class="toggle-btn" title="Kategoriyi aç/kapat"
                         onclick="window._digerKapali = ${!digerKapali}; renderExtraParties();">${digerKapali ? '▸' : '▾'}</button>
-                <div title="Rengi Değiştir" style="width:18px; height:18px; border-radius:50%; background:${g.color || '#888888'}; cursor:pointer; box-shadow:0 1px 3px rgba(43,38,30,0.22); flex-shrink:0;" onclick="updateColorModal('diger', 0)"></div>
+                <div class="logo-daire" title="Rengi Değiştir" style="width:26px; height:26px; border-radius:50%; background:${g.color || '#888888'}; cursor:pointer; box-shadow:0 1px 3px rgba(43,38,30,0.22); flex-shrink:0;" onclick="updateColorModal('diger', 0)"></div>
                 <span>${escapeStr(g.name)}</span>
                 <span class="diger-zone-say">${oteki.length}</span>
                 <button class="status-btn ${g.isEnabled !== false ? 'active' : 'pasif'}"  style="width:22px; height:22px; font-size:10px;" onclick="digerGroups[0].isEnabled=!(digerGroups[0].isEnabled!==false); renderExtraParties(); scheduleProjection(0);" title="${g.isEnabled !== false ? 'Gruplama açık' : 'Gruplama kapalı'}">${g.isEnabled !== false ? 'A' : 'P'}</button>
@@ -5724,7 +5727,7 @@ function renderExtraParties(){
                                border:1px solid ${digerDisplayEnabled ? 'var(--danger)' : 'var(--border)'};"
                         title="${digerDisplayEnabled ? 'Harita ve tabloda tek kalem gösteriliyor' : 'Harita ve tabloda ayrı ayrı gösteriliyor'}">&#128451;&#65039;</button>
                 <span style="margin-left:auto; font-size:9.5px; font-weight:700; color:var(--text-dim); text-transform:none; letter-spacing:0;">Toplam Oy %</span>
-                <input type="text" inputmode="decimal" placeholder="—" value="${(g.targetPct === '' || g.targetPct === null || g.targetPct === undefined) ? '' : fmtPctInput(g.targetPct)}"
+                <input type="text" inputmode="decimal" class="parti-oy" placeholder="—" value="${(g.targetPct === '' || g.targetPct === null || g.targetPct === undefined) ? '' : fmtPctInput(g.targetPct)}"
                        style="width:56px; margin:0; padding:4px 6px; font-size:11px; font-weight:bold; color:var(--danger); flex:0 0 auto;"
                        title="Doldurulursa üye partilerin oyları bu toplama orantılı ölçeklenir"
                        onchange="digerGroups[0].targetPct=parsePctInput(this.value); updateTotalTracker(); scheduleProjection(0);"
@@ -5815,7 +5818,7 @@ function renderCoalitions(){
             ? `<select style="flex:1; min-width:0; padding:4.5px; font-weight:bold;" onchange="setCoalHost(${idx}, this.value)">
                    ${all.map(p => `<option value="${escapeStr(p)}" ${p === c.host ? 'selected' : ''}>${p} listesi</option>`).join('')}
                </select>`
-            : `<div class="logo-daire" title="Renk ve Logo" style="width:23px; height:23px; border-radius:50%; background:${color}; cursor:pointer; box-shadow:0 1px 3px rgba(43,38,30,0.22); flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:3px; box-sizing:border-box;" onclick="updateColorModal('coal', ${idx})">${iconRaw ? recolorIconSvg(iconRaw, c.iconColor || '#ffffff') : ''}</div>
+            : `<div class="logo-daire" title="Renk ve Logo" style="width:26px; height:26px; border-radius:50%; background:${color}; cursor:pointer; box-shadow:0 1px 3px rgba(43,38,30,0.22); flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:3.5px; box-sizing:border-box;" onclick="updateColorModal('coal', ${idx})">${iconRaw ? recolorIconSvg(iconRaw, c.iconColor || '#ffffff') : ''}</div>
                <input type="text" class="editable-name" value="${escapeStr(c.name)}" onchange="renameCoalition(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">`;
 
         return `
@@ -5917,14 +5920,13 @@ function bagimsizPartiRowHtml() {
     return `<div class="data-row locked-row" style="border-left-color:#8a8f98;">
         <div class="flex-row" style="margin-bottom:0;">
             <button class="toggle-btn" onclick="window._bagimsizAcik = !window._bagimsizAcik; renderExtraParties();">${acik ? '▲' : '▼'}</button>
-            <div style="width:23px; height:23px; border-radius:50%; background:#8a8f98; flex-shrink:0; box-shadow:0 1px 3px rgba(43,38,30,0.22);"></div>
+            <div class="logo-daire" style="width:26px; height:26px; border-radius:50%; background:#8a8f98; flex-shrink:0; box-shadow:0 1px 3px rgba(43,38,30,0.22);"></div>
             <div class="locked-name">
                 <span>Bağımsızlar</span>
                 <span class="locked-badge">SİSTEM</span>
             </div>
-            <input type="text" inputmode="decimal" value="${fmtPctInput(ulke)}" style="width:58px; margin:0; font-weight:bold; color:var(--primary); flex-shrink:0;"
+            <input type="text" inputmode="decimal" class="parti-oy" value="${fmtPctInput(ulke)}" style="width:58px; margin:0; font-weight:bold; color:var(--primary); flex-shrink:0;"
                    onchange="setIndependentNational(this.value)">
-            <span style="font-weight:bold; color:var(--text-secondary); flex-shrink:0;">%</span>
         </div>
         <div style="font-size:9.5px; margin:4px 0 0 36px; color:${kisildi ? 'var(--danger)' : 'var(--text-secondary)'};">${
             kisildi
@@ -6284,12 +6286,12 @@ function renderFermuar() {
             <div class="flex-row" style="margin-bottom:0;">
                 <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
                 <button class="toggle-btn" onclick="electoralAlliances[${idx}].isOpen=!electoralAlliances[${idx}].isOpen;renderFermuar()">${fl.isOpen ? '▲' : '▼'}</button>
-                <div title="Rengi Değiştir" style="width:22px; height:22px; border-radius:50%; background:${fl.color || '#888888'}; cursor:pointer; flex-shrink:0;" onclick="updateColorModal('alliance', ${idx})"></div>
                 <button class="status-btn ${fl.isEnabled !== false ? 'active' : 'pasif'}"  onclick="electoralAlliances[${idx}].isEnabled=!(electoralAlliances[${idx}].isEnabled!==false);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();" title="${fl.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${fl.isEnabled !== false ? 'A' : 'P'}</button>
+                <div class="logo-daire" title="Rengi Değiştir" style="width:26px; height:26px; border-radius:50%; background:${fl.color || '#888888'}; cursor:pointer; flex-shrink:0; box-shadow:0 1px 3px rgba(43,38,30,0.22);" onclick="updateColorModal('alliance', ${idx})"></div>
                 <input type="text" class="editable-name" value="${escapeStr(fl.name)}" onchange="renameAlliance(${idx},this.value)" onkeyup="if(event.key==='Enter')this.blur()">
-                <button onclick="fermuarOtomatik(${idx})" style="flex-shrink:0;padding:2.5px 7px;border-radius:5px;font-size:10px;font-weight:bold;cursor:pointer;white-space:nowrap;line-height:1.35;background:var(--oto-bg);color:var(--oto-fg);border:1px solid var(--oto-bd);" title="Çevreleri üyeler arasında otomatik paylaştır (müdahale katmanları hesaba katılır)">&#9889; Oto</button>
-                <button onclick="toggleFermuarMapEdit(${idx})" style="flex-shrink:0;padding:2.5px 7px;border-radius:5px;font-size:10px;font-weight:bold;cursor:pointer;white-space:nowrap;line-height:1.35;background:${fermuarMapEditIdx === idx ? 'var(--primary)' : 'var(--highlight-bg)'};color:${fermuarMapEditIdx === idx ? '#fff' : 'var(--primary)'};border:1px solid var(--primary);" title="Haritadan tıklayarak ata">🗺️</button>
-                <button onclick="fermuarSifirla(${idx})" style="flex-shrink:0;padding:2.5px 7px;border-radius:5px;font-size:10px;font-weight:bold;cursor:pointer;white-space:nowrap;line-height:1.35;background:var(--surface-alt);color:var(--text-secondary);border:1px solid var(--border);" title="Çevre atamalarını ve destek hedeflerini varsayılana döndür: tüm üyeler her çevrede yarışır">&#8634;</button>
+                <button class="satir-metin-btn" onclick="fermuarOtomatik(${idx})" style="flex-shrink:0;padding:2.5px 7px;border-radius:5px;font-size:10px;font-weight:bold;cursor:pointer;white-space:nowrap;line-height:1.35;background:var(--oto-bg);color:var(--oto-fg);border:1px solid var(--oto-bd);" title="Çevreleri üyeler arasında otomatik paylaştır (müdahale katmanları hesaba katılır)">&#9889; Oto</button>
+                <button class="satir-metin-btn" onclick="toggleFermuarMapEdit(${idx})" style="flex-shrink:0;padding:2.5px 7px;border-radius:5px;font-size:10px;font-weight:bold;cursor:pointer;white-space:nowrap;line-height:1.35;background:${fermuarMapEditIdx === idx ? 'var(--primary)' : 'var(--highlight-bg)'};color:${fermuarMapEditIdx === idx ? '#fff' : 'var(--primary)'};border:1px solid var(--primary);" title="Haritadan tıklayarak ata">🗺️</button>
+                <button class="satir-metin-btn" onclick="fermuarSifirla(${idx})" style="flex-shrink:0;padding:2.5px 7px;border-radius:5px;font-size:10px;font-weight:bold;cursor:pointer;white-space:nowrap;line-height:1.35;background:var(--surface-alt);color:var(--text-secondary);border:1px solid var(--border);" title="Çevre atamalarını ve destek hedeflerini varsayılana döndür: tüm üyeler her çevrede yarışır">&#8634;</button>
                 <button class="danger" onclick="takeSnapshot();mudahaleVarligiSil(fermuarListes[${idx}].name);fermuarListes.splice(${idx},1);renderFermuar();if(Object.keys(globalResults).length>0)runProjection();">✖</button>
             </div>
             ${fl.isOpen ? `
@@ -8039,7 +8041,7 @@ function renderResults(res){
             const isActive = activePartyFilter === col.entity;
             const arrow = isActive ? (filterSortMode === 'pct_desc' ? ' ▼' : ' ▲') : '';
             const activeStyle = isActive ? `background:${col.color}22; outline:2px solid ${col.color};` : '';
-            partyHeaderHtml += `<th onclick="togglePartyFilter('${escapeStr(col.entity)}')" style="${ths} border-bottom:3px solid ${col.color}; font-weight:700; color:${isActive ? col.color : 'var(--text)'}; padding:4.5px 3.5px; cursor:pointer; ${activeStyle}">${col.entity}${arrow}</th>`;
+            partyHeaderHtml += `<th onclick="togglePartyFilter('${escapeStr(col.entity)}')" style="${ths} font-weight:700; color:${isActive ? col.color : 'var(--text)'}; padding:4.5px 3.5px; cursor:pointer; ${activeStyle}">${col.entity}${arrow}</th>`;
         });
     });
 
@@ -10363,7 +10365,7 @@ function updateSelectionUI() {
             const v = partyVotes[p];
             if (v < 10) return;
             const pct = totalVotes > 0 ? (v / totalVotes) * 100 : 0;
-            // Yan panel göze küçük geliyordu: tüm öğeler orantılı %20 büyük.
+            // Yan panel göze küçük geliyordu: tüm öğeler orantılı %10 büyük.
             html += entityStatRow(p, partySeats[p] || 0, pct, compareStatsFor(p, null), cmpOn, maxPct, { votes: v, ol: YAN_LISTE_OLCEK });
         });
         body.innerHTML = html;
@@ -10963,7 +10965,7 @@ async function takeScreenshot(triggerBtn) {
    sayfa CSS'inden geliyor; PNG indirme ve klasik infografik haritayı kopyalayıp
    sayfanın dışında çizdiği için orada kontur hiç yoktu ve iller arası beyaz
    çizgi kayboluyordu. Kalınlık çıktının gerçek boyutuna göre ölçeklenir:
-   ekranda 754 px genişlikteki haritada 1,2 px ≈ genişliğin binde 1,6'sı;
+   ekranda 754 px genişlikteki haritada 1,5 px ≈ genişliğin binde 2'si;
    aynı oran korunur ki çıktı ekrandakiyle aynı görünsün. İlçe haritasında
    ilçe çizgileri yarı kalınlıkta, il sınırları bir buçuk kat.
    genislikPx/yukseklikPx: haritanın çıktıda kaplayacağı kutu. */
@@ -10972,7 +10974,7 @@ function haritaKonturuYaz(klon, genislikPx, yukseklikPx) {
     if (vb.length !== 4 || !(vb[2] > 0) || !(vb[3] > 0)) return;
     const olcek = Math.min(genislikPx / vb[2], yukseklikPx / vb[3]);
     if (!(olcek > 0)) return;
-    const px = Math.max(1, 0.0016 * vb[2] * olcek);
+    const px = Math.max(1, 0.002 * vb[2] * olcek);
     const renk = getComputedStyle(document.documentElement).getPropertyValue('--map-stroke').trim() || '#ffffff';
     const ilceHaritasi = !!klon.querySelector('.il-sinirlari');
     klon.querySelectorAll('path, polygon').forEach(p => {

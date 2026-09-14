@@ -340,7 +340,11 @@ const STIL = `
 .ig-oy-pct { flex: 0 0 auto; text-align: right; font-weight: 900; line-height: 1.12;
     font-size: calc(29px * var(--ig-ol)); letter-spacing: -0.5px; white-space: nowrap; }
 .ig-oy-pct s { text-decoration: none; font-size: calc(15px * var(--ig-ol)); font-weight: 800; }
-.ig-delta { flex: 0 0 auto; min-width: calc(72px * var(--ig-ol)); text-align: center;
+/* Kıyas çipi SABİT genişlikte: değer uzayınca çip büyüyüp soldaki oy
+   çubuğunu kısaltmasın. 72 px içerik + 8'er px iç boşluk, önceki asgari
+   genişlikle birebir; en uzun değer ("↑ 100,00") de sığar. */
+.ig-delta { flex: 0 0 auto; width: calc(72px * var(--ig-ol)); box-sizing: content-box;
+    overflow: hidden; text-align: center;
     font-size: calc(12.5px * var(--ig-ol)); font-weight: 800;
     padding: calc(5px * var(--ig-ol)) calc(8px * var(--ig-ol)); white-space: nowrap; }
 
