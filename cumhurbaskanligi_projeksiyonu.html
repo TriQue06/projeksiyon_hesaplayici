@@ -1329,6 +1329,7 @@
     </div>
 
     <div class="tema-secici" id="parlaklikSecici">
+        <button data-parlaklik-sec="sistem" onclick="setParlaklik('sistem')">Sistem</button>
         <button data-parlaklik-sec="acik" onclick="setParlaklik('acik')">Açık</button>
         <button data-parlaklik-sec="koyu" onclick="setParlaklik('koyu')">Koyu</button>
         <button data-parlaklik-sec="oled" onclick="setParlaklik('oled')">OLED</button>
@@ -4044,20 +4045,53 @@ window.toggleSidePanel = function (which) {
         ? (which === 'left' ? '▶' : '◀') : (which === 'left' ? '◀' : '▶');
 };
 
-window.setParlaklik = function (p) {
-    const g = ['acik', 'koyu', 'oled'].includes(p) ? p : 'acik';
-    if (g === 'acik') document.documentElement.removeAttribute('data-parlaklik');
-    else document.documentElement.setAttribute('data-parlaklik', g);
-    try { localStorage.setItem('pgm_parlaklik', g); } catch (e) {}
+/* Parlaklık: sistem / açık / koyu / OLED. "sistem" (varsayılan) işletim
+   sisteminin açık-koyu tercihini izler — koyu tercihte "koyu" palet uygulanır —
+   ve tercih değişince sayfa yenilenmeden güncellenir.
+   Seçim "pgm_parlaklik_secim" anahtarında saklanır; iki projeksiyon paylaşır.
+   Eski "pgm_parlaklik" anahtarı her açılışta kendiliğinden "acik" yazıldığı
+   için kullanıcının seçimi sayılmaz; yalnız koyu/OLED gerçek bir seçimdir ve
+   korunur. */
+const PARLAKLIKLAR = ['sistem', 'acik', 'koyu', 'oled'];
+const _sistemKoyu = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+let parlaklikSecimi = 'sistem';
+function parlaklikCoz(secim) {
+    return secim === 'sistem' ? ((_sistemKoyu && _sistemKoyu.matches) ? 'koyu' : 'acik') : secim;
+}
+function parlaklikOku() {
+    let p = null;
+    try {
+        p = localStorage.getItem('pgm_parlaklik_secim');
+        if (!p) {
+            const eski = localStorage.getItem('pgm_parlaklik');
+            p = (eski === 'koyu' || eski === 'oled') ? eski : 'sistem';
+        }
+    } catch (e) {}
+    return PARLAKLIKLAR.includes(p) ? p : 'sistem';
+}
+function parlaklikUygula(secim) {
+    const p = parlaklikCoz(secim);
+    // "acik" varsayılan palet; öznitelik yazılmaz ki temanın kendi renkleri kalsın.
+    if (p === 'acik') document.documentElement.removeAttribute('data-parlaklik');
+    else document.documentElement.setAttribute('data-parlaklik', p);
+}
+window.setParlaklik = function (ad) {
+    parlaklikSecimi = PARLAKLIKLAR.includes(ad) ? ad : 'sistem';
+    parlaklikUygula(parlaklikSecimi);
+    try { localStorage.setItem('pgm_parlaklik_secim', parlaklikSecimi); } catch (e) {}
     document.querySelectorAll('[data-parlaklik-sec]').forEach(b =>
-        b.classList.toggle('aktif', b.getAttribute('data-parlaklik-sec') === g));
+        b.classList.toggle('aktif', b.getAttribute('data-parlaklik-sec') === parlaklikSecimi));
     // Pasta ayraçları ve dağıtılmamış dilimi tema rengini taşıdığı için tam çizim.
     if (sonuc && partiler.length) sonucCiz();
 };
+if (_sistemKoyu) {
+    const sistemDegisti = () => { if (parlaklikSecimi === 'sistem') setParlaklik('sistem'); };
+    if (_sistemKoyu.addEventListener) _sistemKoyu.addEventListener('change', sistemDegisti);
+    else if (_sistemKoyu.addListener) _sistemKoyu.addListener(sistemDegisti);
+}
 (function () {
-    let p = 'acik';
-    try { p = localStorage.getItem('pgm_parlaklik') || 'acik'; } catch (e) {}
-    if (p === 'koyu' || p === 'oled') document.documentElement.setAttribute('data-parlaklik', p);
+    parlaklikSecimi = parlaklikOku();
+    parlaklikUygula(parlaklikSecimi);
 })();
 
 const MOBIL_ESIK = 900;
@@ -4080,7 +4114,7 @@ window.addEventListener('resize', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    setParlaklik((() => { try { return localStorage.getItem('pgm_parlaklik') || 'acik'; } catch (e) { return 'acik'; } })());
+    setParlaklik(parlaklikOku());
     cpInit();
     mobilDurumUygula();
 });

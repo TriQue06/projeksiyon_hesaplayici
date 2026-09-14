@@ -193,6 +193,15 @@
         button.toggle-btn:hover { box-shadow: none; }
         button.toggle-btn:hover { background: var(--border); color: var(--text); transform: none; }
         .data-row .danger { flex-shrink: 0; width:29px !important; height:29px !important; border-radius: var(--r-chip) !important; font-size:13.5px; }
+        /* Partiyi çoğalt: silme düğmesiyle aynı ölçüde kare, nötr renkli. */
+        .data-row .kopya-btn {
+            flex-shrink: 0; width: 29px; height: 29px; padding: 0; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--input-bg); color: var(--text-secondary);
+            border: 1px solid var(--border); border-radius: var(--r-chip); box-shadow: none;
+        }
+        .data-row .kopya-btn svg { width: 14px; height: 14px; display: block; }
+        .data-row .kopya-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); transform: none; }
 
         button.status-btn { flex-shrink: 0; background: var(--input-bg); border: 1px solid var(--border); color: var(--text-secondary); padding: 0; width:29px; height:29px; border-radius: var(--r-chip); box-shadow: none; font-size:12.5px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; }
         button.status-btn.active { background: var(--aktif); color: #fff; border-color: var(--aktif); }
@@ -211,6 +220,26 @@
         .drag-handle { flex-shrink: 0; cursor: grab; padding:3.5px 2px; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-size:14.5px; user-select: none; }
         .drag-handle:active { cursor: grabbing; }
         .drag-handle:hover { color: var(--primary); }
+        /* Parti satırı: aç/kapa, aktif/pasif, logo, ad, oy, çoğalt ve sil aynı
+           yükseklikte (26 px) ve dikeyde ortalı. Logo daire eskisinden %13
+           büyük; oy kutusu ilk genişliği (82 px) ile 2/5'lik dar hâlinin
+           (33 px) ortalaması: 57,5 px. Yalnız masaüstü: mobildeki büyük
+           dokunma hedeflerine dokunulmaz. */
+        @media (min-width: 901px) {
+            .parti-satiri .flex-row { align-items: center; }
+            .parti-satiri button.toggle-btn,
+            .parti-satiri button.status-btn { width: 26px; height: 26px; }
+            .parti-satiri .danger {
+                width: 26px !important; height: 26px !important; padding: 0 !important;
+                display: flex; align-items: center; justify-content: center;
+            }
+            .parti-satiri .editable-name { height: 26px; box-sizing: border-box; padding: 0 5px; }
+            .parti-satiri input.parti-oy {
+                flex: 0 0 57.5px; width: 57.5px !important; height: 26px; box-sizing: border-box;
+                padding: 0 4px; text-align: center;
+            }
+            .parti-satiri .kopya-btn { width: 26px; height: 26px; }
+        }
 
         .similarity-grid { display: grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); gap:7px; margin-top:9px; padding-top:9px; border-top: 1px dashed var(--border); }
         .sim-input-box { background: var(--input-bg); padding:7px; border-radius: var(--r-input); border: 1px solid var(--border); display: flex; flex-direction: column; gap:3.5px; }
@@ -388,21 +417,45 @@
             font-variant-numeric:tabular-nums; }
 
         /* Ekranın üstünde havada duran mod anahtarı */
+        /* Model şeridi: yuvarlak model düğmeleri, başta daha küçük bir
+           gizle/göster düğmesi. Daraltınca model düğmeleri genişliklerini ve
+           boşluklarını yitirip küçülerek sola, o düğmenin içine doğru kaybolur.
+           Şerit ekranın ortasına sabitli olduğu için içerik daraldıkça şerit
+           de eş zamanlı yeniden ortalanır: küçük düğme ortaya kayar. */
         #modeSwitch {
             position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 70;
-            display: flex; gap: 3px; padding: 3px;
-            background: var(--surface); border: var(--outline-w) solid var(--outline); border-radius: 14px;
-            box-shadow: 4px 4px 0 var(--outline);
+            display: flex; align-items: center; gap: 0; padding: 4px;
+            background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+            box-shadow: var(--shadow);
         }
-        #modeSwitch button {
-            padding: 6px 20px; border: none; border-radius: 10px; cursor: pointer;
-            font-size: 12px; font-weight: 900; letter-spacing: 0.2px;
-            background: transparent; color: var(--text-secondary); transition: 0.16s;
-            box-shadow: none;
+        #modeSwitch .mod-daralt {
+            width: 28px; height: 28px; min-width: 0; padding: 0; flex-shrink: 0; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; border-radius: 50%;
+            background: var(--surface-alt); color: var(--text-secondary); box-shadow: none;
+            transition: background .16s ease, color .16s ease;
         }
-        #modeSwitch button:hover { color: var(--text); background: var(--surface-alt); transform: none; }
-        #modeSwitch button.active { background: var(--primary); color: #fff;
-            box-shadow: 0 2px 7px rgba(48,96,232,0.34); }
+        #modeSwitch .mod-daralt svg { width: 14px; height: 14px; display: block; transition: transform .32s ease; }
+        #modeSwitch.daraltilmis .mod-daralt svg { transform: rotate(180deg); }
+        #modeSwitch .mod-daralt:hover { background: var(--primary); color: #fff; transform: none; }
+        #modeSwitch button.mod-btn {
+            width: 44px; height: 44px; margin-left: 6px; padding: 0; flex-shrink: 0;
+            border-radius: 50%; overflow: hidden; white-space: nowrap; cursor: pointer;
+            font-size: 11px; font-weight: 900; letter-spacing: 0;
+            background: transparent; color: var(--text-secondary); box-shadow: none;
+            transform-origin: left center;
+            transition: width .32s ease, margin-left .32s ease, opacity .22s ease,
+                        transform .32s ease, background .16s ease, color .16s ease;
+        }
+        #modeSwitch button.mod-btn:hover { color: var(--text); background: var(--surface-alt); transform: none; }
+        #modeSwitch button.mod-btn.active { background: var(--primary); color: #fff; border-color: var(--primary) !important; }
+        #modeSwitch.daraltilmis button.mod-btn {
+            width: 0; margin-left: 0; opacity: 0; transform: translateX(-22px) scale(.2); pointer-events: none;
+            border-width: 0 !important;
+        }
+        @media (min-width: 901px) {
+            html[data-tema="sade"] #modeSwitch,
+            html[data-tema="sade"] #modeSwitch button { border-radius: 999px !important; }
+        }
 
         #iconModalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(43,38,30,0.42); z-index:9999; justify-content:center; align-items:center; }
         .icon-modal-box { background:var(--surface); padding:18px; border-radius:var(--r-modal); width:324px; max-width:92vw; box-shadow:var(--shadow-modal); border:1px solid var(--border); }
@@ -646,7 +699,12 @@
             background: var(--primary); color: #fff; border-color: var(--primary);
         }
         .hs-dugme:disabled { cursor: not-allowed; }
-        html[data-tema="sade"] #mapToolbar .hs-dugme { border-radius: 999px !important; }
+        html[data-tema="sade"] .hs-dugme { border-radius: 999px !important; }
+        /* Parlamento kartındaki indirme dairesi: sağ üst köşede durduğu için
+           açıklama SOLA doğru açılır. */
+        #parliamentScreenshotBtn { position: absolute; top: 9px; right: 9px; z-index: 5; flex-direction: row-reverse; }
+        #parliamentScreenshotBtn:not(:disabled):hover .hs-etiket,
+        #parliamentScreenshotBtn:not(:disabled):focus-visible .hs-etiket { padding-right: 0; padding-left: 14px; }
         /* Büyütülmüş İstanbul/Kocaeli yalnız il haritasında anlamlı. */
         #mapContainer:has(#mapSlides.show-ilce) #buyukDugme { display: none; }
         #tbDetay button {
@@ -1107,6 +1165,13 @@
             }
             #modeSwitch.mobil-acik { display: flex; }
             #modeSwitch button { flex: 1; padding: 13px 0; font-size: 13px; }
+            /* Mobilde şerit alt çekmece: daraltma yok, düğmeler eski hâlinde. */
+            #modeSwitch .mod-daralt { display: none; }
+            #modeSwitch button.mod-btn,
+            #modeSwitch.daraltilmis button.mod-btn {
+                width: auto; height: auto; margin-left: 0; opacity: 1; transform: none;
+                pointer-events: auto; border-radius: var(--r-btn);
+            }
 
             /* Dokunma hedeflerini büyüt */
             button.status-btn { width: 34px; height: 34px; }
@@ -1146,14 +1211,19 @@
 <body>
 
 <div id="modeSwitch">
-    <button id="modeBtnGenel" class="active" onclick="switchProjectionMode('genel')">Genel</button>
+    <button id="modeDaralt" class="mod-daralt" type="button" onclick="modSeridiDaralt()"
+            aria-expanded="true" aria-label="Model düğmelerini gizle" title="Model düğmelerini gizle">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6"
+             stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
+    <button id="modeBtnGenel" class="mod-btn active" onclick="switchProjectionMode('genel')">Genel</button>
     <!-- 2024 modu GEÇİCİ OLARAK GİZLİ. Kodu, şablonları ve veri dosyaları
          yerinde duruyor (apply2024Mode + parti_sablonu_2024/nufus_2024/
          bagimsiz_2024.json); geri açmak için aşağıdaki display:none yeter. -->
-    <button id="modeBtn2024" onclick="switchProjectionMode('2024')" style="display:none;">2024</button>
-    <button id="modeBtn2023" onclick="switchProjectionMode('2023')">2023</button>
-    <button id="modeBtn2018" onclick="switchProjectionMode('2018')">2018</button>
-    <button id="modeBtn2002" onclick="switchProjectionMode('2002')">2002</button>
+    <button id="modeBtn2024" class="mod-btn" onclick="switchProjectionMode('2024')" style="display:none;">2024</button>
+    <button id="modeBtn2023" class="mod-btn" onclick="switchProjectionMode('2023')">2023</button>
+    <button id="modeBtn2018" class="mod-btn" onclick="switchProjectionMode('2018')">2018</button>
+    <button id="modeBtn2002" class="mod-btn" onclick="switchProjectionMode('2002')">2002</button>
 </div>
 
 <div id="mobilOrtu" onclick="mobilKapat()"></div>
@@ -1177,6 +1247,7 @@
     </div>
 
     <div class="tema-secici" id="parlaklikSecici">
+        <button data-parlaklik-sec="sistem" onclick="setParlaklik('sistem')">Sistem</button>
         <button data-parlaklik-sec="acik" onclick="setParlaklik('acik')">Açık</button>
         <button data-parlaklik-sec="koyu" onclick="setParlaklik('koyu')">Koyu</button>
         <button data-parlaklik-sec="oled" onclick="setParlaklik('oled')">OLED</button>
@@ -1201,7 +1272,7 @@
         </div>
     </div>
 
-    <div class="card collapsed">
+    <div class="card">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
             <label>Cumhurbaşkanlığı Projeksiyonu</label>
         </div>
@@ -1214,7 +1285,7 @@
         </div>
     </div>
 
-    <div class="card infographic-card collapsed">
+    <div class="card infographic-card">
         <div class="card-header-row" onclick="toggleCardCollapse(this)">
             <label>İnfografik</label>
         </div>
@@ -1427,7 +1498,9 @@
     <div id="mainContentWrapper">
         <div id="parliamentContainer" style="display:none; margin-bottom:22px; gap:18px; align-items: stretch;">
             <div id="parliamentChartCard" class="card" style="flex:3; min-width:0; padding:11px 22px; margin-bottom:0; position: relative; text-align:center;">
-                <button id="parliamentScreenshotBtn" onclick="captureParliamentPanel(this)" title="Ekran Görüntüsü Al" style="position:absolute; top:9px; right:9px; z-index:5; background: var(--surface); color: var(--text); border-radius: 8px; font-size:14.5px; padding:5.5px 9px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: 0.2s; line-height:1;">📸</button>
+                <button id="parliamentScreenshotBtn" class="hs-dugme" type="button" onclick="captureParliamentPanel(this)" aria-label="Görüntü İndir">
+                    <span class="hs-ikon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h3.2L9 6h6l1.8 2.5H20V19H4Z"/><circle cx="12" cy="13.2" r="3.4"/></svg></span><span class="hs-etiket">Görüntü İndir</span>
+                </button>
                 <div id="parliamentChartLabel" style="display:none;"></div>
                 <div id="parliamentChartArea"></div>
             </div>
@@ -1437,7 +1510,7 @@
                                 <!-- Mutlak konumlu: kartın yüksekliğini itmez, dolayısıyla parti sayısı
                      arttıkça kart uzamaz; liste doğrudan kaydırılabilir hale gelir.
                      Kart yüksekliğini yalnızca parlamento diyagramı belirler. -->
-                <div id="parliamentSideList" style="overflow-y:auto; display:flex; flex-direction:column; gap:4.5px;"></div>
+                <div id="parliamentSideList" style="overflow-y:auto; display:flex; flex-direction:column; gap:5.5px;"></div>
             </div>
         </div>
 
@@ -2465,33 +2538,59 @@ window.addEventListener('DOMContentLoaded', async () => {
 // Tek görünüm var: sade. Haritalar ve parlamento diyagramı bundan etkilenmez —
 // renkleri parti verisinden, sınırları --map-stroke'tan gelir.
 
-/* Parlaklık: açık/koyu/OLED. */
-const PARLAKLIKLAR = ['acik', 'koyu', 'oled'];
-window.setParlaklik = function(ad) {
-    const p = PARLAKLIKLAR.includes(ad) ? ad : 'acik';
+/* Parlaklık: sistem / açık / koyu / OLED. "sistem" (varsayılan) işletim
+   sisteminin açık-koyu tercihini izler — koyu tercihte "koyu" palet uygulanır —
+   ve tercih değişince sayfa yenilenmeden güncellenir.
+   Seçim "pgm_parlaklik_secim" anahtarında saklanır; iki projeksiyon paylaşır.
+   Eski "pgm_parlaklik" anahtarı her açılışta kendiliğinden "acik" yazıldığı
+   için kullanıcının seçimi sayılmaz; yalnız koyu/OLED gerçek bir seçimdir ve
+   korunur. */
+const PARLAKLIKLAR = ['sistem', 'acik', 'koyu', 'oled'];
+const _sistemKoyu = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+let parlaklikSecimi = 'sistem';
+function parlaklikCoz(secim) {
+    return secim === 'sistem' ? ((_sistemKoyu && _sistemKoyu.matches) ? 'koyu' : 'acik') : secim;
+}
+function parlaklikOku() {
+    let p = null;
+    try {
+        p = localStorage.getItem('pgm_parlaklik_secim');
+        if (!p) {
+            const eski = localStorage.getItem('pgm_parlaklik');
+            p = (eski === 'koyu' || eski === 'oled') ? eski : 'sistem';
+        }
+    } catch (e) {}
+    return PARLAKLIKLAR.includes(p) ? p : 'sistem';
+}
+function parlaklikUygula(secim) {
+    const p = parlaklikCoz(secim);
     // "acik" varsayılan palet; öznitelik yazılmaz ki temanın kendi renkleri kalsın.
     if (p === 'acik') document.documentElement.removeAttribute('data-parlaklik');
     else document.documentElement.setAttribute('data-parlaklik', p);
-    try { localStorage.setItem('pgm_parlaklik', p); } catch (e) {}
+}
+window.setParlaklik = function(ad) {
+    parlaklikSecimi = PARLAKLIKLAR.includes(ad) ? ad : 'sistem';
+    parlaklikUygula(parlaklikSecimi);
+    try { localStorage.setItem('pgm_parlaklik_secim', parlaklikSecimi); } catch (e) {}
     document.querySelectorAll('[data-parlaklik-sec]').forEach(b => {
-        b.classList.toggle('aktif', b.getAttribute('data-parlaklik-sec') === p);
+        b.classList.toggle('aktif', b.getAttribute('data-parlaklik-sec') === parlaklikSecimi);
     });
     // Harita fugası belirteçten okunuyor; yeniden boyanması gerekir.
     try { if (Object.keys(globalResults).length) { updateMapColors(); refreshIlcePaint(); } } catch (e) {}
 };
+if (_sistemKoyu) {
+    const sistemDegisti = () => { if (parlaklikSecimi === 'sistem') setParlaklik('sistem'); };
+    if (_sistemKoyu.addEventListener) _sistemKoyu.addEventListener('change', sistemDegisti);
+    else if (_sistemKoyu.addListener) _sistemKoyu.addListener(sistemDegisti);
+}
 
 // Sayfa boyanmadan uygula: aksi halde açılışta beyaz bir kare çakıyor.
 (function () {
-    let p = 'acik';
-    try { p = localStorage.getItem('pgm_parlaklik') || 'acik'; } catch (e) {}
     document.documentElement.setAttribute('data-tema', 'sade');
-    if (p === 'koyu' || p === 'oled') document.documentElement.setAttribute('data-parlaklik', p);
+    parlaklikSecimi = parlaklikOku();
+    parlaklikUygula(parlaklikSecimi);
 })();
-document.addEventListener('DOMContentLoaded', () => {
-    let p = 'acik';
-    try { p = localStorage.getItem('pgm_parlaklik') || 'acik'; } catch (e) {}
-    setParlaklik(p);
-});
+document.addEventListener('DOMContentLoaded', () => { setParlaklik(parlaklikOku()); });
 
 function setElementFillAggressive(el, color) {
     el.removeAttribute('class');
@@ -3142,6 +3241,10 @@ window.loadCustomDotPositions = async function(inp) {
 // Tek satır bileşeni: il hover menüsü, ilçe hover menüsü, ilçe listesi ve
 // parlamento yan listesi aynı görünümü paylaşsın diye buradan geçer.
 // opts.hideSeats → ilçelerde sandalye yoktur; opts.votes → oy sayısı sütunu.
+/* Parlamento yanındaki parti oy oranları listesinin ölçeği. 1,2'nin ÜSTÜ
+   entityStatRow'da "büyük panel" düzenini (geniş satır aralığı) açar. */
+const YAN_LISTE_OLCEK = 1.2;
+
 function entityStatRow(p, seats, pct, cmp, cmpOn, maxPct, opts) {
     opts = opts || {};
     // ol: ölçek katsayısı. Hover menüsü 1, büyük detay paneli ~1,75 kullanır;
@@ -5211,6 +5314,39 @@ window.deleteParty = function(idx) {
     refreshPartyDependentViews();
 };
 
+/* Partiyi çoğaltır: kopya hemen altına eklenir, adı "<ad> (1)". Kopya da
+   çoğaltılırsa "<ad> (1) (1)" olur. Ad başka bir varlıkla çakışırsa (aynı
+   parti ikinci kez çoğaltıldığında) sonuna yeniden " (1)" eklenir: aynı ada
+   sahip iki varlık sonuçlarda tek anahtara düşüp oylarını karıştırırdı.
+   Kopyaya geçen: partinin bütün ayarları (oy, renk, logo, benzerlik, kıyas
+   eşleşmesi), yarıştığı iller, "Diğer" üyeliği, müdahale katmanları ve
+   parlamento sırasındaki yeri. İttifak/ortak liste üyeliği GEÇMEZ: aynı
+   gruba ikinci bir parti eklemek grubun sonucunu sessizce değiştirirdi. */
+window.duplicateParty = function(idx) {
+    const asil = extraParties[idx];
+    if (!asil) return;
+    takeSnapshot();
+    let ad = asil.name + ' (1)';
+    while (isEntityNameTaken(ad)) ad += ' (1)';
+    const kopya = JSON.parse(JSON.stringify(asil));
+    kopya.name = ad;
+    kopya.isOpen = false;
+    extraParties.splice(idx + 1, 0, kopya);
+    for (const d in localDisabledParties) {
+        if (localDisabledParties[d].has(asil.name)) localDisabledParties[d].add(ad);
+    }
+    if (isInDiger(asil.name)) setDigerMembership(ad, true, true);
+    const katmanlar = mudahaleKatmanlari.filter(k => k.parti === asil.name);
+    if (katmanlar.length) {
+        katmanlar.forEach(k => mudahaleKatmanlari.push({ ...k, parti: ad }));
+        _mudahaleDizin = null;
+        renderMudahale();
+    }
+    const sira = parliamentOrderOverride.indexOf(asil.name);
+    if (sira > -1) parliamentOrderOverride.splice(sira + 1, 0, ad);
+    refreshPartyDependentViews();
+};
+
 // ── Color Picker ──────────────────────────────────────────────────────────────
 function cpHsvToRgb(h,s,v){s/=100;v/=100;let f=(n,k=(n+h/60)%6)=>v-v*s*Math.max(Math.min(k,4-k,1),0);return{r:Math.round(f(5)*255),g:Math.round(f(3)*255),b:Math.round(f(1)*255)};}
 function cpRgbToHsv(r,g,b){r/=255;g/=255;b/=255;let v=Math.max(r,g,b),c=v-Math.min(r,g,b);let h=c&&((v===r)?(g-b)/c:((v===g)?2+(b-r)/c:4+(r-g)/c));return{h:Math.round(60*(h<0?h+6:h))||0,s:Math.round(v&&c/v*100),v:Math.round(v*100)};}
@@ -5497,7 +5633,7 @@ window.saveColorModal = function() {
 
 function partyRowHtml(ep, idx, inDiger, sortedGlobal) {
     return `
-        <div class="data-row" style="border-left-color: ${inDiger ? 'var(--danger)' : 'var(--orange)'};" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'party', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'party', ${idx})">
+        <div class="data-row parti-satiri" style="border-left-color: ${inDiger ? 'var(--danger)' : 'var(--orange)'};" onmousedown="if(event.target.tagName==='INPUT') this.removeAttribute('draggable'); else this.setAttribute('draggable', 'true');" ondragstart="handleDragStart(event, 'party', ${idx})" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, 'party', ${idx})">
             <div class="flex-row" style="margin-bottom:0;">
                 <div class="drag-handle" title="Sürükle bırak ile sırala">☰</div>
                 
@@ -5505,11 +5641,12 @@ function partyRowHtml(ep, idx, inDiger, sortedGlobal) {
                 
                 <button class="status-btn ${ep.isEnabled !== false ? 'active' : 'pasif'}"  onclick="takeSnapshot(); extraParties[${idx}].isEnabled=!(extraParties[${idx}].isEnabled!==false); updateTotalTracker(); renderExtraParties(); renderParlOrder(); scheduleProjection(0);" title="${ep.isEnabled !== false ? 'Şu an Aktif' : 'Şu an Pasif'}">${ep.isEnabled !== false ? 'A' : 'P'}</button>
                 
-                <div class="logo-daire" title="Renk ve Logo" style="width:23px; height:23px; border-radius:50%; background:${ep.color || '#000000'}; cursor:pointer; box-shadow:0 1px 3px rgba(43,38,30,0.22); flex-shrink:0; transition:0.2s; display:flex; align-items:center; justify-content:center; padding:3px; box-sizing:border-box;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('party', ${idx})">${ep.icon && partyIconRaw[ep.icon] ? recolorIconSvg(partyIconRaw[ep.icon], ep.iconColor || '#ffffff') : ''}</div>
+                <div class="logo-daire" title="Renk ve Logo" style="width:26px; height:26px; border-radius:50%; background:${ep.color || '#000000'}; cursor:pointer; box-shadow:0 1px 3px rgba(43,38,30,0.22); flex-shrink:0; transition:0.2s; display:flex; align-items:center; justify-content:center; padding:3.5px; box-sizing:border-box;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='none'" onclick="updateColorModal('party', ${idx})">${ep.icon && partyIconRaw[ep.icon] ? recolorIconSvg(partyIconRaw[ep.icon], ep.iconColor || '#ffffff') : ''}</div>
 
                 <input type="text" class="editable-name" value="${escapeStr(ep.name)}" onchange="renameParty(${idx}, this.value)" onkeyup="if(event.key==='Enter') this.blur()">
                 
-                <input type="text" inputmode="decimal" value="${fmtPctInput(ep.nat)}" style="width:58px; margin:0; font-weight:bold; color:var(--primary); flex-shrink:0;" oninput="extraParties[${idx}].nat=parsePctInputOrZero(this.value); updateTotalTracker();">
+                <input type="text" inputmode="decimal" class="parti-oy" value="${fmtPctInput(ep.nat)}" style="width:58px; margin:0; font-weight:bold; color:var(--primary); flex-shrink:0;" oninput="extraParties[${idx}].nat=parsePctInputOrZero(this.value); updateTotalTracker();">
+                <button class="kopya-btn" type="button" onclick="duplicateParty(${idx})" title="Partiyi çoğalt" aria-label="Partiyi çoğalt"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="12" height="12" rx="1.5"/><path d="M15.5 8.5V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v9A1.5 1.5 0 0 0 5 15.5h3.5"/></svg></button>
                 <button class="danger" onclick="deleteParty(${idx})">✖</button>
             </div>
             ${ep.isOpen && compareEnabled && compareResults ? `
@@ -5973,8 +6110,6 @@ window.toggleFermuarMapEdit = function(idx) {
     }
     renderFermuar();
     paintFermuarEditMap();
-    const mc = $('mapContainer');
-    if (mc) mc.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 window.closeFermuarMenu = function() {
@@ -8700,8 +8835,6 @@ window.toggleCompeteMapEdit = function(party) {
     }
     renderExtraParties();
     paintCompeteMap();
-    const mc = $('mapContainer');
-    if (mc) mc.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 window.exitCompeteMap = function() {
@@ -8822,6 +8955,16 @@ function yilModuMudahaleSifirla() {
     if ($('darBolgeInp')) $('darBolgeInp').checked = false;
     renderMudahale();
 }
+
+window.modSeridiDaralt = function() {
+    const serit = $('modeSwitch'), dugme = $('modeDaralt');
+    if (!serit || !dugme) return;
+    const kapali = serit.classList.toggle('daraltilmis');
+    const metin = kapali ? 'Model düğmelerini göster' : 'Model düğmelerini gizle';
+    dugme.setAttribute('aria-expanded', kapali ? 'false' : 'true');
+    dugme.setAttribute('aria-label', metin);
+    dugme.title = metin;
+};
 
 function markModeButton(mode) {
     Object.entries(MOD_BTN).forEach(([m, id]) => {
@@ -10220,7 +10363,8 @@ function updateSelectionUI() {
             const v = partyVotes[p];
             if (v < 10) return;
             const pct = totalVotes > 0 ? (v / totalVotes) * 100 : 0;
-            html += entityStatRow(p, partySeats[p] || 0, pct, compareStatsFor(p, null), cmpOn, maxPct, { votes: v });
+            // Yan panel göze küçük geliyordu: tüm öğeler orantılı %20 büyük.
+            html += entityStatRow(p, partySeats[p] || 0, pct, compareStatsFor(p, null), cmpOn, maxPct, { votes: v, ol: YAN_LISTE_OLCEK });
         });
         body.innerHTML = html;
     } else {
@@ -10261,7 +10405,7 @@ function updateSelectionUI() {
             const v = partyVotes[p];
             if (v < 10) return;
             const pct = totalVotes > 0 ? (v / totalVotes) * 100 : 0;
-            html += entityStatRow(p, partySeats[p] || 0, pct, compareStatsFor(p, selList), cmpOnSel, maxPctSel, { votes: v });
+            html += entityStatRow(p, partySeats[p] || 0, pct, compareStatsFor(p, selList), cmpOnSel, maxPctSel, { votes: v, ol: YAN_LISTE_OLCEK });
         });
         body.innerHTML = html;
     }
@@ -10874,22 +11018,17 @@ async function captureMapPng(secici) {
     link.click();
 }
 
+/* Yalnız diyagramın SVG'si yakalanır. Eskiden kart yakalanıyordu: kartın
+   zemini/kenarlığı satır içinde kapatılsa da tema kuralları kenarlığı
+   !important ile yeniden çiziyor, 11/22 px'lik iç boşlukla birlikte
+   çıktıda bir çerçeve kalıyordu. */
 async function captureParliamentPanel(triggerBtn) {
-    const el = $('parliamentChartCard');
-    if (!el) return;
+    const svg = $('parliamentChartArea') && $('parliamentChartArea').querySelector('svg');
+    if (!svg) return;
     const btn = triggerBtn || $('parliamentScreenshotBtn');
     const origHTML = btn.innerHTML;
     btn.innerHTML = '⏳';
     btn.disabled = true;
-
-    const prevBg = el.style.background;
-    const prevBoxShadow = el.style.boxShadow;
-    const prevBorder = el.style.border;
-    const prevBorderRadius = el.style.borderRadius;
-    el.style.background = 'transparent';
-    el.style.boxShadow = 'none';
-    el.style.border = 'none';
-    el.style.borderRadius = '0';
 
     // html2canvas satır içi SVG'yi ayrı bir görüntü olarak rasterize eder ve o
     // görüntü sayfanın @font-face kurallarını görmez: toplam vekil sayısı yedek
@@ -10897,14 +11036,23 @@ async function captureParliamentPanel(triggerBtn) {
     // kopyalıyoruz; çekim bitince geri alınır.
     const fontStili = svgYaziTipiGom($('parliamentChartArea'));
     try {
-        await ensureHtml2Canvas();
-        const canvas = await html2canvas(el, {
-            scale: 2,
-            backgroundColor: null,
-            useCORS: true,
-            logging: false,
-            allowTaint: false,
-            ignoreElements: (node) => node.id === 'parliamentScreenshotBtn'
+        // html2canvas SVG kök öğesini doğrudan çizemiyor (tuval yerine boş
+        // döner). SVG serileştirilip görüntü olarak saydam tuvale 2× basılır;
+        // yazı tipi yukarıda SVG'nin içine gömüldüğü için görüntüde de geçerli.
+        const olcu = svg.getBoundingClientRect();
+        const kat = 2, W = Math.round(olcu.width * kat), H = Math.round(olcu.height * kat);
+        const klon = svg.cloneNode(true);
+        klon.setAttribute('width', W); klon.setAttribute('height', H);
+        klon.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(klon)],
+                                                 { type: 'image/svg+xml;charset=utf-8' }));
+        const canvas = document.createElement('canvas');
+        canvas.width = W; canvas.height = H;
+        await new Promise((tamam, hata) => {
+            const img = new Image();
+            img.onload = () => { canvas.getContext('2d').drawImage(img, 0, 0, W, H); URL.revokeObjectURL(url); tamam(); };
+            img.onerror = () => { URL.revokeObjectURL(url); hata(new Error('Diyagram çizilemedi')); };
+            img.src = url;
         });
         const link = document.createElement('a');
         link.download = 'parlamento_' + new Date().toISOString().slice(0, 10) + '.png';
@@ -10918,10 +11066,6 @@ async function captureParliamentPanel(triggerBtn) {
         $('parliamentChartArea').querySelectorAll('text[data-eski-fill]').forEach(t => {
             t.setAttribute('fill', t.dataset.eskiFill); delete t.dataset.eskiFill;
         });
-        el.style.background = prevBg;
-        el.style.boxShadow = prevBoxShadow;
-        el.style.border = prevBorder;
-        el.style.borderRadius = prevBorderRadius;
         btn.innerHTML = origHTML;
         btn.disabled = false;
     }
