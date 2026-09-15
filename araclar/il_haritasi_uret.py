@@ -27,6 +27,13 @@ BUYUK_EN_ORANI = 0.33   # büyük gösterim genişliği / ana harita genişliği
 BUYUK_YUKARI = 100     # büyük gösterimi ana haritanın alt kenarından bu kadar birim yukarı al.
                        # Sınırı vekil noktaları koyuyor: 2026-09-14(2) konumlarıyla 105'te
                        # İstanbul 1 ve 3'ün daireleri kıyıdaki illere biniyor (şekiller 135'e kadar temiz).
+# Büyük gösterim kırpması: eski haritadaki gibi sağdan ve alttan düz kesik.
+# Kenarlar, hiç kırpılmayan büyük İstanbul 2'nin kutusuna göre verilir (ölçek
+# ve konumdan bağımsız): sağ = İst2 solu + oran × İst2 genişliği, alt = İst2
+# üstü + oran × İst2 yüksekliği. Oranlar eski turkiye_harita.svg'den ölçüldü
+# (sağ kesik x=425,29, alt kesik y≈849,6). None → o yönde kırpma yok.
+KIRPMA_SAG_ORAN = 3.245
+KIRPMA_ALT_ORAN = 1.447
 
 oku = lambda p: io.open(p, encoding='utf-8').read()
 svg = oku(KAYNAK)
@@ -129,17 +136,45 @@ def buyut(p):
     x, y = float(p[0]) * olcek + dx, float(p[1]) * olcek + dy
     return (f'{x:.2f}'.rstrip('0').rstrip('.'), f'{y:.2f}'.rstrip('0').rstrip('.'))
 
+def kirp_halka(pts, sag, alt):
+    """Sutherland–Hodgman: halkayı x <= sag ve y <= alt yarı-düzlemleriyle kırpar."""
+    def kes(p, icinde, kesis):
+        out = []
+        for i, a in enumerate(p):
+            b = p[(i + 1) % len(p)]
+            if icinde(a):
+                out.append(a)
+            if icinde(a) != icinde(b):
+                out.append(kesis(a, b))
+        return out
+    if sag is not None:
+        pts = kes(pts, lambda q: q[0] <= sag,
+                  lambda a, b: (sag, a[1] + (b[1] - a[1]) * (sag - a[0]) / (b[0] - a[0])))
+    if alt is not None and pts:
+        pts = kes(pts, lambda q: q[1] <= alt,
+                  lambda a, b: (a[0] + (b[0] - a[0]) * (alt - a[1]) / (b[1] - a[1]), alt))
+    return pts if len(pts) >= 3 else None
+
+sayi = lambda v: f'{v:.2f}'.rstrip('0').rstrip('.')
+buyukHalka = {c: [[(float(x) * olcek + dx, float(y) * olcek + dy) for x, y in h] for h in sekil[c]]
+              for c in BUYUK_CEVRELER}
+i2 = kutu(buyukHalka['İstanbul 2. Bölge'])
+kirpSag = None if KIRPMA_SAG_ORAN is None else i2[0] + KIRPMA_SAG_ORAN * (i2[2] - i2[0])
+kirpAlt = None if KIRPMA_ALT_ORAN is None else i2[1] + KIRPMA_ALT_ORAN * (i2[3] - i2[1])
+kirpik = {c: [k for k in (kirp_halka(h, kirpSag, kirpAlt) for h in hs) if k] for c, hs in buyukHalka.items()}
+
 govde = []
 for cevre, hs in sekil.items():
     govde.append(f'  <path id="{kimlik[cevre]}" fill-rule="evenodd" d="{d_yaz(hs)}"/>')
 for cevre in BUYUK_CEVRELER:
-    govde.append(f'  <path id="{buyukKimlik[cevre]}" fill-rule="evenodd" d="{d_yaz(sekil[cevre], buyut)}"/>')
+    d = ''.join('M' + ' '.join(f'{sayi(x)},{sayi(y)}' for x, y in h) for h in kirpik[cevre])
+    govde.append(f'  <path id="{buyukKimlik[cevre]}" fill-rule="evenodd" d="{d}"/>')
 
 # viewBox: kaynaktaki yatay çerçeve korunur; alt kenar büyük gösterimin altına
 # kaynağın üst boşluğu kadar pay bırakılarak uzatılır.
 vb = re.search(r'viewBox="([^"]+)"', svg).group(1).split()
 vx, vy, vw = float(vb[0]), float(vb[1]), float(vb[2])
-buyukAlt = by1 * olcek + dy
+buyukAlt = kutu([h for hs in kirpik.values() for h in hs])[3]   # kırpılmış gösterimin alt kenarı
 ustPay = y0 - vy
 vh = (buyukAlt + ustPay) - vy
 # data-ana-cerceve: büyük gösterimler gizlendiğinde kullanılacak çerçeve. İlçe
@@ -155,5 +190,6 @@ print('çevre', len(sekil), '| büyük', len(BUYUK_CEVRELER), '| ölçek', round
 print('ana harita kutusu', [round(v, 2) for v in (x0, y0, x1, y1)])
 print('büyük gösterim üstü', round(by0 * olcek + dy, 4), '| ana alt', round(y1, 4), '| fark', BUYUK_YUKARI, '| sol', round(bx0 * olcek + dx, 4), '= ana sol', round(x0, 4))
 print('viewBox', vx, vy, vw, round(vh, 2))
+print('kırpma sağ', None if kirpSag is None else round(kirpSag, 2), '| alt', None if kirpAlt is None else round(kirpAlt, 2))
 print('bölge birleşimleri (çevre, ilçe halkası, birleşim halkası, ilçe alanı, birleşim alanı):')
 for r in rapor: print('  ', r)
